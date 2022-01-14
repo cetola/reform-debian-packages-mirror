@@ -1,6 +1,9 @@
 image: debian:bullseye-slim
 
 build:
+  artifacts:
+    paths:
+      - output.log
   script:
     - apt-get update
     - apt-get upgrade --yes
@@ -10,4 +13,4 @@ build:
     - id build >/dev/null || adduser --gecos build --disabled-password build
     - id build >/dev/null || adduser build sbuild
     - chown build -R .
-    - runuser build -c ./build.sh
+    - runuser build -c ./build.sh 2>&1 | ./filter-output
