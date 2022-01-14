@@ -6,8 +6,8 @@ build:
     - apt-get upgrade --yes
     - apt-get dist-upgrade --yes
     - apt-get --no-install-recommends -y install fakechroot fakeroot devscripts mmdebstrap python3 reprepro sbuild schroot debhelper debian-keyring
-    - sbuild-createchroot --debootstrap=mmdebstrap --alias=sid unstable /srv/chroot/unstable-sbuild http://deb.debian.org/debian
-    - adduser --gecos build --disabled-password build
-    - adduser build sbuild
+    - [ -d /srv/chroot/unstable-sbuild ] || sbuild-createchroot --debootstrap=mmdebstrap --alias=sid unstable /srv/chroot/unstable-sbuild http://deb.debian.org/debian
+    - id build >/dev/null || adduser --gecos build --disabled-password build
+    - id build >/dev/null || adduser build sbuild
     - chown build -R .
     - runuser build -c ./build.sh
