@@ -12,5 +12,7 @@ build:
     - test -d /srv/chroot/unstable-sbuild || sbuild-createchroot --debootstrap=mmdebstrap --alias=sid unstable /srv/chroot/unstable-sbuild http://deb.debian.org/debian
     - id build >/dev/null || adduser --gecos build --disabled-password build
     - id build >/dev/null || adduser build sbuild
+    - sed -i '/union-overlay-directory=/d' /etc/schroot/chroot.d/sid-arm64-sbuild-*
+    - echo union-overlay-directory=$(pwd) >> /etc/schroot/chroot.d/sid-arm64-sbuild-*
     - chown build -R .
     - runuser build -c ./build.sh 2>&1 | ./filter-output
