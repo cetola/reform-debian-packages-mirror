@@ -1,0 +1,37 @@
+From 7443b914832c05cfe3707555b7d1ca1f3c6d7783 Mon Sep 17 00:00:00 2001
+From: mntmn <lukas@mntmn.com>
+Date: Tue, 24 Nov 2020 00:49:16 +0100
+Subject: [PATCH 1/8] nwl-dsi: fixup mode only for LCDIF input, not DCSS
+
+The inversion of HSYNC and VSYNC should not be done when the input
+source is DCSS, or internal display does not work on MNT Reform 2.0.
+---
+ drivers/gpu/drm/bridge/nwl-dsi.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/gpu/drm/bridge/nwl-dsi.c b/drivers/gpu/drm/bridge/nwl-dsi.c
+index 66b67402f..6735ab2a2 100644
+--- a/drivers/gpu/drm/bridge/nwl-dsi.c
++++ b/drivers/gpu/drm/bridge/nwl-dsi.c
+@@ -807,9 +807,15 @@ static bool nwl_dsi_bridge_mode_fixup(struct drm_bridge *bridge,
+ 				      const struct drm_display_mode *mode,
+ 				      struct drm_display_mode *adjusted_mode)
+ {
+-	/* At least LCDIF + NWL needs active high sync */
+-	adjusted_mode->flags |= (DRM_MODE_FLAG_PHSYNC | DRM_MODE_FLAG_PVSYNC);
+-	adjusted_mode->flags &= ~(DRM_MODE_FLAG_NHSYNC | DRM_MODE_FLAG_NVSYNC);
++	struct device_node *remote;
++	struct nwl_dsi *dsi = bridge_to_dsi(bridge);
++	remote = of_graph_get_remote_node(dsi->dev->of_node, 0,
++						NWL_DSI_ENDPOINT_LCDIF);
++	if (remote) {
++		/* At least LCDIF + NWL needs active high sync */
++		adjusted_mode->flags |= (DRM_MODE_FLAG_PHSYNC | DRM_MODE_FLAG_PVSYNC);
++		adjusted_mode->flags &= ~(DRM_MODE_FLAG_NHSYNC | DRM_MODE_FLAG_NVSYNC);
++	}
+ 
+ 	return true;
+ }
+-- 
+2.28.0
+

@@ -1,0 +1,27 @@
+This is [1msway[0m, a tiled windowing system and compositor.
+Windows don't normally float around. Instead, a new window occupies
+the full screen or a division of the screen. For example, if you
+open another window now, both windows will take half of the screen.
+
+To open another terminal, press [1mSUPER+ENTER[0m.
+
+To go to a workspace, press [1mSUPER+1[0m to [1mSUPER+9[0m.
+To move the focused window to another workspace, press the same
+combination, but together with [1mSHIFT[0m.
+
+To close a window, press [1mSUPER+ESC[0m.
+
+To launch the file manager [1mthunar[0m, press [1mSUPER+T[0m.
+
+To find a program by typing its name, press [1mSUPER+D[0m.
+
+To configure the network, click on [1mNET[0m in the title bar.
+
+You can make windows float, split vertically and more. 
+Check out the sway configuration file:
+[1mgedit ~/.config/sway/config[0m.
+
+To learn more about the command line, enter: [1mreform-help[0m.
+This help can be reached by entering: [1mreform-desktop-help[0m.
+Read the MNT Reform handbook in a browser: [1mreform-handbook[0m.
+

@@ -1,0 +1,743 @@
+diff -Nru blender-2.79.b+dfsg0/debian/changelog blender-2.79.b+dfsg0/debian/changelog
+--- blender-2.79.b+dfsg0/debian/changelog	2019-04-23 21:43:18.000000000 +0200
++++ blender-2.79.b+dfsg0/debian/changelog	2021-12-30 11:20:26.000000000 +0100
+@@ -1,3 +1,9 @@
++blender (2.79.b+dfsg0-7+reform1) unstable; urgency=medium
++
++  * rebuild old blender on unstable
++
++ -- Johannes Schauer Marin Rodrigues <josch@debian.org>  Thu, 30 Dec 2021 11:20:26 +0100
++
+ blender (2.79.b+dfsg0-7) unstable; urgency=medium
+ 
+   * debian/patches/0007-fix_OpenJPEG2_build.patch:
+diff -Nru blender-2.79.b+dfsg0/debian/control blender-2.79.b+dfsg0/debian/control
+--- blender-2.79.b+dfsg0/debian/control	2018-12-28 11:28:03.000000000 +0100
++++ blender-2.79.b+dfsg0/debian/control	2021-12-30 11:20:26.000000000 +0100
+@@ -5,6 +5,7 @@
+ Uploaders: Matteo F. Vescovi <mfv@debian.org>
+ Build-Depends: cmake,
+                debhelper (>= 11~),
++               dh-python,
+                gettext,
+                libalut-dev,
+                libavcodec-dev (>> 6:10),
+@@ -20,13 +21,16 @@
+                libboost-thread-dev,
+                libfftw3-dev,
+                libfontconfig-dev,
++               libfreetype-dev:native,
+                libgettextpo-dev,
+                libglew-dev,
++               libglew-dev:native,
+                libgsm1-dev,
+                libilmbase-dev (>= 2.2.0),
+                libjack-dev,
+                libjemalloc-dev [!hurd-i386],
+                libjpeg-dev,
++               libjpeg-dev:native,
+                liblzma-dev,
+                liblzo2-dev,
+                libopenal-dev,
+@@ -36,6 +40,9 @@
+                libopenjp2-7-dev,
+                libopenvdb-dev [amd64 i386],
+                libpng-dev,
++               libpng-dev:native,
++               libpugixml-dev,
++               libpython3-dev,
+                libsdl-dev,
+                libsndfile-dev,
+                libspnav-dev,
+@@ -44,11 +51,13 @@
+                libtiff-dev,
+                libvorbis-dev,
+                libxi-dev,
++               libxi-dev:native,
+                libz-dev,
++               libz-dev:native,
+                opencollada-dev [linux-any],
+                pkg-config,
+-               python3-dev,
+-               python3-requests
++               python3-dev:any,
++               python3-requests:native
+ Build-Conflicts: nvidia-glx
+ Standards-Version: 4.3.0
+ Homepage: http://www.blender.org/
+diff -Nru blender-2.79.b+dfsg0/debian/patches/0001-Cleanup-fix-compiler-warnings.patch blender-2.79.b+dfsg0/debian/patches/0001-Cleanup-fix-compiler-warnings.patch
+--- blender-2.79.b+dfsg0/debian/patches/0001-Cleanup-fix-compiler-warnings.patch	1970-01-01 01:00:00.000000000 +0100
++++ blender-2.79.b+dfsg0/debian/patches/0001-Cleanup-fix-compiler-warnings.patch	2021-12-30 11:20:26.000000000 +0100
+@@ -0,0 +1,19 @@
++From 37889011070ff2ec52159690f652238d2b325185 Mon Sep 17 00:00:00 2001
++From: Brecht Van Lommel <brechtvanlommel@gmail.com>
++Date: Sun, 26 Jan 2020 16:35:58 +0100
++Subject: [PATCH] Cleanup: fix compiler warnings
++
++--- a/intern/openvdb/openvdb_util.cc
+++++ b/intern/openvdb/openvdb_util.cc
++@@ -34,5 +34,10 @@ ScopeTimer::ScopeTimer(const std::string
++ 
++ ScopeTimer::~ScopeTimer()
++ {
++-	std::printf("%s: %fms\n", m_message.c_str(), m_timer.delta());
+++#if OPENVDB_LIBRARY_MAJOR_VERSION_NUMBER >= 7
+++	double delta = m_timer.milliseconds();
+++#else
+++	double delta = m_timer.delta(); /* Deprecated in OpenVDB 7. */
+++#endif
+++	std::printf("%s: %fms\n", m_message.c_str(), delta);
++ }
+diff -Nru blender-2.79.b+dfsg0/debian/patches/0001-Cleanup-use-PyImport_GetModuleDict.patch blender-2.79.b+dfsg0/debian/patches/0001-Cleanup-use-PyImport_GetModuleDict.patch
+--- blender-2.79.b+dfsg0/debian/patches/0001-Cleanup-use-PyImport_GetModuleDict.patch	1970-01-01 01:00:00.000000000 +0100
++++ blender-2.79.b+dfsg0/debian/patches/0001-Cleanup-use-PyImport_GetModuleDict.patch	2021-12-30 11:20:26.000000000 +0100
+@@ -0,0 +1,115 @@
++From 44f719b63238503ef8f933f55383c6d4798995cc Mon Sep 17 00:00:00 2001
++From: Campbell Barton <ideasman42@gmail.com>
++Date: Thu, 13 Sep 2018 17:06:07 +1000
++Subject: [PATCH] Cleanup: use PyImport_GetModuleDict
++
++Replace direct access using PyThreadState_GET
++---
++ source/blender/python/bmesh/bmesh_py_api.c        | 2 +-
++ source/blender/python/generic/idprop_py_api.c     | 2 +-
++ source/blender/python/intern/bpy_interface.c      | 2 +-
++ source/blender/python/intern/gpu.c                | 4 ++--
++ source/blender/python/mathutils/mathutils.c       | 2 +-
++ source/blender/python/mathutils/mathutils_noise.c | 5 +++--
++ source/gameengine/Ketsji/KX_PythonInit.cpp        | 2 +-
++ 7 files changed, 10 insertions(+), 9 deletions(-)
++
++--- a/source/blender/python/bmesh/bmesh_py_api.c
+++++ b/source/blender/python/bmesh/bmesh_py_api.c
++@@ -196,7 +196,7 @@ PyObject *BPyInit_bmesh(void)
++ {
++ 	PyObject *mod;
++ 	PyObject *submodule;
++-	PyObject *sys_modules = PyThreadState_GET()->interp->modules;
+++	PyObject *sys_modules = PyImport_GetModuleDict();
++ 
++ 	BPy_BM_init_types();
++ 	BPy_BM_init_types_select();
++--- a/source/blender/python/generic/idprop_py_api.c
+++++ b/source/blender/python/generic/idprop_py_api.c
++@@ -1792,7 +1792,7 @@ PyObject *BPyInit_idprop(void)
++ {
++ 	PyObject *mod;
++ 	PyObject *submodule;
++-	PyObject *sys_modules = PyThreadState_GET()->interp->modules;
+++	PyObject *sys_modules = PyImport_GetModuleDict();
++ 
++ 	mod = PyModule_Create(&IDProp_module_def);
++ 
++--- a/source/blender/python/intern/bpy_interface.c
+++++ b/source/blender/python/intern/bpy_interface.c
++@@ -530,7 +530,7 @@ static bool python_script_exec(
++ 
++ 	if (py_dict) {
++ #ifdef PYMODULE_CLEAR_WORKAROUND
++-		PyModuleObject *mmod = (PyModuleObject *)PyDict_GetItemString(PyThreadState_GET()->interp->modules, "__main__");
+++		PyModuleObject *mmod = (PyModuleObject *)PyDict_GetItemString(PyImport_GetModuleDict(), "__main__");
++ 		PyObject *dict_back = mmod->md_dict;
++ 		/* freeing the module will clear the namespace,
++ 		 * gives problems running classes defined in this namespace being used later. */
++--- a/source/blender/python/intern/gpu.c
+++++ b/source/blender/python/intern/gpu.c
++@@ -323,7 +323,7 @@ PyObject *GPU_initPython(void)
++ {
++ 	PyObject *module;
++ 	PyObject *submodule;
++-	PyObject *sys_modules = PyThreadState_GET()->interp->modules;
+++	PyObject *sys_modules = PyImport_GetModuleDict();
++ 
++ 	module = PyInit_gpu();
++ 
++@@ -334,7 +334,7 @@ PyObject *GPU_initPython(void)
++ 	PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
++ 	Py_INCREF(submodule);
++ 
++-	PyDict_SetItem(PyImport_GetModuleDict(), PyModule_GetNameObject(module), module);
+++	PyDict_SetItem(sys_modules, PyModule_GetNameObject(module), module);
++ 	return module;
++ }
++ 
++--- a/source/blender/python/mathutils/mathutils.c
+++++ b/source/blender/python/mathutils/mathutils.c
++@@ -622,7 +622,7 @@ PyMODINIT_FUNC PyInit_mathutils(void)
++ {
++ 	PyObject *mod;
++ 	PyObject *submodule;
++-	PyObject *sys_modules = PyThreadState_GET()->interp->modules;
+++	PyObject *sys_modules = PyImport_GetModuleDict();
++ 
++ 	if (PyType_Ready(&vector_Type) < 0)
++ 		return NULL;
++--- a/source/blender/python/mathutils/mathutils_noise.c
+++++ b/source/blender/python/mathutils/mathutils_noise.c
++@@ -840,6 +840,7 @@ static struct PyModuleDef M_Noise_module
++ /*----------------------------MODULE INIT-------------------------*/
++ PyMODINIT_FUNC PyInit_mathutils_noise(void)
++ {
+++	PyObject *sys_modules = PyImport_GetModuleDict();
++ 	PyObject *submodule = PyModule_Create(&M_Noise_module_def);
++ 	PyObject *item_types, *item_metrics;
++ 
++@@ -847,11 +848,11 @@ PyMODINIT_FUNC PyInit_mathutils_noise(vo
++ 	setRndSeed(0);
++ 
++ 	PyModule_AddObject(submodule, "types", (item_types = PyInit_mathutils_noise_types()));
++-	PyDict_SetItemString(PyThreadState_GET()->interp->modules, "noise.types", item_types);
+++	PyDict_SetItemString(sys_modules, "noise.types", item_types);
++ 	Py_INCREF(item_types);
++ 
++ 	PyModule_AddObject(submodule, "distance_metrics", (item_metrics = PyInit_mathutils_noise_metrics()));
++-	PyDict_SetItemString(PyThreadState_GET()->interp->modules, "noise.distance_metrics", item_metrics);
+++	PyDict_SetItemString(sys_modules, "noise.distance_metrics", item_metrics);
++ 	Py_INCREF(item_metrics);
++ 
++ 	return submodule;
++--- a/source/gameengine/Ketsji/KX_PythonInit.cpp
+++++ b/source/gameengine/Ketsji/KX_PythonInit.cpp
++@@ -2239,7 +2239,7 @@ PyMODINIT_FUNC initBGE(void)
++ {
++ 	PyObject *mod;
++ 	PyObject *submodule;
++-	PyObject *sys_modules = PyThreadState_GET()->interp->modules;
+++	PyObject *sys_modules = PyImport_GetModuleDict();
++ 	const char *mod_full;
++ 
++ 	mod = PyModule_Create(&BGE_module_def);
+diff -Nru blender-2.79.b+dfsg0/debian/patches/0001-Fix-for-GCC9-new-OpenMP-data-sharing.patch blender-2.79.b+dfsg0/debian/patches/0001-Fix-for-GCC9-new-OpenMP-data-sharing.patch
+--- blender-2.79.b+dfsg0/debian/patches/0001-Fix-for-GCC9-new-OpenMP-data-sharing.patch	1970-01-01 01:00:00.000000000 +0100
++++ blender-2.79.b+dfsg0/debian/patches/0001-Fix-for-GCC9-new-OpenMP-data-sharing.patch	2021-12-30 11:20:26.000000000 +0100
+@@ -0,0 +1,61 @@
++From d780409156e838e366f4da5126e6aeab44174d62 Mon Sep 17 00:00:00 2001
++From: =?UTF-8?q?Robert-Andr=C3=A9=20Mauchin?= <zebob.m@gmail.com>
++Date: Wed, 3 Apr 2019 01:36:52 +0200
++Subject: [PATCH] Fix for GCC9 new OpenMP data sharing
++MIME-Version: 1.0
++Content-Type: text/plain; charset=UTF-8
++Content-Transfer-Encoding: 8bit
++
++GCC 9 started implementing the OpenMP 4.0 and later behavior. When not using
++default clause or when using default(shared), this makes no difference, but
++if using default(none), previously the choice was not specify the const
++qualified variables on the construct at all, or specify in firstprivate
++clause. In GCC 9 as well as for OpenMP 4.0 compliance, those variables need
++to be specified on constructs in which they are used, either in shared or
++in firstprivate clause. Specifying them in firstprivate clause is one way to
++achieve compatibility with both older GCC versions and GCC 9,
++another option is to drop the default(none) clause.
++
++This patch thus drops the default(none) clause.
++
++See https://gcc.gnu.org/gcc-9/porting_to.html#ompdatasharing
++
++Signed-off-by: Robert-André Mauchin <zebob.m@gmail.com>
++---
++ intern/elbeem/intern/solver_main.cpp | 6 +++---
++ 1 file changed, 3 insertions(+), 3 deletions(-)
++
++diff --git a/intern/elbeem/intern/solver_main.cpp b/intern/elbeem/intern/solver_main.cpp
++index 68f7c04cd54..514087b6130 100644
++--- a/intern/elbeem/intern/solver_main.cpp
+++++ b/intern/elbeem/intern/solver_main.cpp
++@@ -381,7 +381,7 @@ LbmFsgrSolver::mainLoop(const int lev)
++ 	GRID_REGION_INIT();
++ #if PARALLEL==1
++ 	const int gDebugLevel = ::gDebugLevel;
++-#pragma omp parallel default(none) num_threads(mNumOMPThreads) \
+++#pragma omp parallel num_threads(mNumOMPThreads) \
++   reduction(+: \
++ 	  calcCurrentMass,calcCurrentVolume, \
++ 		calcCellsFilled,calcCellsEmptied, \
++@@ -1126,7 +1126,7 @@ LbmFsgrSolver::preinitGrids()
++ 		GRID_REGION_INIT();
++ #if PARALLEL==1
++ 	const int gDebugLevel = ::gDebugLevel;
++-#pragma omp parallel default(none) num_threads(mNumOMPThreads) \
+++#pragma omp parallel num_threads(mNumOMPThreads) \
++   reduction(+: \
++ 	  calcCurrentMass,calcCurrentVolume, \
++ 		calcCellsFilled,calcCellsEmptied, \
++@@ -1164,7 +1164,7 @@ LbmFsgrSolver::standingFluidPreinit()
++ 	GRID_REGION_INIT();
++ #if PARALLEL==1
++ 	const int gDebugLevel = ::gDebugLevel;
++-#pragma omp parallel default(none) num_threads(mNumOMPThreads) \
+++#pragma omp parallel num_threads(mNumOMPThreads) \
++   reduction(+: \
++ 	  calcCurrentMass,calcCurrentVolume, \
++ 		calcCellsFilled,calcCellsEmptied, \
++-- 
++2.33.0
++
+diff -Nru blender-2.79.b+dfsg0/debian/patches/0001-PyAPI-use-public-API-s-for-module-builtin-access.patch blender-2.79.b+dfsg0/debian/patches/0001-PyAPI-use-public-API-s-for-module-builtin-access.patch
+--- blender-2.79.b+dfsg0/debian/patches/0001-PyAPI-use-public-API-s-for-module-builtin-access.patch	1970-01-01 01:00:00.000000000 +0100
++++ blender-2.79.b+dfsg0/debian/patches/0001-PyAPI-use-public-API-s-for-module-builtin-access.patch	2021-12-30 11:20:26.000000000 +0100
+@@ -0,0 +1,55 @@
++From e413b39a936181cc954dfbf054b0a19794d8902c Mon Sep 17 00:00:00 2001
++From: Campbell Barton <ideasman42@gmail.com>
++Date: Wed, 16 Oct 2019 23:15:30 +1100
++Subject: [PATCH] PyAPI: use public API's for module & builtin access
++
++D6038 by @Dormouse
++---
++ source/blender/python/generic/py_capi_utils.c | 23 ++++++++-----------
++ 1 file changed, 9 insertions(+), 14 deletions(-)
++
++--- a/source/blender/python/generic/py_capi_utils.c
+++++ b/source/blender/python/generic/py_capi_utils.c
++@@ -638,9 +638,10 @@ PyObject *PyC_UnicodeFromByte(const char
++  ****************************************************************************/
++ PyObject *PyC_DefaultNameSpace(const char *filename)
++ {
++-	PyInterpreterState *interp = PyThreadState_GET()->interp;
+++	PyObject *modules = PyImport_GetModuleDict();
+++	PyObject *builtins = PyEval_GetBuiltins();
++ 	PyObject *mod_main = PyModule_New("__main__");
++-	PyDict_SetItemString(interp->modules, "__main__", mod_main);
+++	PyDict_SetItemString(modules, "__main__", mod_main);
++ 	Py_DECREF(mod_main); /* sys.modules owns now */
++ 	PyModule_AddStringConstant(mod_main, "__name__", "__main__");
++ 	if (filename) {
++@@ -648,23 +649,23 @@ PyObject *PyC_DefaultNameSpace(const cha
++ 		 * note: this wont map to a real file when executing text-blocks and buttons. */
++ 		PyModule_AddObject(mod_main, "__file__", PyC_UnicodeFromByte(filename));
++ 	}
++-	PyModule_AddObject(mod_main, "__builtins__", interp->builtins);
++-	Py_INCREF(interp->builtins); /* AddObject steals a reference */
+++	PyModule_AddObject(mod_main, "__builtins__", builtins);
+++	Py_INCREF(builtins); /* AddObject steals a reference */
++ 	return PyModule_GetDict(mod_main);
++ }
++ 
++ /* restore MUST be called after this */
++ void PyC_MainModule_Backup(PyObject **main_mod)
++ {
++-	PyInterpreterState *interp = PyThreadState_GET()->interp;
++-	*main_mod = PyDict_GetItemString(interp->modules, "__main__");
+++	PyObject *modules = PyImport_GetModuleDict();
+++	*main_mod = PyDict_GetItemString(modules, "__main__");
++ 	Py_XINCREF(*main_mod); /* don't free */
++ }
++ 
++ void PyC_MainModule_Restore(PyObject *main_mod)
++ {
++-	PyInterpreterState *interp = PyThreadState_GET()->interp;
++-	PyDict_SetItemString(interp->modules, "__main__", main_mod);
+++	PyObject *modules = PyImport_GetModuleDict();
+++	PyDict_SetItemString(modules, "__main__", main_mod);
++ 	Py_XDECREF(main_mod);
++ }
++ 
+diff -Nru blender-2.79.b+dfsg0/debian/patches/0001-Python-support-building-again-version-3.9-unreleased.patch blender-2.79.b+dfsg0/debian/patches/0001-Python-support-building-again-version-3.9-unreleased.patch
+--- blender-2.79.b+dfsg0/debian/patches/0001-Python-support-building-again-version-3.9-unreleased.patch	1970-01-01 01:00:00.000000000 +0100
++++ blender-2.79.b+dfsg0/debian/patches/0001-Python-support-building-again-version-3.9-unreleased.patch	2021-12-30 11:20:26.000000000 +0100
+@@ -0,0 +1,143 @@
++From 56d0df51a36fdce7ec2d1fbb7b47b1d95b591b5f Mon Sep 17 00:00:00 2001
++From: Campbell Barton <ideasman42@gmail.com>
++Date: Mon, 22 Jun 2020 14:51:20 +1000
++Subject: [PATCH] Python: support building again version 3.9 (unreleased)
++
++Resolves T78089, no functional changes.
++---
++ .../blender/python/mathutils/mathutils_Matrix.c  | 16 +++++++++-------
++ .../python/mathutils/mathutils_Quaternion.c      | 14 ++++++++------
++ .../blender/python/mathutils/mathutils_Vector.c  |  6 +++---
++ 3 files changed, 20 insertions(+), 16 deletions(-)
++
++--- a/source/blender/python/mathutils/mathutils_Matrix.c
+++++ b/source/blender/python/mathutils/mathutils_Matrix.c
++@@ -48,7 +48,7 @@ static PyObject *Matrix_copy_notest(Matr
++ static PyObject *Matrix_copy(MatrixObject *self);
++ static PyObject *Matrix_deepcopy(MatrixObject *self, PyObject *args);
++ static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *value);
++-static PyObject *matrix__apply_to_copy(PyNoArgsFunction matrix_func, MatrixObject *self);
+++static PyObject *matrix__apply_to_copy(PyObject *(*matrix_func)(MatrixObject *), MatrixObject *self);
++ static PyObject *MatrixAccess_CreatePyObject(MatrixObject *matrix, const eMatrixAccess_t type);
++ 
++ static int matrix_row_vector_check(MatrixObject *mat, VectorObject *vec, int row)
++@@ -385,14 +385,14 @@ static PyObject *Matrix_new(PyTypeObject
++ 	return NULL;
++ }
++ 
++-static PyObject *matrix__apply_to_copy(PyNoArgsFunction matrix_func, MatrixObject *self)
+++static PyObject *matrix__apply_to_copy(PyObject *(*matrix_func)(MatrixObject *), MatrixObject *self)
++ {
++ 	PyObject *ret = Matrix_copy(self);
++ 	if (ret) {
++-		PyObject *ret_dummy = matrix_func(ret);
+++		PyObject *ret_dummy = matrix_func((MatrixObject *)ret);
++ 		if (ret_dummy) {
++ 			Py_DECREF(ret_dummy);
++-			return (PyObject *)ret;
+++			return ret;
++ 		}
++ 		else { /* error */
++ 			Py_DECREF(ret);
++@@ -1598,7 +1598,7 @@ PyDoc_STRVAR(Matrix_adjugated_doc,
++ );
++ static PyObject *Matrix_adjugated(MatrixObject *self)
++ {
++-	return matrix__apply_to_copy((PyNoArgsFunction)Matrix_adjugate, self);
+++	return matrix__apply_to_copy(Matrix_adjugate, self);
++ }
++ 
++ PyDoc_STRVAR(Matrix_rotate_doc,
++@@ -1795,7 +1795,7 @@ PyDoc_STRVAR(Matrix_transposed_doc,
++ );
++ static PyObject *Matrix_transposed(MatrixObject *self)
++ {
++-	return matrix__apply_to_copy((PyNoArgsFunction)Matrix_transpose, self);
+++	return matrix__apply_to_copy(Matrix_transpose, self);
++ }
++ 
++ /*---------------------------matrix.normalize() ------------------*/
++@@ -1842,7 +1842,7 @@ PyDoc_STRVAR(Matrix_normalized_doc,
++ );
++ static PyObject *Matrix_normalized(MatrixObject *self)
++ {
++-	return matrix__apply_to_copy((PyNoArgsFunction)Matrix_normalize, self);
+++	return matrix__apply_to_copy(Matrix_normalize, self);
++ }
++ 
++ /*---------------------------matrix.zero() -----------------------*/
++--- a/source/blender/python/mathutils/mathutils_Quaternion.c
+++++ b/source/blender/python/mathutils/mathutils_Quaternion.c
++@@ -40,7 +40,7 @@
++ 
++ #define QUAT_SIZE 4
++ 
++-static PyObject *quat__apply_to_copy(PyNoArgsFunction quat_func, QuaternionObject *self);
+++static PyObject *quat__apply_to_copy(PyObject *(*quat_func)(QuaternionObject *), QuaternionObject *self);
++ static void      quat__axis_angle_sanitize(float axis[3], float *angle);
++ static PyObject *Quaternion_copy(QuaternionObject *self);
++ static PyObject *Quaternion_deepcopy(QuaternionObject *self, PyObject *args);
++@@ -381,7 +381,7 @@ PyDoc_STRVAR(Quaternion_normalized_doc,
++ );
++ static PyObject *Quaternion_normalized(QuaternionObject *self)
++ {
++-	return quat__apply_to_copy((PyNoArgsFunction)Quaternion_normalize, self);
+++	return quat__apply_to_copy(Quaternion_normalize, self);
++ }
++ 
++ PyDoc_STRVAR(Quaternion_invert_doc,
++@@ -409,7 +409,7 @@ PyDoc_STRVAR(Quaternion_inverted_doc,
++ );
++ static PyObject *Quaternion_inverted(QuaternionObject *self)
++ {
++-	return quat__apply_to_copy((PyNoArgsFunction)Quaternion_invert, self);
+++	return quat__apply_to_copy(Quaternion_invert, self);
++ }
++ 
++ PyDoc_STRVAR(Quaternion_identity_doc,
++@@ -473,7 +473,7 @@ PyDoc_STRVAR(Quaternion_conjugated_doc,
++ );
++ static PyObject *Quaternion_conjugated(QuaternionObject *self)
++ {
++-	return quat__apply_to_copy((PyNoArgsFunction)Quaternion_conjugate, self);
+++	return quat__apply_to_copy(Quaternion_conjugate, self);
++ }
++ 
++ PyDoc_STRVAR(Quaternion_copy_doc,
++@@ -1146,10 +1146,10 @@ static PyObject *Quaternion_new(PyTypeOb
++ 	return Quaternion_CreatePyObject(quat, type);
++ }
++ 
++-static PyObject *quat__apply_to_copy(PyNoArgsFunction quat_func, QuaternionObject *self)
+++static PyObject *quat__apply_to_copy(PyObject *(*quat_func)(QuaternionObject *), QuaternionObject *self)
++ {
++ 	PyObject *ret = Quaternion_copy(self);
++-	PyObject *ret_dummy = quat_func(ret);
+++	PyObject *ret_dummy = quat_func((QuaternionObject *)ret);
++ 	if (ret_dummy) {
++ 		Py_DECREF(ret_dummy);
++ 		return ret;
++--- a/source/blender/python/mathutils/mathutils_Vector.c
+++++ b/source/blender/python/mathutils/mathutils_Vector.c
++@@ -92,10 +92,10 @@ static PyObject *Vector_new(PyTypeObject
++ 	return Vector_CreatePyObject_alloc(vec, size, type);
++ }
++ 
++-static PyObject *vec__apply_to_copy(PyNoArgsFunction vec_func, VectorObject *self)
+++static PyObject *vec__apply_to_copy(PyObject *(*vec_func)(VectorObject *), VectorObject *self)
++ {
++ 	PyObject *ret = Vector_copy(self);
++-	PyObject *ret_dummy = vec_func(ret);
+++	PyObject *ret_dummy = vec_func((VectorObject *)ret);
++ 	if (ret_dummy) {
++ 		Py_DECREF(ret_dummy);
++ 		return (PyObject *)ret;
++@@ -378,7 +378,7 @@ PyDoc_STRVAR(Vector_normalized_doc,
++ );
++ static PyObject *Vector_normalized(VectorObject *self)
++ {
++-	return vec__apply_to_copy((PyNoArgsFunction)Vector_normalize, self);
+++	return vec__apply_to_copy(Vector_normalize, self);
++ }
++ 
++ PyDoc_STRVAR(Vector_resize_doc,
+diff -Nru blender-2.79.b+dfsg0/debian/patches/0001-Update-C-standard-to-C-14.patch blender-2.79.b+dfsg0/debian/patches/0001-Update-C-standard-to-C-14.patch
+--- blender-2.79.b+dfsg0/debian/patches/0001-Update-C-standard-to-C-14.patch	1970-01-01 01:00:00.000000000 +0100
++++ blender-2.79.b+dfsg0/debian/patches/0001-Update-C-standard-to-C-14.patch	2021-12-30 11:20:26.000000000 +0100
+@@ -0,0 +1,24 @@
++From 171c4fb238a2a65291540ac5406187bc69f3a6bc Mon Sep 17 00:00:00 2001
++From: Sergey Sharybin <sergey.vfx@gmail.com>
++Date: Thu, 18 Jun 2020 10:45:40 +0200
++Subject: [PATCH] Update C++ standard to C++14
++
++This is an intermittent state to get all dependencies to compile.
++
++For example, the latest Ceres is needed to bring C++17 support,
++but it has bumped minimal requirement to C++14.
++---
++ CMakeLists.txt | 11 +++--------
++ 1 file changed, 3 insertions(+), 8 deletions(-)
++
++--- a/CMakeLists.txt
+++++ b/CMakeLists.txt
++@@ -1531,7 +1531,7 @@ endif()
++ if(WITH_CXX11)
++ 	if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
++ 		# TODO(sergey): Do we want c++11 or gnu-c++11 here?
++-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+++		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
++ 	elseif(MSVC)
++ 		# Nothing special is needed, C++11 features are available by default.
++ 	else()
+diff -Nru blender-2.79.b+dfsg0/debian/patches/cross.patch blender-2.79.b+dfsg0/debian/patches/cross.patch
+--- blender-2.79.b+dfsg0/debian/patches/cross.patch	1970-01-01 01:00:00.000000000 +0100
++++ blender-2.79.b+dfsg0/debian/patches/cross.patch	2021-12-30 11:20:26.000000000 +0100
+@@ -0,0 +1,165 @@
++--- a/source/blender/datatoc/CMakeLists.txt
+++++ b/source/blender/datatoc/CMakeLists.txt
++@@ -18,7 +18,7 @@
++ #
++ # ***** END GPL LICENSE BLOCK *****
++ 
++-
+++if(NOT CMAKE_CROSSCOMPILING)
++ # -----------------------------------------------------------------------------
++ # Build datatoc executable
++ set(SRC
++@@ -27,7 +27,7 @@ set(SRC
++ 
++ # SRC_DNA_INC is defined in the parent dir
++ add_executable(datatoc ${SRC})
++-
+++set(datatoc_targets datatoc)
++ 
++ # -----------------------------------------------------------------------------
++ # Build datatoc_icon executable
++@@ -67,4 +67,9 @@ if(NOT WITH_HEADLESS)
++ 	if(UNIX AND NOT APPLE)
++ 		target_link_libraries(datatoc_icon m)
++ 	endif()
+++
+++	set(datatoc_targets ${datatoc_targets} datatoc_icon)
+++endif()
+++
+++export(TARGETS ${datatoc_targets} FILE "${CMAKE_BINARY_DIR}/DataToCConfig.cmake")
++ endif()
++--- a/build_files/cmake/macros.cmake
+++++ b/build_files/cmake/macros.cmake
++@@ -23,6 +23,9 @@
++ #
++ # ***** END GPL LICENSE BLOCK *****
++ 
+++find_package(DataToC)
+++find_package(MsgFmt)
+++
++ macro(list_insert_after
++ 	list_id item_check item_add
++ 	)
++@@ -1350,7 +1353,7 @@ function(data_to_c
++ 	add_custom_command(
++ 		OUTPUT ${file_to}
++ 		COMMAND ${CMAKE_COMMAND} -E make_directory ${_file_to_path}
++-		COMMAND "$<TARGET_FILE:datatoc>" ${file_from} ${file_to}
+++		COMMAND datatoc ${file_from} ${file_to}
++ 		DEPENDS ${file_from} datatoc)
++ 
++ 	set_source_files_properties(${file_to} PROPERTIES GENERATED TRUE)
++@@ -1375,7 +1378,7 @@ function(data_to_c_simple
++ 	add_custom_command(
++ 		OUTPUT  ${_file_to}
++ 		COMMAND ${CMAKE_COMMAND} -E make_directory ${_file_to_path}
++-		COMMAND "$<TARGET_FILE:datatoc>" ${_file_from} ${_file_to}
+++		COMMAND datatoc ${_file_from} ${_file_to}
++ 		DEPENDS ${_file_from} datatoc)
++ 
++ 	set_source_files_properties(${_file_to} PROPERTIES GENERATED TRUE)
++@@ -1408,8 +1411,8 @@ function(data_to_c_simple_icons
++ 		OUTPUT  ${_file_from} ${_file_to}
++ 		COMMAND ${CMAKE_COMMAND} -E make_directory ${_file_to_path}
++ 		#COMMAND python3 ${CMAKE_SOURCE_DIR}/source/blender/datatoc/datatoc_icon.py ${_path_from_abs} ${_file_from}
++-		COMMAND "$<TARGET_FILE:datatoc_icon>" ${_path_from_abs} ${_file_from}
++-		COMMAND "$<TARGET_FILE:datatoc>" ${_file_from} ${_file_to}
+++		COMMAND datatoc_icon ${_path_from_abs} ${_file_from}
+++		COMMAND datatoc ${_file_from} ${_file_to}
++ 		DEPENDS
++ 			${_icon_files}
++ 			datatoc_icon
++@@ -1478,7 +1481,7 @@ function(msgfmt_simple
++ 	add_custom_command(
++ 		OUTPUT  ${_file_to}
++ 		COMMAND ${CMAKE_COMMAND} -E make_directory ${_file_to_path}
++-		COMMAND "$<TARGET_FILE:msgfmt>" ${_file_from} ${_file_to}
+++		COMMAND msgfmt ${_file_from} ${_file_to}
++ 		DEPENDS msgfmt ${_file_from})
++ 
++ 	set_source_files_properties(${_file_to} PROPERTIES GENERATED TRUE)
++--- a/source/blender/makesdna/intern/CMakeLists.txt
+++++ b/source/blender/makesdna/intern/CMakeLists.txt
++@@ -54,7 +54,12 @@ endif()
++ 
++ add_cc_flags_custom_test(makesdna)
++ 
+++if(NOT CMAKE_CROSSCOMPILING)
++ add_executable(makesdna ${SRC} ${SRC_DNA_INC})
+++export(TARGETS makesdna FILE "${CMAKE_BINARY_DIR}/MakesDnaConfig.cmake")
+++else()
+++find_package(MakesDna REQUIRED)
+++endif()
++ 
++ # Output dna.c
++ add_custom_command(
++@@ -62,7 +67,7 @@ add_custom_command(
++ 		${CMAKE_CURRENT_BINARY_DIR}/dna.c
++ 		${CMAKE_CURRENT_BINARY_DIR}/dna_type_offsets.h
++ 	COMMAND
++-		"$<TARGET_FILE:makesdna>"
+++	makesdna
++ 		${CMAKE_CURRENT_BINARY_DIR}/dna.c
++ 		${CMAKE_CURRENT_BINARY_DIR}/dna_type_offsets.h
++ 		${CMAKE_SOURCE_DIR}/source/blender/makesdna/
++--- a/source/blender/blentranslation/msgfmt/CMakeLists.txt
+++++ b/source/blender/blentranslation/msgfmt/CMakeLists.txt
++@@ -26,6 +26,7 @@
++ # -----------------------------------------------------------------------------
++ # Build msgfmt executable
++ 
+++if(NOT CMAKE_CROSSCOMPILING)
++ blender_include_dirs(
++ 	../../../../intern/guardedalloc
++ 	../../blenlib
++@@ -48,3 +49,6 @@ endif()
++ 
++ target_link_libraries(msgfmt ${ZLIB_LIBRARIES})
++ target_link_libraries(msgfmt ${PLATFORM_LINKLIBS})
+++
+++export(TARGETS msgfmt FILE "${CMAKE_BINARY_DIR}/MsgFmtConfig.cmake")
+++endif()
++--- a/source/blenderplayer/CMakeLists.txt
+++++ b/source/blenderplayer/CMakeLists.txt
++@@ -81,6 +81,10 @@ else()
++ 	endif()
++ endif()
++ 
+++if(CMAKE_CROSSCOMPILING)
+++find_package(MakesDna REQUIRED)
+++endif()
+++
++ add_dependencies(blenderplayer makesdna)
++ 
++ get_property(BLENDER_LINK_LIBS GLOBAL PROPERTY BLENDER_LINK_LIBS)
++--- a/source/creator/CMakeLists.txt
+++++ b/source/creator/CMakeLists.txt
++@@ -1050,6 +1050,10 @@ unset(BLENDER_TEXT_FILES_DESTINATION)
++ # -----------------------------------------------------------------------------
++ # Setup link libs
++ 
+++if(CMAKE_CROSSCOMPILING)
+++find_package(MakesDna REQUIRED)
+++endif()
+++
++ add_dependencies(blender makesdna)
++ 
++ setup_blender_sorted_libs()
++--- a/source/blender/makesrna/intern/CMakeLists.txt
+++++ b/source/blender/makesrna/intern/CMakeLists.txt
++@@ -364,10 +364,14 @@ blender_include_dirs_sys(
++ 
++ add_cc_flags_custom_test(makesrna)
++ 
+++if(NOT CMAKE_CROSSCOMPILING)
++ add_executable(makesrna ${SRC} ${SRC_RNA_INC} ${SRC_DNA_INC})
++-
++ target_link_libraries(makesrna bf_dna)
++ target_link_libraries(makesrna bf_dna_blenlib)
+++export(TARGETS makesrna FILE "${CMAKE_BINARY_DIR}/MakesRnaConfig.cmake")
+++else()
+++find_package(MakesRna REQUIRED)
+++endif()
++ 
++ # Output rna_*_gen.c
++ # note (linux only): with crashes try add this after COMMAND: valgrind --leak-check=full --track-origins=yes
+diff -Nru blender-2.79.b+dfsg0/debian/patches/series blender-2.79.b+dfsg0/debian/patches/series
+--- blender-2.79.b+dfsg0/debian/patches/series	2018-12-28 11:27:16.000000000 +0100
++++ blender-2.79.b+dfsg0/debian/patches/series	2021-12-30 11:20:26.000000000 +0100
+@@ -9,3 +9,10 @@
+ 0009-fix_gcc-8_ftbfs.patch
+ 0010-fix_PyRNA_with_Python3.7.patch
+ 0011-adapt_build_against_OIIO2.patch
++0001-Fix-for-GCC9-new-OpenMP-data-sharing.patch
++0001-Cleanup-use-PyImport_GetModuleDict.patch
++0001-PyAPI-use-public-API-s-for-module-builtin-access.patch
++0001-Python-support-building-again-version-3.9-unreleased.patch
++0001-Update-C-standard-to-C-14.patch
++0001-Cleanup-fix-compiler-warnings.patch
++cross.patch
+diff -Nru blender-2.79.b+dfsg0/debian/rules blender-2.79.b+dfsg0/debian/rules
+--- blender-2.79.b+dfsg0/debian/rules	2018-12-02 22:31:23.000000000 +0100
++++ blender-2.79.b+dfsg0/debian/rules	2021-12-30 11:20:26.000000000 +0100
+@@ -22,7 +22,26 @@
+ 	SETCOLLADA = ON
+ endif
+ 
++# Only build man pages when the blender-data package is being built.
++# The man page is built by running `blender --help`. This doesn't work when
++# cross compiling blender because foreign architecture binaries cannot be
++# executed. Arch:all packages are not built when cross compiling, so we
++# disable man page generation when blender-data is not getting built.
++ifneq (,$(filter blender-data,$(shell dh_listpackages)))
++	SETMANPAGE = ON
++else
++	SETMANPAGE = OFF
++endif
++
+ override_dh_auto_configure:
++ifneq ($(DEB_BUILD_ARCH),$(DEB_HOST_ARCH))
++	# build several helper utilities that are run during the build natively
++	mkdir nativeutils
++	cmake -S . -B nativeutils \
++		-Cbuild_files/cmake/config/blender_lite.cmake \
++		-DWITH_PYTHON=OFF
++	cmake --build nativeutils -- datatoc datatoc_icon makesdna makesrna msgfmt
++endif
+ 	dh_auto_configure -- \
+ 		-DCMAKE_INSTALL_PREFIX=/usr \
+ 		-DCMAKE_SKIP_RPATH=ON \
+@@ -33,7 +52,7 @@
+ 		-DWITH_CODEC_SNDFILE=ON \
+ 		-DWITH_CPU_SSE=$(SETSSE) \
+ 		-DWITH_CYCLES=ON \
+-		-DWITH_DOC_MANPAGE=ON \
++		-DWITH_DOC_MANPAGE=$(SETMANPAGE) \
+ 		-DWITH_FFTW3=ON \
+ 		-DWITH_FONTCONFIG=ON \
+ 		-DWITH_GAMEENGINE=ON \
+@@ -47,7 +66,11 @@
+ 		-DWITH_OPENVDB=$(SETVDB) \
+ 		-DWITH_PLAYER=ON \
+ 		-DWITH_PYTHON_INSTALL=OFF \
+-		-DWITH_SYSTEM_OPENJPEG=ON
++		-DWITH_SYSTEM_OPENJPEG=ON \
++		-DDataToC_DIR=$(CURDIR)/nativeutils \
++		-DMakesDna_DIR=$(CURDIR)/nativeutils \
++		-DMakesRna_DIR=$(CURDIR)/nativeutils \
++		-DMsgFmt_DIR=$(CURDIR)/nativeutils
+ 
+ override_dh_auto_install:
+ 	dh_auto_install --buildsystem=cmake

@@ -1,0 +1,20 @@
+commit 4db354f81d9b02ce3a978ec1238d228e1c4a5ad4
+Author: Lukas F. Hartmann <lukas@mntre.com>
+Date:   Mon Jun 7 15:22:58 2021 +0200
+
+    [PATCH] MNT Reform: imx8mq: add PHY_27M clock: missing define
+
+diff --git a/include/dt-bindings/clock/imx8mq-clock.h b/include/dt-bindings/clock/imx8mq-clock.h
+index 82e907ce7..d7b8ada86 100644
+--- a/include/dt-bindings/clock/imx8mq-clock.h
++++ b/include/dt-bindings/clock/imx8mq-clock.h
+@@ -445,6 +445,8 @@
+ #define IMX8MQ_CLK_MON_SEL			301
+ #define IMX8MQ_CLK_MON_CLK2_OUT			302
+ 
+-#define IMX8MQ_CLK_END				303
++#define IMX8MQ_CLK_PHY_27MHZ  303
++
++#define IMX8MQ_CLK_END				304
+ 
+ #endif /* __DT_BINDINGS_CLOCK_IMX8MQ_H */

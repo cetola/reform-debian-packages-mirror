@@ -1,0 +1,18 @@
+You are logged in as [1mroot[0m. This account
+can change anything in the system.
+To use the graphical environment [1msway[0m,
+create a normal user account by entering:
+
+  [1madduser [1;4myour-name[0m
+
+Afterwards, to be able to become root by using sudo, enter:
+
+  [1madduser [1;4myour-name[0m [1msudo[0m
+
+Then, log out using [1mexit[0m and log in as [1;4myour-name[0m.
+
+To read the MNT Reform Operator Handbook, enter:
+
+  [1mreform-handbook[0m   # (in the browser, press %
+                    # to fix contrast, Q to quit)
+

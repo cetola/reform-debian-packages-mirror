@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e
+
+sudo dpkg-reconfigure keyboard-configuration
+sudo systemctl restart keyboard-setup
+
+sudo dpkg-reconfigure tzdata
+

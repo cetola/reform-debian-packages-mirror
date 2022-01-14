@@ -1,0 +1,29 @@
+#!/bin/sh
+set -e
+patch -p1 << 'EOF'
+diff -Nru flash-kernel-3.104/db/all.db flash-kernel-3.104+nmu1/db/all.db
+--- flash-kernel-3.104/db/all.db	2021-02-07 00:13:15.000000000 +0100
++++ flash-kernel-3.104+nmu1/db/all.db	2022-01-03 17:37:18.000000000 +0100
+@@ -1064,6 +1064,21 @@
+ U-Boot-Script-Name: bootscr.sunxi
+ Required-Packages: u-boot-tools
+
++Machine: MNT Reform 2
++DTB-Id: freescale/imx8mq-mnt-reform2.dtb
++Boot-Initrd-Path: /Initrd
++Boot-Kernel-Path: /Image
++Boot-DTB-Path: /imx8mq-mnt-reform2.dtb
++U-Boot-Kernel-Address: 0x40480000
++U-Boot-Initrd-Address: 0x0
++Required-Packages: u-boot-tools
++U-Boot-Script-Name: bootscr.uboot-generic
++Boot-Script-Path: /boot/boot.scr
++#Kernel-Flavors: arm64
++#Boot-Kernel-Path: /boot/uImage
++#Boot-Initrd-Path: /boot/uInitrd
++#Boot-DTB-Path: /boot/dtb
++
+ Machine: MK802
+ Kernel-Flavors: armmp
+ Boot-Script-Path: /boot/boot.scr
+EOF

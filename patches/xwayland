@@ -1,0 +1,42 @@
+#!/bin/sh
+set -e
+# the following is a workaround for https://bugs.debian.org/939515
+patch -p1 << 'EOF'
+diff --git a/debian/control b/debian/control
+index 847a23938..790fb5de0 100644
+--- a/debian/control
++++ b/debian/control
+@@ -19,6 +19,7 @@ Build-Depends:
+  libxshmfence-dev,
+  libxv-dev,
+  libwayland-dev,
++ libwayland-dev:native,
+  mesa-common-dev,
+  x11proto-dev,
+  xfonts-utils,
+-- 
+2.33.0
+EOF
+patch -p1 << 'EOF'
+--- /dev/null
++++ b/debian/patches/glamor
+@@ -0,0 +1,11 @@
++--- a/glamor/glamor_render.c
+++++ b/glamor/glamor_render.c
++@@ -1589,6 +1589,8 @@ glamor_composite_clipped_region(CARD8 op
++     if (prect != rect)
++         free(prect);
++  out:
+++    glFinish();
+++
++     if (temp_src != source)
++         FreePicture(temp_src, 0);
++     if (temp_mask != mask)
+diff --git a/debian/patches/series b/debian/patches/series
+index a82d1b41e..4b2d3a3f2 100644
+--- a/debian/patches/series
++++ b/debian/patches/series
+@@ -1 +1,2 @@
+ #placeholder
++glamor
+EOF

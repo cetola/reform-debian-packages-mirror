@@ -1,0 +1,53 @@
+diff -Nru linux-5.13.12/debian/config/arm64/defines linux-5.13.12/debian/config/arm64/defines
+--- linux-5.13.12/debian/config/arm64/defines	2021-01-25 17:25:29.000000000 +0100
++++ linux-5.13.12/debian/config/arm64/defines	2022-01-12 15:02:01.000000000 +0100
+@@ -3,11 +3,10 @@
+ kernel-arch: arm64
+ featuresets:
+  none
+- rt
+ 
+ [build]
+ image-file: arch/arm64/boot/Image
+-signed-code: true
++signed-code: false
+ vdso: true
+ 
+ [image]
+diff -Nru linux-5.13.12/debian/config/arm64/none/defines linux-5.13.12/debian/config/arm64/none/defines
+--- linux-5.13.12/debian/config/arm64/none/defines	2021-01-25 17:25:29.000000000 +0100
++++ linux-5.13.12/debian/config/arm64/none/defines	2022-01-12 15:02:01.000000000 +0100
+@@ -1,7 +1,6 @@
+ [base]
+ flavours:
+  arm64
+- cloud-arm64
+ default-flavour: arm64
+ 
+ [cloud-arm64_image]
+diff -Nru linux-5.13.12/debian/config/defines linux-5.13.12/debian/config/defines
+--- linux-5.13.12/debian/config/defines	2021-08-09 15:42:56.000000000 +0200
++++ linux-5.13.12/debian/config/defines	2022-01-12 15:02:01.000000000 +0100
+@@ -148,7 +148,7 @@
+  rt
+ 
+ [build]
+-debug-info: true
++debug-info: false
+ # Disable code signing by default; this can be overridden per-architecture
+ signed-code: false
+ trusted-certs: debian/certs/debian-uefi-certs.pem
+diff -Nru linux-5.13.12/debian/rules.real linux-5.13.12/debian/rules.real
+--- linux-5.13.12/debian/rules.real	2021-08-09 15:42:36.000000000 +0200
++++ linux-5.13.12/debian/rules.real	2022-01-12 15:02:01.000000000 +0100
+@@ -570,8 +570,8 @@
+ ifneq (,$(filter linux-image-%,$(packages_enabled)))
+ 	dh_testdir
+ 	dh_prep
+-	kernel-wedge install-files $(ABINAME)
+-	kernel-wedge check $(PACKAGE_NAMES)
++	#kernel-wedge install-files $(ABINAME)
++	#kernel-wedge check $(PACKAGE_NAMES)
+ 	dh_fixperms
+ ifeq ($(UDEB_UNSIGNED_TEST_BUILD),False)
+ 	dh_gencontrol

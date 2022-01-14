@@ -1,0 +1,10 @@
+Package: reform-tools
+Version: 1.0-7
+Section: base
+Priority: required
+Architecture: arm64
+Depends: bash
+Recommends: reform-handbook
+Maintainer: Lukas F. Hartmann <lukas@mntre.com>
+Description: MNT Reform System Tools
+ A number of scripts for managing boot media, displays, standby, plus a few help texts and gadgets for the customized sway desktop. Also contains /sbin/reform-init, a boot manager script that gets loaded by u-boot and which in turn launches the real /sbin/init after mounting an (encrypted) boot medium.

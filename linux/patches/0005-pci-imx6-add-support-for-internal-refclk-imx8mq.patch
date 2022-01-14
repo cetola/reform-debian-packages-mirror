@@ -1,0 +1,99 @@
+From 30d25ce7792fd1aa37e839a513b7fcf7447fd813 Mon Sep 17 00:00:00 2001
+From: mntmn <lukas@mntmn.com>
+Date: Tue, 24 Nov 2020 01:01:42 +0100
+Subject: [PATCH 5/8] pci-imx6: add support for internal refclk (imx8mq)
+
+NXP i.MX8MQ supports feeding an internal refclk to the PCIe root
+controller(s). This is required to make use of the first PCIe controller
+on the Boundary Devices Nitrogen8M SoM, which is the standard processor
+module of MNT Reform 2.0.
+
+The patch adds a new boolean property "internal_refclk" for the pcie
+nodes.
+
+The actual generation of the clock requires poking a register of ANATOP.
+The code for this is taken from the (fsl) vendor kernel.
+---
+ drivers/pci/controller/dwc/pci-imx6.c | 43 ++++++++++++++++++++++++++-
+ 1 file changed, 42 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/pci/controller/dwc/pci-imx6.c b/drivers/pci/controller/dwc/pci-imx6.c
+index 5cf1ef12f..2f1ed228d 100644
+--- a/drivers/pci/controller/dwc/pci-imx6.c
++++ b/drivers/pci/controller/dwc/pci-imx6.c
+@@ -64,6 +64,7 @@ struct imx6_pcie {
+ 	struct dw_pcie		*pci;
+ 	int			reset_gpio;
+ 	bool			gpio_active_high;
++	bool			internal_refclk;
+ 	struct clk		*pcie_bus;
+ 	struct clk		*pcie_phy;
+ 	struct clk		*pcie_inbound_axi;
+@@ -609,8 +610,45 @@ static void imx6_pcie_configure_type(struct imx6_pcie *imx6_pcie)
+ 	regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR12, mask, val);
+ }
+ 
++#define IMX8MQ_ANA_PLLOUT_REG			0x74
++#define IMX8MQ_ANA_PLLOUT_CKE			BIT(4)
++#define IMX8MQ_ANA_PLLOUT_SEL_MASK		0xF
++#define IMX8MQ_ANA_PLLOUT_SEL_SYSPLL1		0xB
++#define IMX8MQ_ANA_PLLOUT_DIV_REG		0x7C
++#define IMX8MQ_ANA_PLLOUT_SYSPLL1_DIV		0x7
++
++static void imx6_pcie_enable_internal_refclk(void)
++{
++	uint32_t val;
++	struct device_node* np;
++	void __iomem *base;
++
++	np = of_find_compatible_node(NULL, NULL,
++				"fsl,imx8mq-anatop");
++	base = of_iomap(np, 0);
++	WARN_ON(!base);
++
++	val = readl(base + IMX8MQ_ANA_PLLOUT_REG);
++	val &= ~IMX8MQ_ANA_PLLOUT_SEL_MASK;
++	val |= IMX8MQ_ANA_PLLOUT_SEL_SYSPLL1;
++	writel(val, base + IMX8MQ_ANA_PLLOUT_REG);
++	/* SYS_PLL1 is 800M, PCIE REF CLK is 100M */
++	val = readl(base + IMX8MQ_ANA_PLLOUT_DIV_REG);
++	val |= IMX8MQ_ANA_PLLOUT_SYSPLL1_DIV;
++	writel(val, base + IMX8MQ_ANA_PLLOUT_DIV_REG);
++
++	val = readl(base + IMX8MQ_ANA_PLLOUT_REG);
++	val |= IMX8MQ_ANA_PLLOUT_CKE;
++	writel(val, base + IMX8MQ_ANA_PLLOUT_REG);
++
++	usleep_range(9000,10000);
++}
++
+ static void imx6_pcie_init_phy(struct imx6_pcie *imx6_pcie)
+ {
++	if (imx6_pcie->internal_refclk)
++		imx6_pcie_enable_internal_refclk();
++
+ 	switch (imx6_pcie->drvdata->variant) {
+ 	case IMX8MQ:
+ 		/*
+@@ -620,7 +658,8 @@ static void imx6_pcie_init_phy(struct imx6_pcie *imx6_pcie)
+ 		regmap_update_bits(imx6_pcie->iomuxc_gpr,
+ 				   imx6_pcie_grp_offset(imx6_pcie),
+ 				   IMX8MQ_GPR_PCIE_REF_USE_PAD,
+-				   IMX8MQ_GPR_PCIE_REF_USE_PAD);
++				   (imx6_pcie->internal_refclk ?
++				    0 : IMX8MQ_GPR_PCIE_REF_USE_PAD));
+ 		break;
+ 	case IMX7D:
+ 		regmap_update_bits(imx6_pcie->iomuxc_gpr, IOMUXC_GPR12,
+@@ -1087,6 +1126,8 @@ static int imx6_pcie_probe(struct platform_device *pdev)
+ 		if (IS_ERR(imx6_pcie->pcie_aux))
+ 			return dev_err_probe(dev, PTR_ERR(imx6_pcie->pcie_aux),
+ 					     "pcie_aux clock source missing or invalid\n");
++		imx6_pcie->internal_refclk = of_property_read_bool(node,
++								   "internal-refclk");
+ 		fallthrough;
+ 	case IMX7D:
+ 		if (dbi_base->start == IMX8MQ_PCIE2_BASE_ADDR)
+-- 
+2.28.0
+

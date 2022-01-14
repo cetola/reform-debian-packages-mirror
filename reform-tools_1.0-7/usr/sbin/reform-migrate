@@ -1,0 +1,64 @@
+#!/bin/bash
+
+set -e
+
+TARGET="$1"
+
+echo ""
+echo "This script can copy your current OS and files to a different disk, such as an SSD installed in MNT Reform."
+echo ""
+echo "Warning: This will overwrite files on the target partition. Make sure you know what you're doing!"
+echo ""
+echo "Before using this script, your target partition has to be formatted. You can use the gnome-disks program for that."
+echo "gnome-disks can also help you set up an encrypted disk."
+echo ""
+
+if [[ "x$TARGET" == "x" ]]
+then
+	echo "Usage:"
+	echo "  reform-migrate /dev/nvme0n1p1     Mounts the first partition of an NVMe disk and mirrors your system to it."
+	echo "  reform-migrate /dev/mapper/crypt  Mounts encrypted disk 'crypt' and mirrors your system to it."
+	echo "                                    The disk has to be unlocked first with:"
+	echo "                                      cryptsetup luksOpen /dev/nvme0n1p1 crypt"
+	echo ""
+	exit
+fi
+
+if [ ! -e "$TARGET" ]
+then
+	echo "Error: The partition $TARGET does not exist."
+	exit
+fi
+
+if [ "$EUID" -ne 0 ]
+  then echo "reform-migrate has to be run as root / using sudo."
+  exit
+fi
+
+command -v "rsync" >/dev/null 2>&1 || { echo >&2 "Please install \"rsync\" using: apt install rsync"; exit 1; }
+
+echo "Trying to mount $TARGET... (if this fails, format the disk/partition as explained above)"
+
+mount "$TARGET" /mnt
+
+echo "Target partition successfully mounted. The next step will copy all your files over to the target, overwriting existing files in the process."
+echo ""
+
+read -r -p "Are you sure you want to proceed? [y/N] " response
+
+if [[ "$response" != "y" ]]
+then
+	echo "Exiting."
+	umount /mnt
+	exit
+fi
+
+echo "Starting the copy. This can take a while."
+
+rsync -axHAWXS --numeric-ids --info=progress2 / /mnt/
+
+echo "Files copied."
+
+umount /mnt
+
+echo "$TARGET unmounted."

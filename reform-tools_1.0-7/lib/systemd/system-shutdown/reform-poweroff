@@ -1,0 +1,12 @@
+#!/bin/bash
+#
+# MNT Reform: Send poweroff command to the system controller via the keyboard
+#
+
+sync
+
+if [[ "$1" == "halt" ]] || [[ "$1" == "poweroff" ]]
+then
+	echo 'xPWR0' > /dev/hidraw0
+fi
+

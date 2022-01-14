@@ -1,0 +1,3 @@
+#!/bin/bash
+
+irc -c '#mnt-reform' -p 6697 reform$RANDOM SSLIRC/irc.libera.chat
