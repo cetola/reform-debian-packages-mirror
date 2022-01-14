@@ -6,7 +6,7 @@ set -u
 # starting with 2.80, blender requires 3.2+, so 2.79b is the last one that
 # works on reform with imx8mq
 blenderpatch=$(realpath blender.debdiff)
-WORKDIR=$(mktemp --directory --tempdir="$(pwd)")
+WORKDIR=$(mktemp --directory --tmpdir="$(pwd)")
 rm -Rf "$WORKDIR"
 mkdir --mode=0777 "$WORKDIR"
 (

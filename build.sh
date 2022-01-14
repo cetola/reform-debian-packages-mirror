@@ -8,7 +8,7 @@ set -u
 
 BASESUITE=unstable
 OURSUITE=reform
-WORKDIR=$(mktemp --directory --tempdir="$(pwd)")
+WORKDIR=$(mktemp --directory --tmpdir="$(pwd)")
 PATCHDIR=$(realpath patches)
 REPREPRO_BASE_DIR=$(realpath repo)
 HTTP_PORT=7251
