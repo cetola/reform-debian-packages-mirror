@@ -93,6 +93,7 @@ cp imx8mq-mnt-reform2.dts linux/arch/arm64/boot/dts/freescale/imx8mq-mnt-reform2
 env --chdir=linux quilt refresh
 
 env --chdir=linux \
+	DEBIAN_KERNEL_DISABLE_DEBUG=1 DEBIAN_KERNEL_DISABLE_INSTALLER=1 DEBIAN_KERNEL_DISABLE_SIGNED=1 \
 	DEB_BUILD_PROFILES="cross nodoc pkg.linux.nosource pkg.linux.notools" \
 	sbuild -d "$BASESUITE" --arch-any --no-arch-all --host="$HOST_ARCH" \
 		--nolog --no-source-only-changes --no-run-lintian --no-run-autopkgtest
