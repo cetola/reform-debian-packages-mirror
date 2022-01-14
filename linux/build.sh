@@ -91,10 +91,10 @@ index 000000000000..1d86e1d33dc3
 + dtb-$(CONFIG_ARCH_MXC) += imx8mq-pico-pi.dtb
 END
 
-env --chdir=linux quilt push -a
-env --chdir=linux quilt add arch/arm64/boot/dts/freescale/imx8mq-mnt-reform2.dts
+env --chdir=linux QUILT_PATCHES=debian/patches quilt push -a
+env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/freescale/imx8mq-mnt-reform2.dts
 cp imx8mq-mnt-reform2.dts linux/arch/arm64/boot/dts/freescale/imx8mq-mnt-reform2.dts
-env --chdir=linux quilt refresh
+env --chdir=linux QUILT_PATCHES=debian/patches quilt refresh
 
 env --chdir=linux \
 	DEB_BUILD_PROFILES="cross nodoc pkg.linux.nosource pkg.linux.notools" \
