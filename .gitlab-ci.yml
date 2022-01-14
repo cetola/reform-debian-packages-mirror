@@ -4,6 +4,7 @@ build:
   artifacts:
     paths:
       - output.log
+      - repo
   script:
     - apt-get update
     - apt-get upgrade --yes
