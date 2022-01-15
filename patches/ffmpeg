@@ -9,7 +9,7 @@ diff -Nru ffmpeg-4.4.1/debian/control ffmpeg-4.4.1/debian/control
   tree,
  Build-Depends:
 -# autodetected: hwaccels 'cuda_llvm'
-- clang,
+- clang [amd64 arm64 i386 ppc64el],
   debhelper-compat (= 13),
  # --enable-libflite
   flite1-dev,
