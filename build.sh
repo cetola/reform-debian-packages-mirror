@@ -152,7 +152,7 @@ if [ -z "$(reprepro listfilter reform "Package (== reform-tools)")" ]; then
 fi
 
 # https://ftp-master.debian.org/new/neatvnc_0.4.0+dfsg-1.html
-if [ -z "$(reprepro listfilter reform "Package (== neatvnc)")" ]; then
+if [ -z "$(reprepro listfilter reform "\$Source (== neatvnc)")" ]; then
 	rm -Rf "$WORKDIR"
 	mkdir --mode=0777 "$WORKDIR"
 	(
@@ -171,7 +171,7 @@ if [ -z "$(reprepro listfilter reform "Package (== neatvnc)")" ]; then
 fi
 
 # https://ftp-master.debian.org/new/wayvnc_0.4.1-1.html
-if [ -z "$(reprepro listfilter reform "Package (== wayvnc)")" ]; then
+if [ -z "$(reprepro listfilter reform "\$Source (== wayvnc)")" ]; then
 	rm -Rf "$WORKDIR"
 	mkdir --mode=0777 "$WORKDIR"
 	(
