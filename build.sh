@@ -39,7 +39,7 @@ SRC_LIST_PATCHED="deb [ trusted=yes ] http://127.0.0.1:$HTTP_PORT/ $OURSUITE mai
 BUILD_ARCH=$(dpkg --print-architecture)
 HOST_ARCH=arm64
 
-DEB_BUILD_PROFILES="nobiarch nocheck noudeb"
+DEB_BUILD_PROFILES="nobiarch nocheck noudeb pkg.linux.nosource pkg.linux.notools"
 if [ "$BUILD_ARCH" != "$HOST_ARCH" ]; then
 	DEB_BUILD_PROFILES="cross $DEB_BUILD_PROFILES"
 fi
@@ -141,13 +141,6 @@ done
 # works on reform with imx8mq
 if [ -z "$(reprepro listfilter reform "\$Source (== blender)")" ]; then
 	env --chdir=blender \
-		BUILD_ARCH="$BUILD_ARCH" HOST_ARCH="$HOST_ARCH" \
-		BASESUITE="$BASESUITE" OURSUITE="$OURSUITE" \
-		./build.sh
-fi
-
-if [ -z "$(reprepro listfilter reform "\$Source (== linux)")" ]; then
-	env --chdir=linux \
 		BUILD_ARCH="$BUILD_ARCH" HOST_ARCH="$HOST_ARCH" \
 		BASESUITE="$BASESUITE" OURSUITE="$OURSUITE" \
 		./build.sh
