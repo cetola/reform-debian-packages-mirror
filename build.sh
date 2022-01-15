@@ -157,3 +157,41 @@ if [ -z "$(reprepro listfilter reform "Package (== reform-tools)")" ]; then
 	dpkg-deb --root-owner-group --build reform-tools_1.0-7
 	reprepro includedeb "$OURSUITE" reform-tools_1.0-7.deb
 fi
+
+# https://ftp-master.debian.org/new/neatvnc_0.4.0+dfsg-1.html
+if [ -z "$(reprepro listfilter reform "Package (== neatvnc)")" ]; then
+	rm -Rf "$WORKDIR"
+	mkdir --mode=0777 "$WORKDIR"
+	(
+		cd "$WORKDIR"
+		git clone https://salsa.debian.org/debian/neatvnc.git
+		cd neatvnc
+		git checkout pristine-tar
+		git checkout upstream
+		git checkout master
+		pristine-tar checkout ../neatvnc_0.4.0+dfsg.orig.tar.xz
+		sbuild -d "$BASESUITE" --host="$HOST_ARCH" --no-arch-all --arch-any --nolog --no-clean-source --no-source-only-changes --no-run-lintian --no-run-autopkgtest --extra-repository="$SRC_LIST_PATCHED" --no-apt-upgrade --no-apt-distupgrade
+		reprepro include "$OURSUITE" ../neatvnc_0.4.0+dfsg-1_arm64.changes
+		cd ..
+	)
+	rm -Rf "$WORKDIR"
+fi
+
+# https://ftp-master.debian.org/new/wayvnc_0.4.1-1.html
+if [ -z "$(reprepro listfilter reform "Package (== wayvnc)")" ]; then
+	rm -Rf "$WORKDIR"
+	mkdir --mode=0777 "$WORKDIR"
+	(
+		cd "$WORKDIR"
+		git clone https://salsa.debian.org/debian/wayvnc.git
+		cd wayvnc
+		git checkout pristine-tar
+		git checkout upstream
+		git checkout master
+		pristine-tar checkout ../wayvnc_0.4.1.orig.tar.gz
+		sbuild -d "$BASESUITE" --host="$HOST_ARCH" --no-arch-all --arch-any --nolog --no-clean-source --no-source-only-changes --no-run-lintian --no-run-autopkgtest --extra-repository="$SRC_LIST_PATCHED" --no-apt-upgrade --no-apt-distupgrade
+		reprepro include "$OURSUITE" ../wayvnc_0.4.1-1_arm64.changes
+		cd ..
+	)
+	rm -Rf "$WORKDIR"
+fi
