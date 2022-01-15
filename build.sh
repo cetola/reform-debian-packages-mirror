@@ -39,12 +39,12 @@ SRC_LIST_PATCHED="deb [ trusted=yes ] http://127.0.0.1:$HTTP_PORT/ $OURSUITE mai
 BUILD_ARCH=$(dpkg --print-architecture)
 HOST_ARCH=arm64
 
-DEB_BUILD_PROFILES="nobiarch nocheck noudeb pkg.linux.nosource pkg.linux.notools"
+DEB_BUILD_PROFILES="nobiarch nocheck noudeb nodoc pkg.linux.nosource pkg.linux.notools"
 if [ "$BUILD_ARCH" != "$HOST_ARCH" ]; then
 	DEB_BUILD_PROFILES="cross $DEB_BUILD_PROFILES"
 fi
 export DEB_BUILD_PROFILES
-export DEB_BUILD_OPTIONS="noautodbgsym nocheck noudeb"
+export DEB_BUILD_OPTIONS="noautodbgsym nocheck noudeb nodoc"
 
 if ! test -d "$REPREPRO_BASE_DIR"; then
 	mkdir -p "$REPREPRO_BASE_DIR/conf"
