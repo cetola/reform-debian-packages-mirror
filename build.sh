@@ -149,6 +149,7 @@ fi
 if [ -z "$(reprepro listfilter reform "Package (== reform-tools)")" ]; then
 	dpkg-deb --root-owner-group --build reform-tools_1.0-7
 	reprepro includedeb "$OURSUITE" reform-tools_1.0-7.deb
+	rm reform-tools_1.0-7.deb
 fi
 
 # https://ftp-master.debian.org/new/neatvnc_0.4.0+dfsg-1.html
