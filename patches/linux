@@ -7980,13 +7980,6 @@ diff -Nru linux-5.15.5/debian/config/arm64/none/defines linux-5.15.5/debian/conf
 diff -Nru linux-5.15.5/debian/config/defines linux-5.15.5/debian/config/defines
 --- linux-5.15.5/debian/config/defines	2021-12-18 22:41:27.000000000 +0100
 +++ linux-5.15.5/debian/config/defines	2022-01-15 19:03:09.000000000 +0100
-@@ -1,5 +1,5 @@
- [abi]
--abiname: 2
-+abiname: reform2
- ignore-changes:
-  __cpuhp_*
-  __udp_gso_segment
 @@ -148,7 +148,7 @@
   rt
  
@@ -16209,5 +16202,6 @@ diff -Nru linux-5.15.5/debian/patches/series linux-5.15.5/debian/patches/series
 +reform2/mnt5000-imx8mq-import-HDMI-driver-and-make-DCSS-compatible.patch
 +reform2/dts.patch
 EOF
+sed --in-place --expression 's/^abiname: [0-9]\+$/abiname: reform2/' debian/config/defines
 debian/rules debian/control-real || :
 rm -r debian/lib/python/debian_linux/__pycache__
