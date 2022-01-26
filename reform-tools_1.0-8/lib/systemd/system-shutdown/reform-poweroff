@@ -7,6 +7,7 @@ sync
 
 if [[ "$1" == "halt" ]] || [[ "$1" == "poweroff" ]]
 then
-	echo 'xPWR0' > /dev/hidraw0
+    for f in /dev/hidraw*; do
+	      echo 'xPWR0' > $f
+    done
 fi
-

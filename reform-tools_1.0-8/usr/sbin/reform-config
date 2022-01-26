@@ -3,7 +3,6 @@
 set -e
 
 sudo dpkg-reconfigure keyboard-configuration
-sudo systemctl restart keyboard-setup
+sudo systemctl restart console-setup
 
 sudo dpkg-reconfigure tzdata
-
