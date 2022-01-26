@@ -1,0 +1,52 @@
+#!/bin/bash
+#
+# MNT Reform Standby Handler (For i.MX8MQ)
+# Thanks to ruff for contributions
+#
+# Copyright 2022 MNT Research GmbH (https://mntre.com)
+# License: GPLv2.0+
+#
+
+if [ "$EUID" -ne 0 ]
+  then echo "reform-standby has to be run as root / using sudo."
+  exit
+fi
+
+setup_wake() {
+  # configure UARTs as wakeup sources
+  echo enabled > /sys/devices/platform/soc@0/30800000.bus/30860000.serial/tty/ttymxc0/power/wakeup
+  echo enabled > /sys/devices/platform/soc@0/30800000.bus/30890000.serial/tty/ttymxc1/power/wakeup
+  echo enabled > /sys/devices/platform/soc@0/30800000.bus/30880000.serial/tty/ttymxc2/power/wakeup
+}
+
+wifi_off() {
+  echo 1 > /sys/class/pci_bus/0000:01/device/remove
+}
+
+wifi_on() {
+  echo 1 > /sys/class/pci_bus/0000:00/rescan
+  sleep 1
+}
+
+kbd_backlight_off() {
+  for d in /dev/hidraw*
+    do echo -en "xLITE0" > $d
+  done
+}
+
+kbd_backlight_on() {
+  for d in /dev/hidraw*
+    do echo -en "xLITE6" > $d
+  done
+}
+
+if [[ $1 = "suspend" ]]; then
+  setup_wake
+  wifi_off
+  kbd_backlight_off
+fi
+
+if [[ $1 = "resume" ]]; then
+  kbd_backlight_on
+  wifi_on
+fi
