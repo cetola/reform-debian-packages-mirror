@@ -22,7 +22,7 @@ export DEBEMAIL='robot <reform@reform.repo>'
 
 cleanup() {
 	if test -n "$HTTPD_PID"; then
-		kill "$HTTPD_PID"
+		kill "$HTTPD_PID" || :
 	fi
 	if test -d "$WORKDIR"; then
 		rm -Rf "$WORKDIR"
