@@ -1,0 +1,25 @@
+diff --git a/drivers/gpu/drm/bridge/nwl-dsi.c b/drivers/gpu/drm/bridge/nwl-dsi.c
+index ed8ac5059..d142f201a 100644
+--- a/drivers/gpu/drm/bridge/nwl-dsi.c
++++ b/drivers/gpu/drm/bridge/nwl-dsi.c
+@@ -823,10 +823,17 @@ static int nwl_dsi_bridge_atomic_check(struct drm_bridge *bridge,
+ 				       struct drm_connector_state *conn_state)
+ {
+ 	struct drm_display_mode *adjusted_mode = &crtc_state->adjusted_mode;
++	struct device_node *remote;
++	struct nwl_dsi *dsi = bridge_to_dsi(bridge);
++
++	remote = of_graph_get_remote_node(dsi->dev->of_node, 0,
++						NWL_DSI_ENDPOINT_LCDIF);
+ 
+-	/* At least LCDIF + NWL needs active high sync */
+-	adjusted_mode->flags |= (DRM_MODE_FLAG_PHSYNC | DRM_MODE_FLAG_PVSYNC);
+-	adjusted_mode->flags &= ~(DRM_MODE_FLAG_NHSYNC | DRM_MODE_FLAG_NVSYNC);
++	if (remote) {
++		/* At least LCDIF + NWL needs active high sync */
++		adjusted_mode->flags |= (DRM_MODE_FLAG_PHSYNC | DRM_MODE_FLAG_PVSYNC);
++		adjusted_mode->flags &= ~(DRM_MODE_FLAG_NHSYNC | DRM_MODE_FLAG_NVSYNC);
++	}
+ 
+ 	/*
+ 	 * Do a full modeset if crtc_state->active is changed to be true.
