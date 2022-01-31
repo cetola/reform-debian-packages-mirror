@@ -178,7 +178,7 @@ if [ -z "$(reprepro listfilter reform "\$Source (== reform-handbook)")" ]; then
 		cd "$WORKDIR"
 		git clone https://source.mnt.re/reform/reform-handbook.git
 		cd reform-handbook
-		sbuild -d "$BASESUITE" --host="$HOST_ARCH" --arch-all --arch-any --nolog --no-clean-source --no-source-only-changes --no-run-lintian --no-run-autopkgtest --extra-repository="$SRC_LIST_PATCHED" --no-apt-upgrade --no-apt-distupgrade
+		sbuild -d "$BASESUITE" --arch-all --arch-any --nolog --no-clean-source --no-source-only-changes --no-run-lintian --no-run-autopkgtest --extra-repository="$SRC_LIST_PATCHED" --no-apt-upgrade --no-apt-distupgrade
 		reprepro include "$OURSUITE" ../reform-handbook_*_amd64.changes
 		cd ..
 	)
