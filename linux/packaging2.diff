@@ -1,7 +1,7 @@
 From 2bba1818672d8e8f218ee3039a0dd7d4fa8f20d5 Mon Sep 17 00:00:00 2001
 From: Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
 Date: Thu, 27 Jan 2022 23:29:33 +0100
-Subject: [PATCH] refresh patches for 5.17-rc1
+Subject: [PATCH] refresh patches for 5.17-rc2
 
 ---
  ...x-version-string-in-recursive-builds.patch |   2 +-
