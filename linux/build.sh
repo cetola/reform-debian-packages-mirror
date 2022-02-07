@@ -11,19 +11,10 @@ fi
 git -C linux clean -fdx
 git -C linux reset --hard
 
-rm linux/debian/changelog
-rm linux/debian/changelog.old
-
-cat << END > linux/debian/changelog
-linux (5.17~rc2-1~exp1.1) UNRELEASED; urgency=medium
-
-  * Non-maintainer upload.
-
- -- Johannes Schauer Marin Rodrigues <josch@debian.org>  $(date --rfc-email)
-END
+env --chdir=linux dch --local "+$OURSUITE" "apply mnt reform patch"
+env --chdir=linux dch --force-distribution --distribution="$OURSUITE" --release ""
 
 env --chdir=linux patch -p1 < packaging.diff
-env --chdir=linux patch -p1 < packaging2.diff
 
 # use sed to change abiname to avoid the patch not working on any abi bump
 sed --in-place --expression 's/^abiname: \([0-9]\+\|trunk\)$/abiname: reform2/' linux/debian/config/defines
