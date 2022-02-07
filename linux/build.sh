@@ -81,4 +81,4 @@ env --chdir=linux \
 		--pre-build-commands '%SBUILD_CHROOT_EXEC sh -c "chmod +x /usr/lib/apt/solvers/sbuild-cross-resolver"' \
 		--nolog --no-source-only-changes --no-run-lintian --no-run-autopkgtest
 
-reprepro include "$OURSUITE" ./linux_5.17~rc2-1~exp1.1_arm64.changes
+reprepro include "$OURSUITE" "./linux_$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog)_arm64.changes"
