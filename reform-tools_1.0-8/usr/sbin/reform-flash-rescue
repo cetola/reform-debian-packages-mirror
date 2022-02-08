@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# WARNING: This overwrites the bootloader on the eMMC rescue disk!
+
+dd if=/boot/flash.bin of=/dev/mmcblk0boot0 bs=1024 seek=33
+sync
