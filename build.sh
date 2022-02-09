@@ -147,9 +147,17 @@ if [ -z "$(reprepro listfilter reform "\$Source (== blender)")" ]; then
 fi
 
 if [ -z "$(reprepro listfilter reform "Package (== reform-tools)")" ]; then
-	dpkg-deb --root-owner-group --build reform-tools_1.0-8
-	reprepro includedeb "$OURSUITE" reform-tools_1.0-8.deb
-	rm reform-tools_1.0-8.deb
+	rm -Rf "$WORKDIR"
+	mkdir --mode=0777 "$WORKDIR"
+	(
+		cd "$WORKDIR"
+		git clone https://source.mnt.re/josch/reform-tools.git
+		cd reform-tools
+		sbuild -d "$BASESUITE" --arch-all --arch-any --nolog --no-clean-source --no-source-only-changes --no-run-lintian --no-run-autopkgtest --extra-repository="$SRC_LIST_PATCHED" --no-apt-upgrade --no-apt-distupgrade
+		reprepro include "$OURSUITE" ../reform-tools_*_amd64.changes
+		cd ..
+	)
+	rm -Rf "$WORKDIR"
 fi
 
 # https://ftp-master.debian.org/new/wayvnc_0.4.1-1.html

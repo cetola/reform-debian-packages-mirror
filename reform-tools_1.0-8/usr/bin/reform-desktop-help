@@ -1,4 +1,0 @@
-#!/bin/bash
-
-cat /etc/motd
-cat /etc/reform-desktop-help

@@ -1,8 +1,0 @@
-#!/bin/bash
-
-set -e
-
-sudo dpkg-reconfigure keyboard-configuration
-sudo systemctl restart console-setup
-
-sudo dpkg-reconfigure tzdata
