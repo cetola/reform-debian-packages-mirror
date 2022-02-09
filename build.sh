@@ -151,7 +151,7 @@ if [ -z "$(reprepro listfilter reform "Package (== reform-tools)")" ]; then
 	mkdir --mode=0777 "$WORKDIR"
 	(
 		cd "$WORKDIR"
-		git clone https://source.mnt.re/josch/reform-tools.git
+		git clone https://source.mnt.re/reform/reform-tools.git
 		cd reform-tools
 		sbuild -d "$BASESUITE" --arch-all --arch-any --nolog --no-clean-source --no-source-only-changes --no-run-lintian --no-run-autopkgtest --extra-repository="$SRC_LIST_PATCHED" --no-apt-upgrade --no-apt-distupgrade
 		reprepro include "$OURSUITE" ../reform-tools_*_amd64.changes
