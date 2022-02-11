@@ -73,7 +73,7 @@ env --chdir=linux QUILT_PATCHES=debian/patches quilt refresh
 
 env --chdir=linux \
 	DEB_BUILD_PROFILES="cross nodoc pkg.linux.nosource" \
-	sbuild -d "$BASESUITE" --arch-any --no-arch-all --host="$HOST_ARCH" \
+	sbuild -d "$BASESUITE" --arch-any --arch-all --host="$HOST_ARCH" \
 		--pre-build-commands '%SBUILD_CHROOT_EXEC sh -c "mkdir -p /usr/lib/apt/solvers"' \
 		--pre-build-commands 'cat /usr/lib/apt/solvers/apt | %SBUILD_CHROOT_EXEC sh -c "cat > /usr/lib/apt/solvers/apt"' \
 		--pre-build-commands '%SBUILD_CHROOT_EXEC sh -c "chmod +x /usr/lib/apt/solvers/apt"' \
