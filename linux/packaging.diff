@@ -37,7 +37,7 @@ diff -Nru linux-5.13.12/debian/config/defines linux-5.13.12/debian/config/define
  # Disable code signing by default; this can be overridden per-architecture
  signed-code: false
  trusted-certs: debian/certs/debian-uefi-certs.pem
-@@ -172,3 +172,11 @@
+@@ -172,3 +172,9 @@
  # initramfs-generators
  initramfs-fallback: linux-initramfs-tool
  initramfs-tools: initramfs-tools (>= 0.120+deb8u2)
@@ -47,8 +47,6 @@ diff -Nru linux-5.13.12/debian/config/defines linux-5.13.12/debian/config/define
 +libc-dev: false
 +docs: false
 +source: false
-+tools-unversioned: false
-+tools-versioned: false
 diff -Nru linux-5.13.12/debian/rules.real linux-5.13.12/debian/rules.real
 --- linux-5.13.12/debian/rules.real	2021-08-09 15:42:36.000000000 +0200
 +++ linux-5.13.12/debian/rules.real	2022-01-12 15:02:01.000000000 +0100

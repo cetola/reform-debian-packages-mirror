@@ -39,7 +39,7 @@ SRC_LIST_PATCHED="deb [ trusted=yes ] http://127.0.0.1:$HTTP_PORT/ $OURSUITE mai
 BUILD_ARCH=$(dpkg --print-architecture)
 HOST_ARCH=arm64
 
-DEB_BUILD_PROFILES="nobiarch nocheck noudeb nodoc pkg.linux.nosource pkg.linux.notools"
+DEB_BUILD_PROFILES="nobiarch nocheck noudeb nodoc pkg.linux.nosource"
 if [ "$BUILD_ARCH" != "$HOST_ARCH" ]; then
 	DEB_BUILD_PROFILES="cross $DEB_BUILD_PROFILES"
 fi

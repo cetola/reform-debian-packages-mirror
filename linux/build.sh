@@ -72,7 +72,7 @@ sed -i '/imx8mq-mnt-reform2.dtb/a dtb-$(CONFIG_ARCH_MXC) += imx8mq-mnt-reform2-h
 env --chdir=linux QUILT_PATCHES=debian/patches quilt refresh
 
 env --chdir=linux \
-	DEB_BUILD_PROFILES="cross nodoc pkg.linux.nosource pkg.linux.notools" \
+	DEB_BUILD_PROFILES="cross nodoc pkg.linux.nosource" \
 	sbuild -d "$BASESUITE" --arch-any --no-arch-all --host="$HOST_ARCH" \
 		--pre-build-commands '%SBUILD_CHROOT_EXEC sh -c "mkdir -p /usr/lib/apt/solvers"' \
 		--pre-build-commands 'cat /usr/lib/apt/solvers/apt | %SBUILD_CHROOT_EXEC sh -c "cat > /usr/lib/apt/solvers/apt"' \
