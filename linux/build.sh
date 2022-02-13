@@ -1,4 +1,12 @@
 #!/bin/sh
+#
+# Why do we build the kernel as a Debian package instead of straight from
+# kernel.org git:
+#
+#  - allow upgrading the kernel via 'apt upgrade'
+#  - system is closer to a 'real Debian' so that no special knowledge is needed
+#  - integration with flash-kernel and update-initramfs
+#  - allows building kernel modules like zfs-dkms via linux-kbuild & linux-headers
 
 set -e
 set -u
