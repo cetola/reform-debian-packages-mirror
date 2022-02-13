@@ -6,7 +6,7 @@
 set -e
 set -u
 
-BASESUITE=testing
+BASESUITE=unstable
 OURSUITE=reform
 WORKDIR=$(mktemp --directory --tmpdir="$(pwd)")
 PATCHDIR=$(realpath patches)
