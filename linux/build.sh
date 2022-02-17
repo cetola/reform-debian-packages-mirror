@@ -44,7 +44,7 @@ make -C linux -f debian/rules debian/control || :
 # running the last command creates pyc files that we don't want
 rm -r ./linux/debian/lib/python/debian_linux/__pycache__
 
-cat config >> linux/debian/config/arm64/config
+cp config linux/debian/config/arm64/config
 
 
 mkdir linux/debian/patches/reform
