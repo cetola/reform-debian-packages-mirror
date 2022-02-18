@@ -210,7 +210,7 @@
 // LCDIF is not used, but has to be active or DCSS won't work
 &lcdif {
 	status = "okay";
-	/delete-node/ port@0;
+	/delete-node/ port;
 };
 
 &dphy {
