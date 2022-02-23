@@ -7,6 +7,9 @@
 #  - system is closer to a 'real Debian' so that no special knowledge is needed
 #  - integration with flash-kernel and update-initramfs
 #  - allows building kernel modules like zfs-dkms via linux-kbuild & linux-headers
+#  - allows features like supermin+guestfs or anbox
+#  - support for all hardware that Debian supports via modules
+#  - minimize the diff so that reform support can be added to the official packaging
 
 set -e
 set -u
@@ -44,8 +47,11 @@ make -C linux -f debian/rules debian/control || :
 # running the last command creates pyc files that we don't want
 rm -r ./linux/debian/lib/python/debian_linux/__pycache__
 
-cp config linux/debian/config/arm64/config
-
+if [ ! -d kernel-team ]; then
+       git clone https://salsa.debian.org/kernel-team/kernel-team.git
+fi
+cat config >> linux/debian/config/arm64/config
+env --chdir=linux ../kernel-team/utils/kconfigeditor2/process.py .
 
 mkdir linux/debian/patches/reform
 cp patches/* linux/debian/patches/reform
@@ -82,11 +88,6 @@ env --chdir=linux QUILT_PATCHES=debian/patches quilt refresh
 env --chdir=linux \
 	DEB_BUILD_PROFILES="cross nodoc pkg.linux.nosource" \
 	sbuild -d "$BASESUITE" --arch-any --arch-all --host="$HOST_ARCH" \
-		--pre-build-commands '%SBUILD_CHROOT_EXEC sh -c "mkdir -p /usr/lib/apt/solvers"' \
-		--pre-build-commands 'cat /usr/lib/apt/solvers/apt | %SBUILD_CHROOT_EXEC sh -c "cat > /usr/lib/apt/solvers/apt"' \
-		--pre-build-commands '%SBUILD_CHROOT_EXEC sh -c "chmod +x /usr/lib/apt/solvers/apt"' \
-		--pre-build-commands 'cat /usr/lib/apt/solvers/sbuild-cross-resolver | %SBUILD_CHROOT_EXEC sh -c "cat > /usr/lib/apt/solvers/sbuild-cross-resolver"' \
-		--pre-build-commands '%SBUILD_CHROOT_EXEC sh -c "chmod +x /usr/lib/apt/solvers/sbuild-cross-resolver"' \
 		--nolog --no-source-only-changes --no-run-lintian --no-run-autopkgtest
 
 reprepro include "$OURSUITE" "./linux_$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog)_arm64.changes"
