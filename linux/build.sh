@@ -51,6 +51,7 @@ if [ ! -d kernel-team ]; then
        git clone https://salsa.debian.org/kernel-team/kernel-team.git
 fi
 cat config >> linux/debian/config/arm64/config
+env --chdir=linux debian/rules source
 env --chdir=linux ../kernel-team/utils/kconfigeditor2/process.py .
 
 mkdir linux/debian/patches/reform
