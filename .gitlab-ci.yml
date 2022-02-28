@@ -6,7 +6,7 @@ build:
       - output.log
       - repo
   script:
-    - apt-get update
+    - apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
     - apt-get upgrade --yes
     - apt-get dist-upgrade --yes
     - apt-get --no-install-recommends -y install fakechroot fakeroot devscripts mmdebstrap python3 reprepro sbuild schroot debhelper debian-keyring quilt pristine-tar rsync
