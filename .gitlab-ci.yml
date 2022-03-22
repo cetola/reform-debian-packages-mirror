@@ -7,8 +7,6 @@ build:
       - repo
   script:
     - apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
-    - apt-get upgrade --yes
-    - apt-get dist-upgrade --yes
     - apt-get --no-install-recommends -y install fakechroot fakeroot devscripts mmdebstrap python3 reprepro sbuild schroot debhelper debian-keyring quilt pristine-tar rsync
     - test -d /srv/chroot/unstable-sbuild || sbuild-createchroot --debootstrap=mmdebstrap --alias=sid unstable /srv/chroot/unstable-sbuild http://deb.debian.org/debian
     - test -d /srv/chroot/testing-sbuild || sbuild-createchroot --debootstrap=mmdebstrap --alias=sid testing /srv/chroot/testing-sbuild http://deb.debian.org/debian
