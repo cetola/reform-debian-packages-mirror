@@ -59,9 +59,8 @@ diff -Nru blender-2.79.b+dfsg0/debian/control blender-2.79.b+dfsg0/debian/contro
                 opencollada-dev [linux-any],
                 pkg-config,
 -               python3-dev,
--               python3-requests
 +               python3-dev:any,
-+               python3-requests:native
+                python3-requests
  Build-Conflicts: nvidia-glx
  Standards-Version: 4.3.0
  Homepage: http://www.blender.org/
