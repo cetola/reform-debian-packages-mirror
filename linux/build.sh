@@ -48,7 +48,7 @@ make -C linux -f debian/rules debian/control || :
 rm -r ./linux/debian/lib/python/debian_linux/__pycache__
 
 if [ ! -d kernel-team ]; then
-       git clone https://salsa.debian.org/kernel-team/kernel-team.git
+	git clone https://salsa.debian.org/kernel-team/kernel-team.git
 fi
 cat config >> linux/debian/config/arm64/config
 env --chdir=linux debian/rules source
