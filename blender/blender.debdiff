@@ -49,7 +49,7 @@ diff -Nru blender-2.79.b+dfsg0/debian/control blender-2.79.b+dfsg0/debian/contro
                 libsdl-dev,
                 libsndfile-dev,
                 libspnav-dev,
-@@ -44,11 +51,13 @@
+@@ -44,10 +51,12 @@
                 libtiff-dev,
                 libvorbis-dev,
                 libxi-dev,
@@ -63,7 +63,6 @@ diff -Nru blender-2.79.b+dfsg0/debian/control blender-2.79.b+dfsg0/debian/contro
                 python3-requests
  Build-Conflicts: nvidia-glx
  Standards-Version: 4.3.0
- Homepage: http://www.blender.org/
 diff -Nru blender-2.79.b+dfsg0/debian/patches/0001-Cleanup-fix-compiler-warnings.patch blender-2.79.b+dfsg0/debian/patches/0001-Cleanup-fix-compiler-warnings.patch
 --- blender-2.79.b+dfsg0/debian/patches/0001-Cleanup-fix-compiler-warnings.patch	1970-01-01 01:00:00.000000000 +0100
 +++ blender-2.79.b+dfsg0/debian/patches/0001-Cleanup-fix-compiler-warnings.patch	2021-12-30 11:20:26.000000000 +0100
@@ -271,6 +270,1069 @@ diff -Nru blender-2.79.b+dfsg0/debian/patches/0001-Fix-for-GCC9-new-OpenMP-data-
 +-- 
 +2.33.0
 +
+diff -Nru blender-2.79.b+dfsg0/debian/patches/0001-Fix-T85573-Building-with-Python-3.10a5-fails.patch blender-2.79.b+dfsg0/debian/patches/0001-Fix-T85573-Building-with-Python-3.10a5-fails.patch
+--- blender-2.79.b+dfsg0/debian/patches/0001-Fix-T85573-Building-with-Python-3.10a5-fails.patch	1970-01-01 01:00:00.000000000 +0100
++++ blender-2.79.b+dfsg0/debian/patches/0001-Fix-T85573-Building-with-Python-3.10a5-fails.patch	2021-12-30 11:20:26.000000000 +0100
+@@ -0,0 +1,1031 @@
++From dae445d94a7a5e1ad38719ea05e5bb0bc76ede84 Mon Sep 17 00:00:00 2001
++From: Campbell Barton <ideasman42@gmail.com>
++Date: Sat, 13 Feb 2021 22:57:01 +1100
++Subject: [PATCH] Fix T85573: Building with Python 3.10a5 fails
++
++Replace deprecated _PyUnicode_AsString{AndSize} usage.
++
++T83626 still needs to be resolved before 3.10 is usable.
++
++--- a/intern/cycles/blender/blender_python.cpp
+++++ b/intern/cycles/blender/blender_python.cpp
++@@ -141,7 +141,7 @@ void python_thread_state_restore(void **
++ 
++ static const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
++ {
++-	const char *result = _PyUnicode_AsString(py_str);
+++	const char *result = PyUnicode_AsUTF8(py_str);
++ 	if(result) {
++ 		/* 99% of the time this is enough but we better support non unicode
++ 		 * chars since blender doesnt limit this.
++--- a/source/blender/freestyle/intern/python/BPy_SShape.cpp
+++++ b/source/blender/freestyle/intern/python/BPy_SShape.cpp
++@@ -194,7 +194,7 @@ static int SShape_name_set(BPy_SShape *s
++ 		PyErr_SetString(PyExc_TypeError, "value must be a string");
++ 		return -1;
++ 	}
++-	const char *name = _PyUnicode_AsString(value);
+++	const char *name = PyUnicode_AsUTF8(value);
++ 	self->ss->setName(name);
++ 	return 0;
++ }
++--- a/source/blender/python/bmesh/bmesh_py_ops.c
+++++ b/source/blender/python/bmesh/bmesh_py_ops.c
++@@ -220,7 +220,7 @@ static PyTypeObject bmesh_op_Type = {
++ 
++ static PyObject *bpy_bmesh_ops_fakemod_getattro(PyObject *UNUSED(self), PyObject *pyname)
++ {
++-	const char *opname = _PyUnicode_AsString(pyname);
+++	const char *opname = PyUnicode_AsUTF8(pyname);
++ 
++ 	if (BMO_opcode_from_opname(opname) != -1) {
++ 		return bpy_bmesh_op_CreatePyObject(opname);
++--- a/source/blender/python/bmesh/bmesh_py_ops_call.c
+++++ b/source/blender/python/bmesh/bmesh_py_ops_call.c
++@@ -724,7 +724,7 @@ PyObject *BPy_BMO_call(BPy_BMeshOpFunc *
++ 		PyObject *key, *value;
++ 		Py_ssize_t pos = 0;
++ 		while (PyDict_Next(kw, &pos, &key, &value)) {
++-			const char *slot_name = _PyUnicode_AsString(key);
+++			const char *slot_name = PyUnicode_AsUTF8(key);
++ 			BMOpSlot *slot;
++ 
++ 			if (!BMO_slot_exists(bmop.slots_in, slot_name)) {
++--- a/source/blender/python/bmesh/bmesh_py_types_customdata.c
+++++ b/source/blender/python/bmesh/bmesh_py_types_customdata.c
++@@ -658,7 +658,7 @@ static PyObject *bpy_bmlayercollection_s
++ {
++ 	/* don't need error check here */
++ 	if (PyUnicode_Check(key)) {
++-		return bpy_bmlayercollection_subscript_str(self, _PyUnicode_AsString(key));
+++		return bpy_bmlayercollection_subscript_str(self, PyUnicode_AsUTF8(key));
++ 	}
++ 	else if (PyIndex_Check(key)) {
++ 		Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
++@@ -712,7 +712,7 @@ static PyObject *bpy_bmlayercollection_s
++ 
++ static int bpy_bmlayercollection_contains(BPy_BMLayerCollection *self, PyObject *value)
++ {
++-	const char *keyname = _PyUnicode_AsString(value);
+++	const char *keyname = PyUnicode_AsUTF8(value);
++ 	CustomData *data;
++ 	int index;
++ 
++--- a/source/blender/python/generic/idprop_py_api.c
+++++ b/source/blender/python/generic/idprop_py_api.c
++@@ -181,13 +181,13 @@ static int BPy_IDGroup_SetData(BPy_IDPro
++ 				st = (char *)PyC_UnicodeAsByte(value, &value_coerce);
++ 				alloc_len = strlen(st) + 1;
++ 
++-				st = _PyUnicode_AsString(value);
+++				st = PyUnicode_AsUTF8(value);
++ 				IDP_ResizeArray(prop, alloc_len);
++ 				memcpy(IDP_Array(prop), st, alloc_len);
++ 				Py_XDECREF(value_coerce);
++ 			}
++ #else
++-			st = _PyUnicode_AsString(value);
+++			st = PyUnicode_AsUTF8(value);
++ 			IDP_ResizeArray(prop, strlen(st) + 1);
++ 			strcpy(IDP_Array(prop), st);
++ #endif
++@@ -248,7 +248,7 @@ static int BPy_IDGroup_SetName(BPy_IDPro
++ 		return -1;
++ 	}
++ 
++-	name = _PyUnicode_AsStringAndSize(value, &name_size);
+++	name = PyUnicode_AsUTF8AndSize(value, &name_size);
++ 
++ 	if (name_size > MAX_IDPROP_NAME) {
++ 		PyErr_SetString(PyExc_TypeError, "string length cannot exceed 63 characters!");
++@@ -291,7 +291,7 @@ static PyObject *BPy_IDGroup_Map_GetItem
++ 		return NULL;
++ 	}
++ 
++-	name = _PyUnicode_AsString(item);
+++	name = PyUnicode_AsUTF8(item);
++ 
++ 	if (name == NULL) {
++ 		PyErr_SetString(PyExc_TypeError, "only strings are allowed as keys of ID properties");
++@@ -349,7 +349,7 @@ static const char *idp_try_read_name(PyO
++ 	const char *name = NULL;
++ 	if (name_obj) {
++ 		Py_ssize_t name_size;
++-		name = _PyUnicode_AsStringAndSize(name_obj, &name_size);
+++		name = PyUnicode_AsUTF8AndSize(name_obj, &name_size);
++ 
++ 		if (name == NULL) {
++ 			PyErr_Format(PyExc_KeyError,
++@@ -406,7 +406,7 @@ static IDProperty *idp_from_PyUnicode(co
++ 	prop = IDP_New(IDP_STRING, &val, name);
++ 	Py_XDECREF(value_coerce);
++ #else
++-	val.str = _PyUnicode_AsString(ob);
+++	val.str = PyUnicode_AsUTF8(ob);
++ 	prop = IDP_New(IDP_STRING, val, name);
++ #endif
++ 	return prop;
++@@ -693,7 +693,7 @@ int BPy_Wrap_SetMapItem(IDProperty *prop
++ 
++ 	if (val == NULL) { /* del idprop[key] */
++ 		IDProperty *pkey;
++-		const char *name = _PyUnicode_AsString(key);
+++		const char *name = PyUnicode_AsUTF8(key);
++ 
++ 		if (name == NULL) {
++ 			PyErr_Format(PyExc_KeyError,
++@@ -867,7 +867,7 @@ static PyObject *BPy_IDGroup_pop(BPy_IDP
++ {
++ 	IDProperty *idprop;
++ 	PyObject *pyform;
++-	const char *name = _PyUnicode_AsString(value);
+++	const char *name = PyUnicode_AsUTF8(value);
++ 
++ 	if (!name) {
++ 		PyErr_Format(PyExc_TypeError,
++@@ -1027,7 +1027,7 @@ static PyObject *BPy_IDGroup_items(BPy_I
++ 
++ static int BPy_IDGroup_Contains(BPy_IDProperty *self, PyObject *value)
++ {
++-	const char *name = _PyUnicode_AsString(value);
+++	const char *name = PyUnicode_AsUTF8(value);
++ 
++ 	if (!name) {
++ 		PyErr_Format(PyExc_TypeError,
++@@ -1826,7 +1826,7 @@ void IDP_spit(IDProperty *prop)
++ 		ret_str = PyObject_Repr(ret_dict);
++ 		Py_DECREF(ret_dict);
++ 
++-		printf("IDProperty(%p): %s\n", prop, _PyUnicode_AsString(ret_str));
+++		printf("IDProperty(%p): %s\n", prop, PyUnicode_AsUTF8(ret_str));
++ 
++ 		Py_DECREF(ret_str);
++ 
++--- a/source/blender/python/generic/py_capi_utils.c
+++++ b/source/blender/python/generic/py_capi_utils.c
++@@ -289,7 +289,7 @@ void PyC_FileAndNum(const char **filenam
++ 
++ 	/* when executing a script */
++ 	if (filename) {
++-		*filename = _PyUnicode_AsString(frame->f_code->co_filename);
+++		*filename = PyUnicode_AsUTF8(frame->f_code->co_filename);
++ 	}
++ 
++ 	/* when executing a module */
++@@ -302,7 +302,7 @@ void PyC_FileAndNum(const char **filenam
++ 			if (mod) {
++ 				PyObject *mod_file = PyModule_GetFilenameObject(mod);
++ 				if (mod_file) {
++-					*filename = _PyUnicode_AsString(mod_name);
+++					*filename = PyUnicode_AsUTF8(mod_name);
++ 					Py_DECREF(mod_file);
++ 				}
++ 				else {
++@@ -312,7 +312,7 @@ void PyC_FileAndNum(const char **filenam
++ 
++ 			/* unlikely, fallback */
++ 			if (*filename == NULL) {
++-				*filename = _PyUnicode_AsString(mod_name);
+++				*filename = PyUnicode_AsUTF8(mod_name);
++ 			}
++ 		}
++ 	}
++@@ -551,7 +551,7 @@ const char *PyC_UnicodeAsByteAndSize(PyO
++ {
++ 	const char *result;
++ 
++-	result = _PyUnicode_AsStringAndSize(py_str, size);
+++	result = PyUnicode_AsUTF8AndSize(py_str, size);
++ 
++ 	if (result) {
++ 		/* 99% of the time this is enough but we better support non unicode
++@@ -580,7 +580,7 @@ const char *PyC_UnicodeAsByte(PyObject *
++ {
++ 	const char *result;
++ 
++-	result = _PyUnicode_AsString(py_str);
+++	result = PyUnicode_AsUTF8(py_str);
++ 
++ 	if (result) {
++ 		/* 99% of the time this is enough but we better support non unicode
++@@ -972,7 +972,7 @@ int PyC_FlagSet_ToBitfield(PyC_FlagSet *
++ 	*r_value = 0;
++ 
++ 	while (_PySet_NextEntry(value, &pos, &key, &hash)) {
++-		const char *param = _PyUnicode_AsString(key);
+++		const char *param = PyUnicode_AsUTF8(key);
++ 
++ 		if (param == NULL) {
++ 			PyErr_Format(PyExc_TypeError,
++@@ -1097,7 +1097,7 @@ bool PyC_RunString_AsString(const char *
++ 		const char *val;
++ 		Py_ssize_t val_len;
++ 
++-		val = _PyUnicode_AsStringAndSize(retval, &val_len);
+++		val = PyUnicode_AsUTF8AndSize(retval, &val_len);
++ 		if (val == NULL && PyErr_Occurred()) {
++ 			ok = false;
++ 		}
++--- a/source/blender/python/intern/bpy.c
+++++ b/source/blender/python/intern/bpy.c
++@@ -232,7 +232,7 @@ static PyObject *bpy_escape_identifier(P
++ 	PyObject   *value_escape;
++ 	size_t size;
++ 
++-	value_str = _PyUnicode_AsStringAndSize(value, &value_str_len);
+++	value_str = PyUnicode_AsUTF8AndSize(value, &value_str_len);
++ 
++ 	if (value_str == NULL) {
++ 		PyErr_SetString(PyExc_TypeError, "expected a string");
++--- a/source/blender/python/intern/bpy_app_translations.c
+++++ b/source/blender/python/intern/bpy_app_translations.c
++@@ -193,7 +193,7 @@ static void _build_translations_cache(Py
++ 						msgctxt = BLT_I18NCONTEXT_DEFAULT_BPYRNA;
++ 					}
++ 					else if (PyUnicode_Check(tmp)) {
++-						msgctxt = _PyUnicode_AsString(tmp);
+++						msgctxt = PyUnicode_AsUTF8(tmp);
++ 					}
++ 					else {
++ 						invalid_key = true;
++@@ -201,7 +201,7 @@ static void _build_translations_cache(Py
++ 
++ 					tmp = PyTuple_GET_ITEM(pykey, 1);
++ 					if (PyUnicode_Check(tmp)) {
++-						msgid = _PyUnicode_AsString(tmp);
+++						msgid = PyUnicode_AsUTF8(tmp);
++ 					}
++ 					else {
++ 						invalid_key = true;
++@@ -231,7 +231,7 @@ static void _build_translations_cache(Py
++ 				/* Do not overwrite existing keys! */
++ 				if (BPY_app_translations_py_pgettext(msgctxt, msgid) == msgid) {
++ 					GHashKey *key = _ghashutil_keyalloc(msgctxt, msgid);
++-					BLI_ghash_insert(_translations_cache, key, BLI_strdup(_PyUnicode_AsString(trans)));
+++					BLI_ghash_insert(_translations_cache, key, BLI_strdup(PyUnicode_AsUTF8(trans)));
++ 				}
++ 			}
++ 		}
++@@ -313,7 +313,7 @@ static PyObject *app_translations_py_mes
++ 	if (PyDict_Contains(self->py_messages, module_name)) {
++ 		PyErr_Format(PyExc_ValueError,
++ 		             "bpy.app.translations.register: translations message cache already contains some data for "
++-		             "addon '%s'", (const char *)_PyUnicode_AsString(module_name));
+++		             "addon '%s'", (const char *)PyUnicode_AsUTF8(module_name));
++ 		return NULL;
++ 	}
++ 
++--- a/source/blender/python/intern/bpy_interface.c
+++++ b/source/blender/python/intern/bpy_interface.c
++@@ -864,7 +864,7 @@ static void bpy_module_delay_init(PyObje
++ 	/* updating the module dict below will loose the reference to __file__ */
++ 	PyObject *filename_obj = PyModule_GetFilenameObject(bpy_proxy);
++ 
++-	const char *filename_rel = _PyUnicode_AsString(filename_obj); /* can be relative */
+++	const char *filename_rel = PyUnicode_AsUTF8(filename_obj); /* can be relative */
++ 	char filename_abs[1024];
++ 
++ 	BLI_strncpy(filename_abs, filename_rel, sizeof(filename_abs));
++--- a/source/blender/python/intern/bpy_library_load.c
+++++ b/source/blender/python/intern/bpy_library_load.c
++@@ -353,7 +353,7 @@ static PyObject *bpy_lib_exit(BPy_Librar
++ 					for (i = 0; i < size; i++) {
++ 						PyObject *item_src = PyList_GET_ITEM(ls, i);
++ 						PyObject *item_dst;  /* must be set below */
++-						const char *item_idname = _PyUnicode_AsString(item_src);
+++						const char *item_idname = PyUnicode_AsUTF8(item_src);
++ 
++ 						// printf("  %s\n", item_idname);
++ 
++--- a/source/blender/python/intern/bpy_operator.c
+++++ b/source/blender/python/intern/bpy_operator.c
++@@ -398,7 +398,7 @@ static PyObject *pyop_getrna(PyObject *U
++ {
++ 	wmOperatorType *ot;
++ 	PointerRNA ptr;
++-	const char *opname = _PyUnicode_AsString(value);
+++	const char *opname = PyUnicode_AsUTF8(value);
++ 	BPy_StructRNA *pyrna = NULL;
++ 	
++ 	if (opname == NULL) {
++@@ -431,7 +431,7 @@ static PyObject *pyop_getinstance(PyObje
++ 	wmOperatorType *ot;
++ 	wmOperator *op;
++ 	PointerRNA ptr;
++-	const char *opname = _PyUnicode_AsString(value);
+++	const char *opname = PyUnicode_AsUTF8(value);
++ 	BPy_StructRNA *pyrna = NULL;
++ 
++ 	if (opname == NULL) {
++--- a/source/blender/python/intern/bpy_operator_wrap.c
+++++ b/source/blender/python/intern/bpy_operator_wrap.c
++@@ -70,7 +70,7 @@ static void operator_properties_init(wmO
++ 		if (bl_property) {
++ 			if (PyUnicode_Check(bl_property)) {
++ 				/* since the property is explicitly given, raise an error if its not found */
++-				prop_id = _PyUnicode_AsString(bl_property);
+++				prop_id = PyUnicode_AsUTF8(bl_property);
++ 				prop_raise_error = true;
++ 			}
++ 			else {
++--- a/source/blender/python/intern/bpy_props.c
+++++ b/source/blender/python/intern/bpy_props.c
++@@ -190,9 +190,9 @@ static void printf_func_error(PyObject *
++ 
++ 	/* use py style error */
++ 	fprintf(stderr, "File \"%s\", line %d, in %s\n",
++-	        _PyUnicode_AsString(f_code->co_filename),
+++	        PyUnicode_AsUTF8(f_code->co_filename),
++ 	        f_code->co_firstlineno,
++-	        _PyUnicode_AsString(((PyFunctionObject *)py_func)->func_name)
+++	        PyUnicode_AsUTF8(((PyFunctionObject *)py_func)->func_name)
++ 	        );
++ }
++ 
++@@ -1072,7 +1072,7 @@ static void bpy_prop_string_get_cb(struc
++ 	}
++ 	else {
++ 		Py_ssize_t length;
++-		const char *buffer = _PyUnicode_AsStringAndSize(ret, &length);
+++		const char *buffer = PyUnicode_AsUTF8AndSize(ret, &length);
++ 		memcpy(value, buffer, length + 1);
++ 		Py_DECREF(ret);
++ 	}
++@@ -1132,7 +1132,7 @@ static int bpy_prop_string_length_cb(str
++ 	}
++ 	else {
++ 		Py_ssize_t length_ssize_t = 0;
++-		_PyUnicode_AsStringAndSize(ret, &length_ssize_t);
+++		PyUnicode_AsUTF8AndSize(ret, &length_ssize_t);
++ 		length = length_ssize_t;
++ 		Py_DECREF(ret);
++ 	}
++@@ -1390,7 +1390,7 @@ static EnumPropertyItem *enum_items_from
++ 	}
++ 	else {
++ 		if (def) {
++-			def_cmp = _PyUnicode_AsString(def);
+++			def_cmp = PyUnicode_AsUTF8(def);
++ 			if (def_cmp == NULL) {
++ 				PyErr_Format(PyExc_TypeError,
++ 				             "EnumProperty(...): default option must be a 'str' "
++@@ -1419,13 +1419,13 @@ static EnumPropertyItem *enum_items_from
++ 		if ((PyTuple_CheckExact(item)) &&
++ 		    (item_size = PyTuple_GET_SIZE(item)) &&
++ 		    (item_size >= 3 && item_size <= 5) &&
++-		    (tmp.identifier =  _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 0), &id_str_size)) &&
++-		    (tmp.name =        _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 1), &name_str_size)) &&
++-		    (tmp.description = _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 2), &desc_str_size)) &&
+++		    (tmp.identifier =  PyUnicode_AsUTF8AndSize(PyTuple_GET_ITEM(item, 0), &id_str_size)) &&
+++		    (tmp.name =        PyUnicode_AsUTF8AndSize(PyTuple_GET_ITEM(item, 1), &name_str_size)) &&
+++		    (tmp.description = PyUnicode_AsUTF8AndSize(PyTuple_GET_ITEM(item, 2), &desc_str_size)) &&
++ 		    /* TODO, number isn't ensured to be unique from the script author */
++ 		    (item_size != 4 || py_long_as_int(PyTuple_GET_ITEM(item, 3), &tmp.value) != -1) &&
++ 		    (item_size != 5 || ((py_long_as_int(PyTuple_GET_ITEM(item, 3), &tmp.icon) != -1 ||
++-		                         (tmp_icon = _PyUnicode_AsString(PyTuple_GET_ITEM(item, 3)))) &&
+++		                         (tmp_icon = PyUnicode_AsUTF8(PyTuple_GET_ITEM(item, 3)))) &&
++ 		                        py_long_as_int(PyTuple_GET_ITEM(item, 4), &tmp.value) != -1)))
++ 		{
++ 			if (is_enum_flag) {
++@@ -2843,7 +2843,7 @@ StructRNA *pointer_type_from_py(PyObject
++ 	if (!srna) {
++ 		if (PyErr_Occurred()) {
++ 			PyObject *msg = PyC_ExceptionBuffer();
++-			const char *msg_char = _PyUnicode_AsString(msg);
+++			const char *msg_char = PyUnicode_AsUTF8(msg);
++ 			PyErr_Format(PyExc_TypeError,
++ 			             "%.200s expected an RNA type, failed with: %s",
++ 			             error_prefix, msg_char);
++--- a/source/blender/python/intern/bpy_rna.c
+++++ b/source/blender/python/intern/bpy_rna.c
++@@ -313,7 +313,7 @@ static bool rna_id_write_error(PointerRN
++ 		if (!ELEM(idcode, ID_WM, ID_SCR)) { /* may need more added here */
++ 			const char *idtype = BKE_idcode_to_name(idcode);
++ 			const char *pyname;
++-			if (key && PyUnicode_Check(key)) pyname = _PyUnicode_AsString(key);
+++			if (key && PyUnicode_Check(key)) pyname = PyUnicode_AsUTF8(key);
++ 			else                             pyname = "<UNKNOWN>";
++ 
++ 			/* make a nice string error */
++@@ -1188,7 +1188,7 @@ static int pyrna_string_to_enum(
++         PyObject *item, PointerRNA *ptr, PropertyRNA *prop, int *r_value,
++         const char *error_prefix)
++ {
++-	const char *param = _PyUnicode_AsString(item);
+++	const char *param = PyUnicode_AsUTF8(item);
++ 
++ 	if (param == NULL) {
++ 		PyErr_Format(PyExc_TypeError,
++@@ -1232,7 +1232,7 @@ BLI_bitmap *pyrna_set_to_enum_bitmap(
++ 	BLI_bitmap *bitmap = BLI_BITMAP_NEW(bitmap_size, __func__);
++ 
++ 	while (_PySet_NextEntry(value, &pos, &key, &hash)) {
++-		const char *param = _PyUnicode_AsString(key);
+++		const char *param = PyUnicode_AsUTF8(key);
++ 		if (param == NULL) {
++ 			PyErr_Format(PyExc_TypeError,
++ 			             "%.200s expected a string, not %.200s",
++@@ -1289,7 +1289,7 @@ int pyrna_set_to_enum_bitfield(
++ 	*r_value = 0;
++ 
++ 	while (_PySet_NextEntry(value, &pos, &key, &hash)) {
++-		const char *param = _PyUnicode_AsString(key);
+++		const char *param = PyUnicode_AsUTF8(key);
++ 
++ 		if (param == NULL) {
++ 			PyErr_Format(PyExc_TypeError,
++@@ -1590,7 +1590,7 @@ int pyrna_pydict_to_props(
++ 		Py_ssize_t pos = 0;
++ 
++ 		while (PyDict_Next(kw, &pos, &key, &value)) {
++-			arg_name = _PyUnicode_AsString(key);
+++			arg_name = PyUnicode_AsUTF8(key);
++ 			if (RNA_struct_find_property(ptr, arg_name) == NULL) break;
++ 			arg_name = NULL;
++ 		}
++@@ -1761,10 +1761,10 @@ static int pyrna_py_to_prop(
++ 						param = PyC_UnicodeAsByte(value, &value_coerce);
++ 					}
++ 					else {
++-						param = _PyUnicode_AsString(value);
+++						param = PyUnicode_AsUTF8(value);
++ 					}
++ #else  /* USE_STRING_COERCE */
++-					param = _PyUnicode_AsString(value);
+++					param = PyUnicode_AsUTF8(value);
++ #endif  /* USE_STRING_COERCE */
++ 
++ 					if (param == NULL) {
++@@ -2019,7 +2019,7 @@ static int pyrna_py_to_prop(
++ 					        "Converting a python list to an RNA collection") == -1)
++ 					{
++ 						PyObject *msg = PyC_ExceptionBuffer();
++-						const char *msg_char = _PyUnicode_AsString(msg);
+++						const char *msg_char = PyUnicode_AsUTF8(msg);
++ 
++ 						PyErr_Format(PyExc_TypeError,
++ 						             "%.200s %.200s.%.200s error converting a member of a collection "
++@@ -2310,7 +2310,7 @@ static int pyrna_prop_collection_subscri
++ 		             err_prefix, RNA_struct_identifier(self->ptr.type));
++ 		return -1;
++ 	}
++-	else if ((keyname = _PyUnicode_AsString(PyTuple_GET_ITEM(key, 0))) == NULL) {
+++	else if ((keyname = PyUnicode_AsUTF8(PyTuple_GET_ITEM(key, 0))) == NULL) {
++ 		PyErr_Format(PyExc_KeyError,
++ 		             "%s: id must be a string, not %.200s",
++ 		             err_prefix, Py_TYPE(PyTuple_GET_ITEM(key, 0))->tp_name);
++@@ -2326,7 +2326,7 @@ static int pyrna_prop_collection_subscri
++ 		}
++ 		else if (PyUnicode_Check(keylib)) {
++ 			Main *bmain = self->ptr.data;
++-			const char *keylib_str = _PyUnicode_AsString(keylib);
+++			const char *keylib_str = PyUnicode_AsUTF8(keylib);
++ 			lib = BLI_findstring(&bmain->library, keylib_str, offsetof(Library, name));
++ 			if (lib == NULL) {
++ 				if (err_not_found) {
++@@ -2517,7 +2517,7 @@ static PyObject *pyrna_prop_collection_s
++ 	PYRNA_PROP_CHECK_OBJ(self);
++ 
++ 	if (PyUnicode_Check(key)) {
++-		return pyrna_prop_collection_subscript_str(self, _PyUnicode_AsString(key));
+++		return pyrna_prop_collection_subscript_str(self, PyUnicode_AsUTF8(key));
++ 	}
++ 	else if (PyIndex_Check(key)) {
++ 		Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
++@@ -2640,7 +2640,7 @@ static int pyrna_prop_collection_ass_sub
++ 
++ #if 0
++ 	if (PyUnicode_Check(key)) {
++-		return pyrna_prop_collection_subscript_str(self, _PyUnicode_AsString(key));
+++		return pyrna_prop_collection_subscript_str(self, PyUnicode_AsUTF8(key));
++ 	}
++ 	else
++ #endif
++@@ -2704,7 +2704,7 @@ static PyObject *pyrna_prop_array_subscr
++ 
++ #if 0
++ 	if (PyUnicode_Check(key)) {
++-		return pyrna_prop_array_subscript_str(self, _PyUnicode_AsString(key));
+++		return pyrna_prop_array_subscript_str(self, PyUnicode_AsUTF8(key));
++ 	}
++ 	else
++ #endif
++@@ -3141,7 +3141,7 @@ static int pyrna_prop_collection_contain
++ 	else {
++ 
++ 		/* key in dict style check */
++-		const char *keyname = _PyUnicode_AsString(key);
+++		const char *keyname = PyUnicode_AsUTF8(key);
++ 
++ 		if (keyname == NULL) {
++ 			PyErr_SetString(PyExc_TypeError,
++@@ -3159,7 +3159,7 @@ static int pyrna_prop_collection_contain
++ static int pyrna_struct_contains(BPy_StructRNA *self, PyObject *value)
++ {
++ 	IDProperty *group;
++-	const char *name = _PyUnicode_AsString(value);
+++	const char *name = PyUnicode_AsUTF8(value);
++ 
++ 	PYRNA_STRUCT_CHECK_INT(self);
++ 
++@@ -3224,7 +3224,7 @@ static PyObject *pyrna_struct_subscript(
++ {
++ 	/* mostly copied from BPy_IDGroup_Map_GetItem */
++ 	IDProperty *group, *idprop;
++-	const char *name = _PyUnicode_AsString(key);
+++	const char *name = PyUnicode_AsUTF8(key);
++ 
++ 	PYRNA_STRUCT_CHECK_OBJ(self);
++ 
++@@ -3841,7 +3841,7 @@ static PyObject *pyrna_struct_dir(BPy_St
++ /* ---------------getattr-------------------------------------------- */
++ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
++ {
++-	const char *name = _PyUnicode_AsString(pyname);
+++	const char *name = PyUnicode_AsUTF8(pyname);
++ 	PyObject *ret;
++ 	PropertyRNA *prop;
++ 	FunctionRNA *func;
++@@ -3985,7 +3985,7 @@ static PyObject *pyrna_struct_meta_idpro
++ 	if (ret == NULL) { // || pyrna_is_deferred_prop(ret)
++ 		StructRNA *srna = srna_from_self(cls, "StructRNA.__getattr__");
++ 		if (srna) {
++-			PropertyRNA *prop = RNA_struct_type_find_property(srna, _PyUnicode_AsString(attr));
+++			PropertyRNA *prop = RNA_struct_type_find_property(srna, PyUnicode_AsUTF8(attr));
++ 			if (prop) {
++ 				PointerRNA tptr;
++ 				PyErr_Clear(); /* clear error from tp_getattro */
++@@ -4004,7 +4004,7 @@ static int pyrna_struct_meta_idprop_seta
++ {
++ 	StructRNA *srna = srna_from_self(cls, "StructRNA.__setattr__");
++ 	const bool is_deferred_prop = (value && pyrna_is_deferred_prop(value));
++-	const char *attr_str = _PyUnicode_AsString(attr);
+++	const char *attr_str = PyUnicode_AsUTF8(attr);
++ 
++ 	if (srna && !pyrna_write_check() && (is_deferred_prop || RNA_struct_type_find_property(srna, attr_str))) {
++ 		PyErr_Format(PyExc_AttributeError,
++@@ -4064,7 +4064,7 @@ static int pyrna_struct_meta_idprop_seta
++ 
++ static int pyrna_struct_setattro(BPy_StructRNA *self, PyObject *pyname, PyObject *value)
++ {
++-	const char *name = _PyUnicode_AsString(pyname);
+++	const char *name = PyUnicode_AsUTF8(pyname);
++ 	PropertyRNA *prop = NULL;
++ 
++ 	PYRNA_STRUCT_CHECK_INT(self);
++@@ -4159,7 +4159,7 @@ static PyObject *pyrna_prop_array_getatt
++ 
++ static PyObject *pyrna_prop_collection_getattro(BPy_PropertyRNA *self, PyObject *pyname)
++ {
++-	const char *name = _PyUnicode_AsString(pyname);
+++	const char *name = PyUnicode_AsUTF8(pyname);
++ 
++ 	if (name == NULL) {
++ 		PyErr_SetString(PyExc_AttributeError, "bpy_prop_collection: __getattr__ must be a string");
++@@ -4227,7 +4227,7 @@ static PyObject *pyrna_prop_collection_g
++ /* --------------- setattr------------------------------------------- */
++ static int pyrna_prop_collection_setattro(BPy_PropertyRNA *self, PyObject *pyname, PyObject *value)
++ {
++-	const char *name = _PyUnicode_AsString(pyname);
+++	const char *name = PyUnicode_AsUTF8(pyname);
++ 	PropertyRNA *prop;
++ 	PointerRNA r_ptr;
++ 
++@@ -4573,7 +4573,7 @@ static PyObject *pyrna_prop_collection_g
++ 		return NULL;
++ 
++ 	if (PyUnicode_Check(key_ob)) {
++-		const char *key = _PyUnicode_AsString(key_ob);
+++		const char *key = PyUnicode_AsUTF8(key_ob);
++ 
++ 		if (RNA_property_collection_lookup_string(&self->ptr, self->prop, key, &newptr))
++ 			return pyrna_struct_CreatePyObject(&newptr);
++@@ -4608,7 +4608,7 @@ PyDoc_STRVAR(pyrna_prop_collection_find_
++ static PyObject *pyrna_prop_collection_find(BPy_PropertyRNA *self, PyObject *key_ob)
++ {
++ 	Py_ssize_t key_len_ssize_t;
++-	const char *key = _PyUnicode_AsStringAndSize(key_ob, &key_len_ssize_t);
+++	const char *key = PyUnicode_AsUTF8AndSize(key_ob, &key_len_ssize_t);
++ 	const int key_len = (int)key_len_ssize_t; /* comare with same type */
++ 
++ 	char name[256], *nameptr;
++@@ -5308,7 +5308,7 @@ static PyObject *small_dict_get_item_str
++ 
++ 	while (PyDict_Next(dict, &pos, &key, &value)) {
++ 		if (PyUnicode_Check(key)) {
++-			if (STREQ(key_lookup, _PyUnicode_AsString(key))) {
+++			if (STREQ(key_lookup, PyUnicode_AsUTF8(key))) {
++ 				return value;
++ 			}
++ 		}
++@@ -5444,7 +5444,7 @@ static PyObject *pyrna_func_call(BPy_Fun
++ #ifdef DEBUG_STRING_FREE
++ 		if (item) {
++ 			if (PyUnicode_Check(item)) {
++-				PyList_APPEND(string_free_ls, PyUnicode_FromString(_PyUnicode_AsString(item)));
+++				PyList_APPEND(string_free_ls, PyUnicode_FromString(PyUnicode_AsUTF8(item)));
++ 			}
++ 		}
++ #endif
++@@ -5495,7 +5495,7 @@ static PyObject *pyrna_func_call(BPy_Fun
++ 
++ 		while (PyDict_Next(kw, &pos, &key, &value)) {
++ 
++-			arg_name = _PyUnicode_AsString(key);
+++			arg_name = PyUnicode_AsUTF8(key);
++ 			found = false;
++ 
++ 			if (arg_name == NULL) { /* unlikely the argname is not a string but ignore if it is*/
++@@ -6862,7 +6862,7 @@ static PyObject *pyrna_basetype_getattro
++ {
++ 	PointerRNA newptr;
++ 	PyObject *ret;
++-	const char *name = _PyUnicode_AsString(pyname);
+++	const char *name = PyUnicode_AsUTF8(pyname);
++ 
++ 	if (name == NULL) {
++ 		PyErr_SetString(PyExc_AttributeError, "bpy.types: __getattr__ must be a string");
++@@ -6873,14 +6873,14 @@ static PyObject *pyrna_basetype_getattro
++ 		if (ret == NULL) {
++ 			PyErr_Format(PyExc_RuntimeError,
++ 			             "bpy.types.%.200s subtype could not be generated, this is a bug!",
++-			             _PyUnicode_AsString(pyname));
+++			             PyUnicode_AsUTF8(pyname));
++ 		}
++ 	}
++ 	else {
++ #if 0
++ 		PyErr_Format(PyExc_AttributeError,
++ 		             "bpy.types.%.200s RNA_Struct does not exist",
++-		             _PyUnicode_AsString(pyname));
+++		             PyUnicode_AsUTF8(pyname));
++ 		return NULL;
++ #endif
++ 		/* The error raised here will be displayed */
++@@ -7090,11 +7090,11 @@ static int deferred_register_prop(Struct
++ 		if (PyArg_ParseTuple(item, "OO!", &py_func, &PyDict_Type, &py_kw)) {
++ 			PyObject *args_fake;
++ 
++-			if (*_PyUnicode_AsString(key) == '_') {
+++			if (*PyUnicode_AsUTF8(key) == '_') {
++ 				PyErr_Format(PyExc_ValueError,
++ 				             "bpy_struct \"%.200s\" registration error: "
++ 				             "%.200s could not register because the property starts with an '_'\n",
++-				             RNA_struct_identifier(srna), _PyUnicode_AsString(key));
+++				             RNA_struct_identifier(srna), PyUnicode_AsUTF8(key));
++ 				return -1;
++ 			}
++ 			py_srna_cobject = PyCapsule_New(srna, NULL, NULL);
++@@ -7137,7 +7137,7 @@ static int deferred_register_prop(Struct
++ 				PyErr_Format(PyExc_ValueError,
++ 				             "bpy_struct \"%.200s\" registration error: "
++ 				             "%.200s could not register\n",
++-				             RNA_struct_identifier(srna), _PyUnicode_AsString(key));
+++				             RNA_struct_identifier(srna), PyUnicode_AsUTF8(key));
++ 				return -1;
++ 			}
++ 		}
++--- a/source/blender/python/intern/bpy_traceback.c
+++++ b/source/blender/python/intern/bpy_traceback.c
++@@ -143,7 +143,7 @@ void python_script_error_jump(const char
++ 			PyObject *filename_py, *text_py;
++ 
++ 			if (parse_syntax_error(value, &message, &filename_py, lineno, offset, &text_py)) {
++-				const char *filename = _PyUnicode_AsString(filename_py);
+++				const char *filename = PyUnicode_AsUTF8(filename_py);
++ 				/* python adds a '/', prefix, so check for both */
++ 				if ((BLI_path_cmp(filename, filepath) == 0) ||
++ 				    ((filename[0] == '\\' || filename[0] == '/') && BLI_path_cmp(filename + 1, filepath) == 0))
++--- a/source/blender/python/mathutils/mathutils_Euler.c
+++++ b/source/blender/python/mathutils/mathutils_Euler.c
++@@ -639,7 +639,7 @@ static int Euler_order_set(EulerObject *
++ 	if (BaseMath_Prepare_ForWrite(self) == -1)
++ 		return -1;
++ 
++-	if (((order_str = _PyUnicode_AsString(value)) == NULL) ||
+++	if (((order_str = PyUnicode_AsUTF8(value)) == NULL) ||
++ 	    ((order = euler_order_from_string(order_str, "euler.order")) == -1))
++ 	{
++ 		return -1;
++--- a/source/blender/python/mathutils/mathutils_Matrix.c
+++++ b/source/blender/python/mathutils/mathutils_Matrix.c
++@@ -480,7 +480,7 @@ static PyObject *C_Matrix_Rotation(PyObj
++ 	}
++ 
++ 	if (vec && PyUnicode_Check(vec)) {
++-		axis = _PyUnicode_AsString((PyObject *)vec);
+++		axis = PyUnicode_AsUTF8((PyObject *)vec);
++ 		if (axis == NULL || axis[0] == '\0' || axis[1] != '\0' || axis[0] < 'X' || axis[0] > 'Z') {
++ 			PyErr_SetString(PyExc_ValueError,
++ 			                "Matrix.Rotation(): "
++@@ -693,7 +693,7 @@ static PyObject *C_Matrix_OrthoProjectio
++ 
++ 	if (PyUnicode_Check(axis)) {  /* ortho projection onto cardinal plane */
++ 		Py_ssize_t plane_len;
++-		const char *plane = _PyUnicode_AsStringAndSize(axis, &plane_len);
+++		const char *plane = PyUnicode_AsUTF8AndSize(axis, &plane_len);
++ 		if (matSize == 2) {
++ 			if (plane_len == 1 && plane[0] == 'X') {
++ 				mat[0] = 1.0f;
++--- a/source/blender/python/generic/bpy_internal_import.c
+++++ b/source/blender/python/generic/bpy_internal_import.c
++@@ -253,7 +253,7 @@ PyObject *bpy_text_reimport(PyObject *mo
++ 		if (module_file == NULL) {
++ 			return NULL;
++ 		}
++-		filepath = (char *)_PyUnicode_AsString(module_file);
+++		filepath = (char *)PyUnicode_AsUTF8(module_file);
++ 		Py_DECREF(module_file);
++ 		if (filepath == NULL) {
++ 			return NULL;
++--- a/source/blender/python/intern/bpy_util.c
+++++ b/source/blender/python/intern/bpy_util.c
++@@ -121,13 +121,13 @@ bool BPy_errors_to_report_ex(ReportList
++ 		}
++ 
++ #if 0 /* ARG!. workaround for a bug in blenders use of vsnprintf */
++-		BKE_reportf(reports, RPT_ERROR, "%s\nlocation: %s:%d\n", _PyUnicode_AsString(pystring), filename, lineno);
+++		BKE_reportf(reports, RPT_ERROR, "%s\nlocation: %s:%d\n", PyUnicode_AsUTF8(pystring), filename, lineno);
++ #else
++ 		pystring_format = PyUnicode_FromFormat(
++ 		        TIP_("%s\nlocation: %s:%d\n"),
++-		        _PyUnicode_AsString(pystring), filename, lineno);
+++		        PyUnicode_AsUTF8(pystring), filename, lineno);
++ 
++-		cstring = _PyUnicode_AsString(pystring_format);
+++		cstring = PyUnicode_AsUTF8(pystring_format);
++ 		BKE_report(reports, RPT_ERROR, cstring);
++ 
++ 		/* not exactly needed. just for testing */
++@@ -137,7 +137,7 @@ bool BPy_errors_to_report_ex(ReportList
++ #endif
++ 	}
++ 	else {
++-		BKE_report(reports, RPT_ERROR, _PyUnicode_AsString(pystring));
+++		BKE_report(reports, RPT_ERROR, PyUnicode_AsUTF8(pystring));
++ 	}
++ 
++ 
++--- a/source/gameengine/Converter/BL_ActionActuator.cpp
+++++ b/source/gameengine/Converter/BL_ActionActuator.cpp
++@@ -358,7 +358,7 @@ PyObject *BL_ActionActuator::PyGetChanne
++ 	PyErr_SetString(PyExc_NotImplementedError, "BL_ActionActuator.getChannel() no longer works, please use BL_ArmatureObject.channels instead");
++ 	return NULL;
++ #if 0 // XXX To be removed in a later version (first removed in 2.64)
++-	const char *string= _PyUnicode_AsString(value);
+++	const char *string= PyUnicode_AsUTF8(value);
++ 
++ 	if (GetParent()->GetGameObjectType() != SCA_IObject::OBJ_ARMATURE)
++ 	{
++@@ -580,7 +580,7 @@ int BL_ActionActuator::pyattr_set_action
++ 	}
++ 
++ 	bAction *action= NULL;
++-	STR_String val = _PyUnicode_AsString(value);
+++	STR_String val = PyUnicode_AsUTF8(value);
++ 	
++ 	if (val != "")
++ 	{
++--- a/source/gameengine/Converter/BL_ShapeActionActuator.cpp
+++++ b/source/gameengine/Converter/BL_ShapeActionActuator.cpp
++@@ -543,7 +543,7 @@ int BL_ShapeActionActuator::pyattr_set_a
++ 	}
++ 
++ 	bAction *action= NULL;
++-	STR_String val = _PyUnicode_AsString(value);
+++	STR_String val = PyUnicode_AsUTF8(value);
++ 	
++ 	if (val != "")
++ 	{
++--- a/source/gameengine/Expressions/intern/ListValue.cpp
+++++ b/source/gameengine/Expressions/intern/ListValue.cpp
++@@ -362,7 +362,7 @@ static PyObject *listvalue_mapping_subsc
++ 	}
++ 	
++ 	if (PyUnicode_Check(key)) {
++-		CValue *item = ((CListValue*) list)->FindValue(_PyUnicode_AsString(key));
+++		CValue *item = ((CListValue*) list)->FindValue(PyUnicode_AsUTF8(key));
++ 		if (item) {
++ 			PyObject *pyobj = item->ConvertValueToPython();
++ 			if (pyobj)
++@@ -483,7 +483,7 @@ static int listvalue_buffer_contains(PyO
++ 	}
++ 	
++ 	if (PyUnicode_Check(value)) {
++-		if (self->FindValue((const char *)_PyUnicode_AsString(value))) {
+++		if (self->FindValue((const char *)PyUnicode_AsUTF8(value))) {
++ 			return 1;
++ 		}
++ 	}
++--- a/source/gameengine/Expressions/intern/ListWrapper.cpp
+++++ b/source/gameengine/Expressions/intern/ListWrapper.cpp
++@@ -240,7 +240,7 @@ PyObject *CListWrapper::py_mapping_subsc
++ 			return NULL;
++ 		}
++ 
++-		const char *name = _PyUnicode_AsString(key);
+++		const char *name = PyUnicode_AsUTF8(key);
++ 		int size = list->GetSize();
++ 
++ 		for (unsigned int i = 0; i < size; ++i) {
++@@ -281,7 +281,7 @@ int CListWrapper::py_mapping_ass_subscri
++ 			return -1;
++ 		}
++ 
++-		const char *name = _PyUnicode_AsString(key);
+++		const char *name = PyUnicode_AsUTF8(key);
++ 		int size = list->GetSize();
++ 
++ 		for (unsigned int i = 0; i < size; ++i) {
++@@ -320,7 +320,7 @@ int CListWrapper::py_contains(PyObject *
++ 		return -1;
++ 	}
++ 
++-	const char *name = _PyUnicode_AsString(key);
+++	const char *name = PyUnicode_AsUTF8(key);
++ 	int size = list->GetSize();
++ 
++ 	for (unsigned int i = 0; i < size; ++i) {
++--- a/source/gameengine/Expressions/intern/PyObjectPlus.cpp
+++++ b/source/gameengine/Expressions/intern/PyObjectPlus.cpp
++@@ -1021,7 +1021,7 @@ int PyObjectPlus::py_set_attrdef(PyObjec
++ 				if (PyUnicode_Check(value)) 
++ 				{
++ 					Py_ssize_t val_size;
++-					const char *val = _PyUnicode_AsStringAndSize(value, &val_size);
+++					const char *val = PyUnicode_AsUTF8AndSize(value, &val_size);
++ 					strncpy(ptr, val, attrdef->m_size);
++ 					ptr[attrdef->m_size-1] = 0;
++ 				}
++@@ -1038,7 +1038,7 @@ int PyObjectPlus::py_set_attrdef(PyObjec
++ 				if (PyUnicode_Check(value)) 
++ 				{
++ 					Py_ssize_t val_len;
++-					const char *val = _PyUnicode_AsStringAndSize(value, &val_len); /* XXX, should be 'const' but we do a silly trick to have a shorter string */
+++					const char *val = PyUnicode_AsUTF8AndSize(value, &val_len); /* XXX, should be 'const' but we do a silly trick to have a shorter string */
++ 					if (attrdef->m_clamp)
++ 					{
++ 						if (val_len < attrdef->m_imin)
++--- a/source/gameengine/Expressions/intern/Value.cpp
+++++ b/source/gameengine/Expressions/intern/Value.cpp
++@@ -612,7 +612,7 @@ CValue *CValue::ConvertPythonToValue(PyO
++ 	} else
++ 	if (PyUnicode_Check(pyobj))
++ 	{
++-		vallie = new CStringValue(_PyUnicode_AsString(pyobj),"");
+++		vallie = new CStringValue(PyUnicode_AsUTF8(pyobj),"");
++ 	} else
++ 	if (PyObject_TypeCheck(pyobj, &CValue::Type)) /* Note, don't let these get assigned to GameObject props, must check elsewhere */
++ 	{
++--- a/source/gameengine/GameLogic/SCA_PythonController.cpp
+++++ b/source/gameengine/GameLogic/SCA_PythonController.cpp
++@@ -204,7 +204,7 @@ SCA_IActuator* SCA_PythonController::Lin
++ 	
++ 	if (PyUnicode_Check(value)) {
++ 		/* get the actuator from the name */
++-		const char *name= _PyUnicode_AsString(value);
+++		const char *name= PyUnicode_AsUTF8(value);
++ 		for (it = lacts.begin(); it!= lacts.end(); ++it) {
++ 			if ( name == (*it)->GetName() ) {
++ 				return *it;
++@@ -513,7 +513,7 @@ int SCA_PythonController::pyattr_set_scr
++ {
++ 	SCA_PythonController* self = static_cast<SCA_PythonController*>(self_v);
++ 	
++-	const char *scriptArg = _PyUnicode_AsString(value);
+++	const char *scriptArg = PyUnicode_AsUTF8(value);
++ 	
++ 	if (scriptArg==NULL) {
++ 		PyErr_SetString(PyExc_TypeError, "controller.script = string: Python Controller, expected a string script text");
++--- a/source/gameengine/Ketsji/KX_Camera.cpp
+++++ b/source/gameengine/Ketsji/KX_Camera.cpp
++@@ -987,7 +987,7 @@ bool ConvertPythonToCamera(PyObject *val
++ 	}
++ 	
++ 	if (PyUnicode_Check(value)) {
++-		STR_String value_str = _PyUnicode_AsString(value);
+++		STR_String value_str = PyUnicode_AsUTF8(value);
++ 		*object = KX_GetActiveScene()->FindCamera(value_str);
++ 		
++ 		if (*object) {
++@@ -995,7 +995,7 @@ bool ConvertPythonToCamera(PyObject *val
++ 		} else {
++ 			PyErr_Format(PyExc_ValueError,
++ 			             "%s, requested name \"%s\" did not match any KX_Camera in this scene",
++-			             error_prefix, _PyUnicode_AsString(value));
+++			             error_prefix, PyUnicode_AsUTF8(value));
++ 			return false;
++ 		}
++ 	}
++--- a/source/gameengine/Ketsji/KX_FontObject.cpp
+++++ b/source/gameengine/Ketsji/KX_FontObject.cpp
++@@ -281,7 +281,7 @@ int KX_FontObject::pyattr_set_text(void
++ 	KX_FontObject* self = static_cast<KX_FontObject*>(self_v);
++ 	if (!PyUnicode_Check(value))
++ 		return PY_SET_ATTR_FAIL;
++-	const char *chars = _PyUnicode_AsString(value);
+++	const char *chars = PyUnicode_AsUTF8(value);
++ 
++ 	/* Allow for some logic brick control */
++ 	CValue* tprop = self->GetProperty("Text");
++--- a/source/gameengine/Ketsji/KX_GameObject.cpp
+++++ b/source/gameengine/Ketsji/KX_GameObject.cpp
++@@ -2087,7 +2087,7 @@ PyObject *KX_GameObject::PyReinstancePhy
++ static PyObject *Map_GetItem(PyObject *self_v, PyObject *item)
++ {
++ 	KX_GameObject* self = static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
++-	const char *attr_str= _PyUnicode_AsString(item);
+++	const char *attr_str= PyUnicode_AsUTF8(item);
++ 	CValue* resultattr;
++ 	PyObject *pyconvert;
++ 	
++@@ -2121,7 +2121,7 @@ static PyObject *Map_GetItem(PyObject *s
++ static int Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
++ {
++ 	KX_GameObject* self = static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
++-	const char *attr_str= _PyUnicode_AsString(key);
+++	const char *attr_str= PyUnicode_AsUTF8(key);
++ 	if (attr_str==NULL)
++ 		PyErr_Clear();
++ 	
++@@ -2214,7 +2214,7 @@ static int Seq_Contains(PyObject *self_v
++ 		return -1;
++ 	}
++ 	
++-	if (PyUnicode_Check(value) && self->GetProperty(_PyUnicode_AsString(value)))
+++	if (PyUnicode_Check(value) && self->GetProperty(PyUnicode_AsUTF8(value)))
++ 		return 1;
++ 	
++ 	if (self->m_attr_dict && PyDict_GetItem(self->m_attr_dict, value))
++@@ -4124,7 +4124,7 @@ PyObject *KX_GameObject::Pyget(PyObject
++ 	
++ 	
++ 	if (PyUnicode_Check(key)) {
++-		CValue *item = GetProperty(_PyUnicode_AsString(key));
+++		CValue *item = GetProperty(PyUnicode_AsUTF8(key));
++ 		if (item) {
++ 			ret = item->ConvertValueToPython();
++ 			if (ret)
++@@ -4163,12 +4163,12 @@ bool ConvertPythonToGameObject(SCA_Logic
++ 	}
++ 	
++ 	if (PyUnicode_Check(value)) {
++-		*object = (KX_GameObject*)manager->GetGameObjectByName(STR_String( _PyUnicode_AsString(value) ));
+++		*object = (KX_GameObject*)manager->GetGameObjectByName(STR_String( PyUnicode_AsUTF8(value) ));
++ 		
++ 		if (*object) {
++ 			return true;
++ 		} else {
++-			PyErr_Format(PyExc_ValueError, "%s, requested name \"%s\" did not match any KX_GameObject in this scene", error_prefix, _PyUnicode_AsString(value));
+++			PyErr_Format(PyExc_ValueError, "%s, requested name \"%s\" did not match any KX_GameObject in this scene", error_prefix, PyUnicode_AsUTF8(value));
++ 			return false;
++ 		}
++ 	}
++--- a/source/gameengine/Ketsji/KX_MeshProxy.cpp
+++++ b/source/gameengine/Ketsji/KX_MeshProxy.cpp
++@@ -427,12 +427,12 @@ bool ConvertPythonToMesh(SCA_LogicManage
++ 	}
++ 	
++ 	if (PyUnicode_Check(value)) {
++-		*object = (RAS_MeshObject*)logicmgr->GetMeshByName(STR_String( _PyUnicode_AsString(value) ));
+++		*object = (RAS_MeshObject*)logicmgr->GetMeshByName(STR_String( PyUnicode_AsUTF8(value) ));
++ 		
++ 		if (*object) {
++ 			return true;
++ 		} else {
++-			PyErr_Format(PyExc_ValueError, "%s, requested name \"%s\" did not match any KX_MeshProxy in this scene", error_prefix, _PyUnicode_AsString(value));
+++			PyErr_Format(PyExc_ValueError, "%s, requested name \"%s\" did not match any KX_MeshProxy in this scene", error_prefix, PyUnicode_AsUTF8(value));
++ 			return false;
++ 		}
++ 	}
++--- a/source/gameengine/Ketsji/KX_PythonInit.cpp
+++++ b/source/gameengine/Ketsji/KX_PythonInit.cpp
++@@ -825,7 +825,7 @@ static PyObject *gLibNew(PyObject *, PyO
++ 		PyObject *ret= PyList_New(0);
++ 		PyObject *item;
++ 		for (Py_ssize_t i= 0; i < PyList_GET_SIZE(names); i++) {
++-			name= _PyUnicode_AsString(PyList_GET_ITEM(names, i));
+++			name= PyUnicode_AsUTF8(PyList_GET_ITEM(names, i));
++ 			if (name) {
++ 				RAS_MeshObject *meshobj= kx_scene->GetSceneConverter()->ConvertMeshSpecial(kx_scene, maggie, name);
++ 				if (meshobj) {
++--- a/source/gameengine/Ketsji/KX_Scene.cpp
+++++ b/source/gameengine/Ketsji/KX_Scene.cpp
++@@ -2218,7 +2218,7 @@ PyMethodDef KX_Scene::Methods[] = {
++ static PyObject *Map_GetItem(PyObject *self_v, PyObject *item)
++ {
++ 	KX_Scene* self = static_cast<KX_Scene*>BGE_PROXY_REF(self_v);
++-	const char *attr_str= _PyUnicode_AsString(item);
+++	const char *attr_str= PyUnicode_AsUTF8(item);
++ 	PyObject *pyconvert;
++ 	
++ 	if (self == NULL) {
++@@ -2247,7 +2247,7 @@ static PyObject *Map_GetItem(PyObject *s
++ static int Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
++ {
++ 	KX_Scene* self = static_cast<KX_Scene*>BGE_PROXY_REF(self_v);
++-	const char *attr_str= _PyUnicode_AsString(key);
+++	const char *attr_str= PyUnicode_AsUTF8(key);
++ 	if (attr_str==NULL)
++ 		PyErr_Clear();
++ 	
+diff -Nru blender-2.79.b+dfsg0/debian/patches/0001-PyAPI-resolve-build-error-with-Python-3.10.patch blender-2.79.b+dfsg0/debian/patches/0001-PyAPI-resolve-build-error-with-Python-3.10.patch
+--- blender-2.79.b+dfsg0/debian/patches/0001-PyAPI-resolve-build-error-with-Python-3.10.patch	1970-01-01 01:00:00.000000000 +0100
++++ blender-2.79.b+dfsg0/debian/patches/0001-PyAPI-resolve-build-error-with-Python-3.10.patch	2021-12-30 11:20:26.000000000 +0100
+@@ -0,0 +1,24 @@
++From 6fe00939b0a471cc149ea5b3c63ca57b049b4a37 Mon Sep 17 00:00:00 2001
++From: Campbell Barton <ideasman42@gmail.com>
++Date: Mon, 9 Aug 2021 22:55:41 +1000
++Subject: [PATCH] PyAPI: resolve build error with Python 3.10
++
++Resolves T89931
++---
++ source/blender/python/mathutils/mathutils.c | 4 ++++
++ 1 file changed, 4 insertions(+)
++
++--- a/source/blender/python/mathutils/mathutils.c
+++++ b/source/blender/python/mathutils/mathutils.c
++@@ -110,7 +110,11 @@ Py_hash_t mathutils_array_hash(const flo
++ 	x = 0x345678UL;
++ 	i = 0;
++ 	while (--len >= 0) {
+++#if PY_VERSION_HEX >= 0x30a0000 /* Version: 3.10. */
+++		y = _Py_HashDouble(NULL, (double)(array[i++]));
+++#else
++ 		y = _Py_HashDouble((double)(array[i++]));
+++#endif
++ 		if (y == -1)
++ 			return -1;
++ 		x = (x ^ y) * mult;
 diff -Nru blender-2.79.b+dfsg0/debian/patches/0001-PyAPI-use-public-API-s-for-module-builtin-access.patch blender-2.79.b+dfsg0/debian/patches/0001-PyAPI-use-public-API-s-for-module-builtin-access.patch
 --- blender-2.79.b+dfsg0/debian/patches/0001-PyAPI-use-public-API-s-for-module-builtin-access.patch	1970-01-01 01:00:00.000000000 +0100
 +++ blender-2.79.b+dfsg0/debian/patches/0001-PyAPI-use-public-API-s-for-module-builtin-access.patch	2021-12-30 11:20:26.000000000 +0100
@@ -677,7 +1739,7 @@ diff -Nru blender-2.79.b+dfsg0/debian/patches/cross.patch blender-2.79.b+dfsg0/d
 diff -Nru blender-2.79.b+dfsg0/debian/patches/series blender-2.79.b+dfsg0/debian/patches/series
 --- blender-2.79.b+dfsg0/debian/patches/series	2018-12-28 11:27:16.000000000 +0100
 +++ blender-2.79.b+dfsg0/debian/patches/series	2021-12-30 11:20:26.000000000 +0100
-@@ -9,3 +9,10 @@
+@@ -9,3 +9,12 @@
  0009-fix_gcc-8_ftbfs.patch
  0010-fix_PyRNA_with_Python3.7.patch
  0011-adapt_build_against_OIIO2.patch
@@ -687,6 +1749,8 @@ diff -Nru blender-2.79.b+dfsg0/debian/patches/series blender-2.79.b+dfsg0/debian
 +0001-Python-support-building-again-version-3.9-unreleased.patch
 +0001-Update-C-standard-to-C-14.patch
 +0001-Cleanup-fix-compiler-warnings.patch
++0001-Fix-T85573-Building-with-Python-3.10a5-fails.patch
++0001-PyAPI-resolve-build-error-with-Python-3.10.patch
 +cross.patch
 diff -Nru blender-2.79.b+dfsg0/debian/rules blender-2.79.b+dfsg0/debian/rules
 --- blender-2.79.b+dfsg0/debian/rules	2018-12-02 22:31:23.000000000 +0100
