@@ -32,7 +32,7 @@ sed --in-place --expression 's/^abiname: \([0-9]\+\|trunk\)$/abiname: reform2/' 
 grep --quiet '^abiname: reform2$' linux/debian/config/defines
 
 if [ ! -e orig ]; then
-	env --chdir=linux debian/bin/genorig.py https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+	env --chdir=linux debian/bin/genorig.py https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
 fi
 
 export DEBIAN_KERNEL_DISABLE_DEBUG=1
