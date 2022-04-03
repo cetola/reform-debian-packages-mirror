@@ -8,6 +8,8 @@ build:
   script:
     - apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
     - apt-get --no-install-recommends -y install fakechroot fakeroot devscripts mmdebstrap python3 reprepro sbuild schroot debhelper debian-keyring quilt pristine-tar rsync git python3-debian
+    - [ "$(stat -c %Y /srv/chroot/unstable-sbuild)" -lt "$(date --date "14 days ago" +%s)" ] && rm -rf /srv/chroot/unstable-sbuild
+    - [ "$(stat -c %Y /srv/chroot/testing-sbuild)" -lt "$(date --date "14 days ago" +%s)" ] && rm -rf /srv/chroot/testing-sbuild
     - test -d /srv/chroot/unstable-sbuild || sbuild-createchroot --debootstrap=mmdebstrap --alias=sid unstable /srv/chroot/unstable-sbuild http://deb.debian.org/debian
     - test -d /srv/chroot/testing-sbuild || sbuild-createchroot --debootstrap=mmdebstrap --alias=sid testing /srv/chroot/testing-sbuild http://deb.debian.org/debian
     - id build >/dev/null || adduser --gecos build --disabled-password build
