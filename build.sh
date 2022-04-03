@@ -137,8 +137,8 @@ for p in patches/*; do
 	rm -Rf "$WORKDIR"
 done
 
-# starting with 2.80, blender requires 3.2+, so 2.79b is the last one that
-# works on reform with imx8mq
+# starting with 2.80, blender requires OpenGL 3.2+, so 2.79b is the last one
+# that works on reform with imx8mq
 if [ -z "$(reprepro listfilter reform "\$Source (== blender)")" ]; then
 	env --chdir=blender \
 		BUILD_ARCH="$BUILD_ARCH" HOST_ARCH="$HOST_ARCH" \
