@@ -28,15 +28,6 @@ diff -Nru linux-5.13.12/debian/config/arm64/none/defines linux-5.13.12/debian/co
 diff -Nru linux-5.13.12/debian/config/defines linux-5.13.12/debian/config/defines
 --- linux-5.13.12/debian/config/defines	2021-08-09 15:42:56.000000000 +0200
 +++ linux-5.13.12/debian/config/defines	2022-01-12 15:02:01.000000000 +0100
-@@ -148,7 +148,7 @@
-  rt
- 
- [build]
--debug-info: true
-+debug-info: false
- # Disable code signing by default; this can be overridden per-architecture
- signed-code: false
- trusted-certs: debian/certs/debian-uefi-certs.pem
 @@ -172,3 +172,9 @@
  # initramfs-generators
  initramfs-fallback: linux-initramfs-tool
