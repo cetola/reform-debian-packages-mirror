@@ -87,7 +87,7 @@ sed -i '/imx8mq-mnt-reform2.dtb/a dtb-$(CONFIG_ARCH_MXC) += imx8mq-mnt-reform2-h
 env --chdir=linux QUILT_PATCHES=debian/patches quilt refresh
 
 env --chdir=linux \
-	DEB_BUILD_PROFILES="cross nodoc pkg.linux.nosource pkg.linux.nokerneldbg pkg.linux.nokerneldbginfo" \
+	DEB_BUILD_PROFILES="cross nodoc pkg.linux.nokerneldbg pkg.linux.nokerneldbginfo" \
 	sbuild -d "$BASESUITE" --arch-any --arch-all --host="$HOST_ARCH" \
 		--nolog --no-source-only-changes --no-run-lintian --no-run-autopkgtest
 
