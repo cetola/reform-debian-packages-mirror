@@ -160,25 +160,6 @@ if [ -z "$(reprepro listfilter reform "Package (== reform-tools)")" ]; then
 	rm -Rf "$WORKDIR"
 fi
 
-# https://ftp-master.debian.org/new/wayvnc_0.4.1-1.html
-if [ -z "$(reprepro listfilter reform "\$Source (== wayvnc)")" ]; then
-	rm -Rf "$WORKDIR"
-	mkdir --mode=0777 "$WORKDIR"
-	(
-		cd "$WORKDIR"
-		git clone https://salsa.debian.org/debian/wayvnc.git
-		cd wayvnc
-		git checkout pristine-tar
-		git checkout upstream
-		git checkout master
-		pristine-tar checkout ../wayvnc_0.4.1.orig.tar.gz
-		sbuild -d "$BASESUITE" --host="$HOST_ARCH" --no-arch-all --arch-any --nolog --no-clean-source --no-source-only-changes --no-run-lintian --no-run-autopkgtest --extra-repository="$SRC_LIST_PATCHED" --no-apt-upgrade --no-apt-distupgrade
-		reprepro include "$OURSUITE" ../wayvnc_0.4.1-1_arm64.changes
-		cd ..
-	)
-	rm -Rf "$WORKDIR"
-fi
-
 if [ -z "$(reprepro listfilter reform "\$Source (== reform-handbook)")" ]; then
 	rm -Rf "$WORKDIR"
 	mkdir --mode=0777 "$WORKDIR"
