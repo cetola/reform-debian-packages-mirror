@@ -4,19 +4,14 @@ patch -p1 << 'EOF'
 diff -Nru flash-kernel-3.104/db/all.db flash-kernel-3.104+nmu1/db/all.db
 --- flash-kernel-3.104/db/all.db	2021-02-07 00:13:15.000000000 +0100
 +++ flash-kernel-3.104+nmu1/db/all.db	2022-01-03 17:37:18.000000000 +0100
-@@ -1064,6 +1064,33 @@
+@@ -1064,6 +1064,23 @@
  U-Boot-Script-Name: bootscr.sunxi
  Required-Packages: u-boot-tools
 
 +Machine: MNT Reform 2
 +Kernel-Flavors: any
-+DTB-Id: freescale/imx8mq-mnt-reform2.dtb
-+Boot-Kernel-Path: /boot/vmlinuz
-+Boot-Initrd-Path: /boot/initrd.img
 +Boot-Script-Path: /boot/boot.scr
-+Boot-DTB-Path: /boot/dtb
-+U-Boot-Kernel-Address: 0x40480000
-+U-Boot-Initrd-Address: 0x0
++DTB-Id: freescale/imx8mq-mnt-reform2.dtb
 +U-Boot-Script-Name: bootscr.uboot-generic
 +Required-Packages: u-boot-tools
 +
@@ -26,12 +21,7 @@ diff -Nru flash-kernel-3.104/db/all.db flash-kernel-3.104+nmu1/db/all.db
 +Machine: MNT Reform 2 HDMI
 +Kernel-Flavors: any
 +DTB-Id: freescale/imx8mq-mnt-reform2-hdmi.dtb
-+Boot-Kernel-Path: /boot/vmlinuz
-+Boot-Initrd-Path: /boot/initrd.img
 +Boot-Script-Path: /boot/boot.scr
-+Boot-DTB-Path: /boot/dtb
-+U-Boot-Kernel-Address: 0x40480000
-+U-Boot-Initrd-Address: 0x0
 +U-Boot-Script-Name: bootscr.uboot-generic
 +Required-Packages: u-boot-tools
 +
