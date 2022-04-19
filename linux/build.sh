@@ -15,12 +15,29 @@ set -e
 set -u
 set -x
 
-if [ ! -d linux ]; then
-	git clone --branch=master --depth=1 https://salsa.debian.org/kernel-team/linux.git linux
-fi
+chdistdata=$(pwd)/../chdist
+chdist_base() {
+	local cmd
+	cmd=$1
+	shift
+	chdist "--data-dir=$chdistdata" "$cmd" base "$@"
+}
 
-git -C linux clean -fdx
-git -C linux reset --hard
+USE_GIT=false
+
+if $USE_GIT; then
+	if [ ! -d linux ]; then
+		git clone --branch=master --depth=1 https://salsa.debian.org/kernel-team/linux.git linux
+	fi
+
+	git -C linux clean -fdx
+	git -C linux reset --hard
+
+else
+	rm -rf linux_*.dsc linux
+	chdist_base apt-get source --only-source --download-only -t "$BASESUITE" linux
+	dpkg-source -x linux_*.dsc linux
+fi
 
 env --chdir=linux dch --local "+$OURSUITE" "apply mnt reform patch"
 env --chdir=linux dch --force-distribution --distribution="$OURSUITE" --release ""
@@ -31,15 +48,17 @@ env --chdir=linux patch -p1 < packaging.diff
 sed --in-place --expression 's/^abiname: \([0-9]\+\|trunk\)$/abiname: reform2/' linux/debian/config/defines
 grep --quiet '^abiname: reform2$' linux/debian/config/defines
 
-if [ ! -e orig ]; then
-	env --chdir=linux debian/bin/genorig.py https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
-fi
-
 export DEBIAN_KERNEL_DISABLE_DEBUG=1
 export DEBIAN_KERNEL_DISABLE_INSTALLER=1
 export DEBIAN_KERNEL_DISABLE_SIGNED=1
 
-make -C linux -f debian/rules orig
+if $USE_GIT; then
+	if [ ! -e orig ]; then
+		env --chdir=linux debian/bin/genorig.py https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
+	fi
+
+	make -C linux -f debian/rules orig
+fi
 
 # this command fails intentionally, so we let it always succeed
 make -C linux -f debian/rules debian/control || :
