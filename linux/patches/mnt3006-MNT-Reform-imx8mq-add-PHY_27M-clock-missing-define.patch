@@ -4,11 +4,9 @@ Date:   Mon Jun 7 15:22:58 2021 +0200
 
     [PATCH] MNT Reform: imx8mq: add PHY_27M clock: missing define
 
-diff --git a/include/dt-bindings/clock/imx8mq-clock.h b/include/dt-bindings/clock/imx8mq-clock.h
-index 82e907ce7..d7b8ada86 100644
 --- a/include/dt-bindings/clock/imx8mq-clock.h
 +++ b/include/dt-bindings/clock/imx8mq-clock.h
-@@ -445,6 +445,8 @@
+@@ -426,6 +426,8 @@
  #define IMX8MQ_CLK_MON_SEL			301
  #define IMX8MQ_CLK_MON_CLK2_OUT			302
  

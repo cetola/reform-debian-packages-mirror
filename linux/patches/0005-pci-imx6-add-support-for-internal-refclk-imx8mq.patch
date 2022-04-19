@@ -1,5 +1,3 @@
-diff --git a/drivers/pci/controller/dwc/pci-imx6.c b/drivers/pci/controller/dwc/pci-imx6.c
-index 6974bd5aa..0346860eb 100644
 --- a/drivers/pci/controller/dwc/pci-imx6.c
 +++ b/drivers/pci/controller/dwc/pci-imx6.c
 @@ -67,6 +67,7 @@ struct imx6_pcie {
@@ -10,7 +8,7 @@ index 6974bd5aa..0346860eb 100644
  	struct clk		*pcie_bus;
  	struct clk		*pcie_phy;
  	struct clk		*pcie_inbound_axi;
-@@ -616,6 +617,40 @@ static void imx6_pcie_deassert_core_reset(struct imx6_pcie *imx6_pcie)
+@@ -612,6 +613,40 @@ err_pcie_phy:
  	}
  }
  
@@ -51,7 +49,7 @@ index 6974bd5aa..0346860eb 100644
  static void imx6_pcie_configure_type(struct imx6_pcie *imx6_pcie)
  {
  	unsigned int mask, val;
-@@ -636,6 +671,9 @@ static void imx6_pcie_configure_type(struct imx6_pcie *imx6_pcie)
+@@ -632,6 +667,9 @@ static void imx6_pcie_configure_type(str
  
  static void imx6_pcie_init_phy(struct imx6_pcie *imx6_pcie)
  {
@@ -61,7 +59,7 @@ index 6974bd5aa..0346860eb 100644
  	switch (imx6_pcie->drvdata->variant) {
  	case IMX8MM:
  		/*
-@@ -651,7 +689,8 @@ static void imx6_pcie_init_phy(struct imx6_pcie *imx6_pcie)
+@@ -647,7 +685,8 @@ static void imx6_pcie_init_phy(struct im
  		regmap_update_bits(imx6_pcie->iomuxc_gpr,
  				   imx6_pcie_grp_offset(imx6_pcie),
  				   IMX8MQ_GPR_PCIE_REF_USE_PAD,
@@ -71,7 +69,7 @@ index 6974bd5aa..0346860eb 100644
  		/*
  		 * Regarding the datasheet, the PCIE_VPH is suggested
  		 * to be 1.8V. If the PCIE_VPH is supplied by 3.3V, the
-@@ -1105,7 +1144,8 @@ static int imx6_pcie_probe(struct platform_device *pdev)
+@@ -1096,7 +1135,8 @@ static int imx6_pcie_probe(struct platfo
  		imx6_pcie->pcie_aux = devm_clk_get(dev, "pcie_aux");
  		if (IS_ERR(imx6_pcie->pcie_aux))
  			return dev_err_probe(dev, PTR_ERR(imx6_pcie->pcie_aux),

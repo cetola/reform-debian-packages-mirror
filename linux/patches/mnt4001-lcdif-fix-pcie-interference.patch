@@ -1,8 +1,6 @@
-diff --git a/drivers/gpu/drm/mxsfb/mxsfb_kms.c b/drivers/gpu/drm/mxsfb/mxsfb_kms.c
-index 89dd618d7..a60f8f4f5 100644
 --- a/drivers/gpu/drm/mxsfb/mxsfb_kms.c
 +++ b/drivers/gpu/drm/mxsfb/mxsfb_kms.c
-@@ -250,7 +250,7 @@ static void mxsfb_crtc_mode_set_nofb(struct mxsfb_drm_private *mxsfb,
+@@ -250,7 +250,7 @@ static void mxsfb_crtc_mode_set_nofb(str
  
  	mxsfb_set_formats(mxsfb, bus_format);
  
@@ -11,7 +9,7 @@ index 89dd618d7..a60f8f4f5 100644
  
  	if (mxsfb->bridge && mxsfb->bridge->timings)
  		bus_flags = mxsfb->bridge->timings->input_bus_flags;
-@@ -599,12 +599,44 @@ static const uint64_t mxsfb_modifiers[] = {
+@@ -609,12 +609,44 @@ static const uint64_t mxsfb_modifiers[]
   * Initialization
   */
  
