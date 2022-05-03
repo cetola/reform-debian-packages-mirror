@@ -139,12 +139,21 @@ done
 
 # starting with 2.80, blender requires OpenGL 3.2+, so 2.79b is the last one
 # that works on reform with imx8mq
-if [ -z "$(reprepro listfilter reform "\$Source (== blender)")" ]; then
-	env --chdir=blender \
-		BUILD_ARCH="$BUILD_ARCH" HOST_ARCH="$HOST_ARCH" \
-		BASESUITE="$BASESUITE" OURSUITE="$OURSUITE" \
-		./build.sh
-fi
+#
+# FIXME: this currently fails with:
+#    ./source/blender/imbuf/intern/oiio/openimageio_api.cpp:246: error: undefined reference to 'OpenImageIO_v2_3::TypeDesc::basesize() const'
+#    /usr/include/OpenImageIO/paramlist.h:107: error: undefined reference to 'OpenImageIO_v2_3::ParamValue::clear_value()'
+#    /usr/include/OpenImageIO/paramlist.h:107: error: undefined reference to 'OpenImageIO_v2_3::ParamValue::clear_value()'
+#    /usr/include/OpenImageIO/paramlist.h:107: error: undefined reference to 'OpenImageIO_v2_3::ParamValue::clear_value()'
+#    collect2: error: ld returned 1 exit status
+#
+# Thus, commenting this out until somebody makes old blender work again.
+#if [ -z "$(reprepro listfilter reform "\$Source (== blender)")" ]; then
+#	env --chdir=blender \
+#		BUILD_ARCH="$BUILD_ARCH" HOST_ARCH="$HOST_ARCH" \
+#		BASESUITE="$BASESUITE" OURSUITE="$OURSUITE" \
+#		./build.sh
+#fi
 
 if [ -z "$(reprepro listfilter reform "Package (== reform-tools)")" ]; then
 	rm -Rf "$WORKDIR"
