@@ -756,7 +756,7 @@ index 000000000..25e871779
 +		break;
 +	}
 +
-+	drm_hdmi_avi_infoframe_colorspace(&frame, conn_state);
++	drm_hdmi_avi_infoframe_colorimetry(&frame, conn_state);
 +
 +	adj_mode = &mhdp->bridge.base.encoder->crtc->state->adjusted_mode;
 +
@@ -3540,7 +3540,7 @@ index 000000000..399c3f6f8
 +#ifndef CDNS_MHDP_H
 +#define CDNS_MHDP_H
 +
-+#include <drm/drm_dp_mst_helper.h>
++#include <drm/dp/drm_dp_mst_helper.h>
 +
 +#define CDNS_APB_CFG				0x00000
 +#define CDNS_APB_CTRL				(CDNS_APB_CFG + 0x00)
@@ -3785,7 +3785,7 @@ index 000000000..60c1e6342
 + */
 +#include <linux/clk.h>
 +#include <linux/kernel.h>
-+#include <drm/drm_dp_helper.h>
++#include <drm/dp/drm_dp_helper.h>
 +#include <drm/bridge/cdns-mhdp-common.h>
 +#include "cdn-mhdp-phy.h"
 +
@@ -5630,9 +5630,9 @@ index 8dc2f85c5..3e542c091 100644
  #include <linux/kernel.h>
  #include <linux/platform_device.h>
 +#include <linux/component.h>
+ #include <drm/drm_module.h>
  #include <drm/drm_of.h>
  
- #include "dcss-dev.h"
 @@ -14,6 +15,8 @@
  struct dcss_drv {
  	struct dcss_dev *dcss;
@@ -6035,8 +6035,8 @@ index 000000000..752bf493f
 +#include <drm/bridge/cdns-mhdp-cbs.h>
 +#include <drm/drm_bridge.h>
 +#include <drm/drm_connector.h>
-+#include <drm/drm_dp_helper.h>
-+#include <drm/drm_dp_mst_helper.h>
++#include <drm/dp/drm_dp_helper.h>
++#include <drm/dp/drm_dp_mst_helper.h>
 +#include <media/cec.h>
 +#include <linux/bitops.h>
 +
