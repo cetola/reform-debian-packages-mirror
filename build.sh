@@ -174,9 +174,9 @@ if [ -z "$(reprepro listfilter reform "\$Source (== reform-handbook)")" ]; then
 	rm -Rf "$WORKDIR"
 fi
 
-if [ -z "$(reprepro listfilter reform "\$Source (== linux)")" ]; then
-	env --chdir=linux \
-		BUILD_ARCH="$BUILD_ARCH" HOST_ARCH="$HOST_ARCH" \
-		BASESUITE="$BASESUITE" OURSUITE="$OURSUITE" \
-		./build.sh
-fi
+#if [ -z "$(reprepro listfilter reform "\$Source (== linux)")" ]; then
+#	env --chdir=linux \
+#		BUILD_ARCH="$BUILD_ARCH" HOST_ARCH="$HOST_ARCH" \
+#		BASESUITE="$BASESUITE" OURSUITE="$OURSUITE" \
+#		./build.sh
+#fi
