@@ -655,6 +655,20 @@
 		MX8MQ_IOMUXC_GPIO1_IO02_WDOG1_WDOG_B		0xc6
 		>;
 	};
+
+	pinctrl_ecspi2: ecspi2grp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_ECSPI2_MOSI_ECSPI2_MOSI		0x19
+			MX8MQ_IOMUXC_ECSPI2_MISO_ECSPI2_MISO		0x19
+			MX8MQ_IOMUXC_ECSPI2_SCLK_ECSPI2_SCLK		0x19
+		>;
+	};
+
+	pinctrl_ecspi2_cs: ecspi2csgrp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_ECSPI2_SS0_GPIO5_IO13		0x19
+		>;
+	};
 };
 
 &mipi_dsi {
@@ -841,4 +855,20 @@
 	pinctrl-0 = <&pinctrl_wdog>;
 	fsl,ext-reset-output; // TODO check source for what this means
 	status = "okay";
+};
+
+&ecspi2 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_ecspi2 &pinctrl_ecspi2_cs>;
+	cs-gpios = <&gpio5 13 GPIO_ACTIVE_LOW>;
+	status = "okay";
+	fsl,spi-num-chipselects = <1>;
+
+	spidev@0 {
+		compatible = "mntre,lpc11u24";
+		spi-max-frequency = <1000000>;
+		reg = <0>;
+	};
 };
