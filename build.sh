@@ -137,6 +137,24 @@ for p in patches/*; do
 	rm -Rf "$WORKDIR"
 done
 
+if [ -z "$(reprepro listfilter reform "\$Source (== box64)")" ]; then
+	rm -Rf "$WORKDIR"
+	mkdir --mode=0777 "$WORKDIR"
+	(
+		cd "$WORKDIR"
+		git clone https://salsa.debian.org/debian/box64.git
+		cd box64
+		git checkout pristine-tar
+		git checkout upstream
+		git checkout master
+		pristine-tar checkout ../box64_0.1.8.orig.tar.xz
+		sbuild -d "$BASESUITE" --host="$HOST_ARCH" --no-arch-all --arch-any --nolog --no-clean-source --no-source-only-changes --no-run-lintian --no-run-autopkgtest --extra-repository="$SRC_LIST_PATCHED" --no-apt-upgrade --no-apt-distupgrade
+		reprepro include "$OURSUITE" ../box64_0.1.8-1_arm64.changes
+		cd ..
+	)
+	rm -Rf "$WORKDIR"
+fi
+
 # starting with 2.80, blender requires OpenGL 3.2+, so 2.79b is the last one
 # that works on reform with imx8mq
 #
