@@ -1,5 +1,3 @@
-diff --git a/drivers/irqchip/irq-imx-gpcv2.c b/drivers/irqchip/irq-imx-gpcv2.c
-index 7031ef44de4f..9cba81b5050d 100644
 --- a/drivers/irqchip/irq-imx-gpcv2.c
 +++ b/drivers/irqchip/irq-imx-gpcv2.c
 @@ -3,6 +3,7 @@
@@ -24,7 +22,7 @@ index 7031ef44de4f..9cba81b5050d 100644
  
  struct gpcv2_irqchip_data {
  	struct raw_spinlock	rlock;
-@@ -76,12 +84,17 @@ static int imx_gpcv2_irq_set_wake(struct irq_data *d, unsigned int on)
+@@ -76,12 +84,17 @@ static int imx_gpcv2_irq_set_wake(struct
  	unsigned int idx = d->hwirq / 32;
  	unsigned long flags;
  	u32 mask, val;
@@ -42,7 +40,7 @@ index 7031ef44de4f..9cba81b5050d 100644
  	raw_spin_unlock_irqrestore(&cd->rlock, flags);
  
  	/*
-@@ -97,6 +110,7 @@ static void imx_gpcv2_irq_unmask(struct irq_data *d)
+@@ -97,6 +110,7 @@ static void imx_gpcv2_irq_unmask(struct
  	struct gpcv2_irqchip_data *cd = d->chip_data;
  	void __iomem *reg;
  	u32 val;
@@ -50,7 +48,7 @@ index 7031ef44de4f..9cba81b5050d 100644
  
  	raw_spin_lock(&cd->rlock);
  	reg = gpcv2_idx_to_reg(cd, d->hwirq / 32);
-@@ -105,6 +119,10 @@ static void imx_gpcv2_irq_unmask(struct irq_data *d)
+@@ -105,6 +119,10 @@ static void imx_gpcv2_irq_unmask(struct
  	writel_relaxed(val, reg);
  	raw_spin_unlock(&cd->rlock);
  
@@ -61,7 +59,7 @@ index 7031ef44de4f..9cba81b5050d 100644
  	irq_chip_unmask_parent(d);
  }
  
-@@ -113,12 +131,18 @@ static void imx_gpcv2_irq_mask(struct irq_data *d)
+@@ -113,12 +131,18 @@ static void imx_gpcv2_irq_mask(struct ir
  	struct gpcv2_irqchip_data *cd = d->chip_data;
  	void __iomem *reg;
  	u32 val;

@@ -1,15 +1,15 @@
 --- a/drivers/gpu/drm/mxsfb/mxsfb_kms.c
 +++ b/drivers/gpu/drm/mxsfb/mxsfb_kms.c
-@@ -250,7 +250,7 @@ static void mxsfb_crtc_mode_set_nofb(str
+@@ -302,7 +302,7 @@ static void mxsfb_crtc_mode_set_nofb(str
  
  	mxsfb_set_formats(mxsfb, bus_format);
  
 -	clk_set_rate(mxsfb->clk, m->crtc_clock * 1000);
 +	clk_set_rate(mxsfb->clk, m->crtc_clock * 660);
  
- 	if (mxsfb->bridge && mxsfb->bridge->timings)
- 		bus_flags = mxsfb->bridge->timings->input_bus_flags;
-@@ -609,12 +609,44 @@ static const uint64_t mxsfb_modifiers[]
+ 	mxsfb_set_mode(mxsfb, bus_flags);
+ }
+@@ -661,12 +661,44 @@ static const uint64_t mxsfb_modifiers[]
   * Initialization
   */
  

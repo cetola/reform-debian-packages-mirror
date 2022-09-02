@@ -6,11 +6,9 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
     
     Rebased on 5.15.
 
-diff --git a/drivers/gpu/drm/bridge/cadence/Kconfig b/drivers/gpu/drm/bridge/cadence/Kconfig
-index ef8c230e0..229043db0 100644
 --- a/drivers/gpu/drm/bridge/cadence/Kconfig
 +++ b/drivers/gpu/drm/bridge/cadence/Kconfig
-@@ -22,3 +22,29 @@ config DRM_CDNS_MHDP8546_J721E
+@@ -25,3 +25,29 @@ config DRM_CDNS_MHDP8546_J721E
  	  initializes the J721E Display Port and sets up the
  	  clock and data muxes.
  endif
@@ -40,8 +38,6 @@ index ef8c230e0..229043db0 100644
 +	depends on DRM_CDNS_HDMI
 +	select CEC_CORE
 +	select CEC_NOTIFIER
-diff --git a/drivers/gpu/drm/bridge/cadence/Makefile b/drivers/gpu/drm/bridge/cadence/Makefile
-index 4d2db8df1..a83e73939 100644
 --- a/drivers/gpu/drm/bridge/cadence/Makefile
 +++ b/drivers/gpu/drm/bridge/cadence/Makefile
 @@ -2,3 +2,12 @@
@@ -57,9 +53,6 @@ index 4d2db8df1..a83e73939 100644
 +cdns_mhdp_drmcore-$(CONFIG_DRM_CDNS_HDMI_CEC) += cdns-mhdp-cec.o
 +
 +obj-$(CONFIG_DRM_CDNS_MHDP)             += cdns_mhdp_drmcore.o
-diff --git a/drivers/gpu/drm/bridge/cadence/cdns-dp-core.c b/drivers/gpu/drm/bridge/cadence/cdns-dp-core.c
-new file mode 100644
-index 000000000..78defa00a
 --- /dev/null
 +++ b/drivers/gpu/drm/bridge/cadence/cdns-dp-core.c
 @@ -0,0 +1,590 @@
@@ -653,9 +646,6 @@ index 000000000..78defa00a
 +MODULE_DESCRIPTION("Cadence Display Port transmitter driver");
 +MODULE_LICENSE("GPL");
 +MODULE_ALIAS("platform:cdn-dp");
-diff --git a/drivers/gpu/drm/bridge/cadence/cdns-hdmi-core.c b/drivers/gpu/drm/bridge/cadence/cdns-hdmi-core.c
-new file mode 100644
-index 000000000..25e871779
 --- /dev/null
 +++ b/drivers/gpu/drm/bridge/cadence/cdns-hdmi-core.c
 @@ -0,0 +1,688 @@
@@ -1347,9 +1337,6 @@ index 000000000..25e871779
 +MODULE_DESCRIPTION("Cadence HDMI transmitter driver");
 +MODULE_LICENSE("GPL");
 +MODULE_ALIAS("platform:cdn-hdmi");
-diff --git a/drivers/gpu/drm/bridge/cadence/cdns-mhdp-audio.c b/drivers/gpu/drm/bridge/cadence/cdns-mhdp-audio.c
-new file mode 100644
-index 000000000..5e71848ea
 --- /dev/null
 +++ b/drivers/gpu/drm/bridge/cadence/cdns-mhdp-audio.c
 @@ -0,0 +1,393 @@
@@ -1746,9 +1733,6 @@ index 000000000..5e71848ea
 +
 +	platform_device_unregister(mhdp->audio_pdev);
 +}
-diff --git a/drivers/gpu/drm/bridge/cadence/cdns-mhdp-cec.c b/drivers/gpu/drm/bridge/cadence/cdns-mhdp-cec.c
-new file mode 100644
-index 000000000..af8506444
 --- /dev/null
 +++ b/drivers/gpu/drm/bridge/cadence/cdns-mhdp-cec.c
 @@ -0,0 +1,341 @@
@@ -2093,9 +2077,6 @@ index 000000000..af8506444
 +MODULE_AUTHOR("Sandor.Yu@NXP.com");
 +MODULE_LICENSE("GPL");
 +MODULE_DESCRIPTION("NXP CDNS MHDP HDMI CEC driver");
-diff --git a/drivers/gpu/drm/bridge/cadence/cdns-mhdp-common.c b/drivers/gpu/drm/bridge/cadence/cdns-mhdp-common.c
-new file mode 100644
-index 000000000..0c61838f1
 --- /dev/null
 +++ b/drivers/gpu/drm/bridge/cadence/cdns-mhdp-common.c
 @@ -0,0 +1,1059 @@
@@ -3158,9 +3139,6 @@ index 000000000..0c61838f1
 +	return false;
 +}
 +EXPORT_SYMBOL(cdns_mhdp_check_alive);
-diff --git a/drivers/gpu/drm/bridge/cadence/cdns-mhdp-hdmi.c b/drivers/gpu/drm/bridge/cadence/cdns-mhdp-hdmi.c
-new file mode 100644
-index 000000000..39546fe2b
 --- /dev/null
 +++ b/drivers/gpu/drm/bridge/cadence/cdns-mhdp-hdmi.c
 @@ -0,0 +1,357 @@
@@ -3521,9 +3499,6 @@ index 000000000..39546fe2b
 +
 +	return cdns_mhdp_reg_write(mhdp, HDTX_CONTROLLER, val);
 +}
-diff --git a/drivers/gpu/drm/bridge/cadence/cdns-mhdp.h b/drivers/gpu/drm/bridge/cadence/cdns-mhdp.h
-new file mode 100644
-index 000000000..399c3f6f8
 --- /dev/null
 +++ b/drivers/gpu/drm/bridge/cadence/cdns-mhdp.h
 @@ -0,0 +1,209 @@
@@ -3736,8 +3711,6 @@ index 000000000..399c3f6f8
 +void cdns_mhdp_enable(struct drm_bridge *bridge);
 +
 +#endif
-diff --git a/drivers/gpu/drm/imx/Kconfig b/drivers/gpu/drm/imx/Kconfig
-index b5fa0e45a..2fc39d318 100644
 --- a/drivers/gpu/drm/imx/Kconfig
 +++ b/drivers/gpu/drm/imx/Kconfig
 @@ -41,4 +41,13 @@ config DRM_IMX_HDMI
@@ -3754,8 +3727,6 @@ index b5fa0e45a..2fc39d318 100644
 +          Choose this if you want to use HDMI on i.MX8.
 +
  source "drivers/gpu/drm/imx/dcss/Kconfig"
-diff --git a/drivers/gpu/drm/imx/Makefile b/drivers/gpu/drm/imx/Makefile
-index b644deffe..b43e3250b 100644
 --- a/drivers/gpu/drm/imx/Makefile
 +++ b/drivers/gpu/drm/imx/Makefile
 @@ -10,3 +10,7 @@ obj-$(CONFIG_DRM_IMX_LDB) += imx-ldb.o
@@ -3766,9 +3737,6 @@ index b644deffe..b43e3250b 100644
 +cdns_mhdp_imx-objs := cdn-mhdp-imxdrv.o cdn-mhdp-dp-phy.o cdn-mhdp-hdmi-phy.o
 +obj-$(CONFIG_DRM_IMX_CDNS_MHDP) += cdns_mhdp_imx.o
 +
-diff --git a/drivers/gpu/drm/imx/cdn-mhdp-dp-phy.c b/drivers/gpu/drm/imx/cdn-mhdp-dp-phy.c
-new file mode 100644
-index 000000000..60c1e6342
 --- /dev/null
 +++ b/drivers/gpu/drm/imx/cdn-mhdp-dp-phy.c
 @@ -0,0 +1,529 @@
@@ -4301,9 +4269,6 @@ index 000000000..60c1e6342
 +
 +	return true;
 +}
-diff --git a/drivers/gpu/drm/imx/cdn-mhdp-hdmi-phy.c b/drivers/gpu/drm/imx/cdn-mhdp-hdmi-phy.c
-new file mode 100644
-index 000000000..d7b5034f3
 --- /dev/null
 +++ b/drivers/gpu/drm/imx/cdn-mhdp-hdmi-phy.c
 @@ -0,0 +1,777 @@
@@ -5084,9 +5049,6 @@ index 000000000..d7b5034f3
 +
 +	return true;
 +}
-diff --git a/drivers/gpu/drm/imx/cdn-mhdp-imxdrv.c b/drivers/gpu/drm/imx/cdn-mhdp-imxdrv.c
-new file mode 100644
-index 000000000..daee92cb9
 --- /dev/null
 +++ b/drivers/gpu/drm/imx/cdn-mhdp-imxdrv.c
 @@ -0,0 +1,211 @@
@@ -5301,9 +5263,6 @@ index 000000000..daee92cb9
 +MODULE_AUTHOR("Sandor YU <sandor.yu@nxp.com>");
 +MODULE_LICENSE("GPL");
 +MODULE_ALIAS("platform:cdnhdmi-imx");
-diff --git a/drivers/gpu/drm/imx/cdn-mhdp-phy.h b/drivers/gpu/drm/imx/cdn-mhdp-phy.h
-new file mode 100644
-index 000000000..6ad1f372d
 --- /dev/null
 +++ b/drivers/gpu/drm/imx/cdn-mhdp-phy.h
 @@ -0,0 +1,155 @@
@@ -5462,9 +5421,6 @@ index 000000000..6ad1f372d
 +int cdns_hdmi_phy_set_imx8mq(struct cdns_mhdp_device *hdp);
 +int cdns_hdmi_phy_set_imx8qm(struct cdns_mhdp_device *hdp);
 +#endif /* _CDNS_MHDP_PHY_H */
-diff --git a/drivers/gpu/drm/imx/cdns-mhdp-imx.h b/drivers/gpu/drm/imx/cdns-mhdp-imx.h
-new file mode 100644
-index 000000000..b95907ddc
 --- /dev/null
 +++ b/drivers/gpu/drm/imx/cdns-mhdp-imx.h
 @@ -0,0 +1,75 @@
@@ -5543,8 +5499,6 @@ index 000000000..b95907ddc
 +int cdns_mhdp_power_on_ls1028a(struct cdns_mhdp_device *mhdp);
 +void cdns_mhdp_pclk_rate_ls1028a(struct cdns_mhdp_device *mhdp);
 +#endif /* CDNS_MHDP_IMX_H_ */
-diff --git a/drivers/gpu/drm/imx/dcss/dcss-dev.c b/drivers/gpu/drm/imx/dcss/dcss-dev.c
-index c849533ca..fe4600b8f 100644
 --- a/drivers/gpu/drm/imx/dcss/dcss-dev.c
 +++ b/drivers/gpu/drm/imx/dcss/dcss-dev.c
 @@ -17,6 +17,11 @@
@@ -5559,7 +5513,7 @@ index c849533ca..fe4600b8f 100644
  	clk_prepare_enable(dcss->axi_clk);
  	clk_prepare_enable(dcss->apb_clk);
  	clk_prepare_enable(dcss->rtrm_clk);
-@@ -31,6 +36,11 @@ static void dcss_clocks_disable(struct dcss_dev *dcss)
+@@ -31,6 +36,11 @@ static void dcss_clocks_disable(struct d
  	clk_disable_unprepare(dcss->rtrm_clk);
  	clk_disable_unprepare(dcss->apb_clk);
  	clk_disable_unprepare(dcss->axi_clk);
@@ -5571,7 +5525,7 @@ index c849533ca..fe4600b8f 100644
  }
  
  static void dcss_disable_dtg_and_ss_cb(void *data)
-@@ -139,6 +149,8 @@ static int dcss_clks_init(struct dcss_dev *dcss)
+@@ -139,6 +149,8 @@ static int dcss_clks_init(struct dcss_de
  		{"pix",   &dcss->pix_clk},
  		{"rtrm",  &dcss->rtrm_clk},
  		{"dtrc",  &dcss->dtrc_clk},
@@ -5580,7 +5534,7 @@ index c849533ca..fe4600b8f 100644
  	};
  
  	for (i = 0; i < ARRAY_SIZE(clks); i++) {
-@@ -160,6 +172,8 @@ static void dcss_clks_release(struct dcss_dev *dcss)
+@@ -160,6 +172,8 @@ static void dcss_clks_release(struct dcs
  	devm_clk_put(dcss->dev, dcss->pix_clk);
  	devm_clk_put(dcss->dev, dcss->axi_clk);
  	devm_clk_put(dcss->dev, dcss->apb_clk);
@@ -5589,7 +5543,7 @@ index c849533ca..fe4600b8f 100644
  }
  
  struct dcss_dev *dcss_dev_create(struct device *dev, bool hdmi_output)
-@@ -254,7 +268,8 @@ int dcss_dev_suspend(struct device *dev)
+@@ -257,7 +271,8 @@ int dcss_dev_suspend(struct device *dev)
  	struct dcss_kms_dev *kms = container_of(ddev, struct dcss_kms_dev, base);
  	int ret;
  
@@ -5599,7 +5553,7 @@ index c849533ca..fe4600b8f 100644
  
  	drm_mode_config_helper_suspend(ddev);
  
-@@ -289,7 +304,8 @@ int dcss_dev_resume(struct device *dev)
+@@ -292,7 +307,8 @@ int dcss_dev_resume(struct device *dev)
  
  	drm_mode_config_helper_resume(ddev);
  
@@ -5609,8 +5563,6 @@ index c849533ca..fe4600b8f 100644
  
  	return 0;
  }
-diff --git a/drivers/gpu/drm/imx/dcss/dcss-dev.h b/drivers/gpu/drm/imx/dcss/dcss-dev.h
-index 1e582270c..083edf6d7 100644
 --- a/drivers/gpu/drm/imx/dcss/dcss-dev.h
 +++ b/drivers/gpu/drm/imx/dcss/dcss-dev.h
 @@ -93,6 +93,7 @@ struct dcss_dev {
@@ -5621,8 +5573,6 @@ index 1e582270c..083edf6d7 100644
  struct dcss_dev *dcss_dev_create(struct device *dev, bool hdmi_output);
  void dcss_dev_destroy(struct dcss_dev *dcss);
  int dcss_dev_runtime_suspend(struct device *dev);
-diff --git a/drivers/gpu/drm/imx/dcss/dcss-drv.c b/drivers/gpu/drm/imx/dcss/dcss-drv.c
-index 8dc2f85c5..3e542c091 100644
 --- a/drivers/gpu/drm/imx/dcss/dcss-drv.c
 +++ b/drivers/gpu/drm/imx/dcss/dcss-drv.c
 @@ -6,6 +6,7 @@
@@ -5633,7 +5583,7 @@ index 8dc2f85c5..3e542c091 100644
  #include <drm/drm_module.h>
  #include <drm/drm_of.h>
  
-@@ -14,6 +15,8 @@
+@@ -15,6 +16,8 @@
  struct dcss_drv {
  	struct dcss_dev *dcss;
  	struct dcss_kms_dev *kms;
@@ -5642,7 +5592,7 @@ index 8dc2f85c5..3e542c091 100644
  };
  
  struct dcss_dev *dcss_drv_dev_to_dcss(struct device *dev)
-@@ -30,30 +33,24 @@ struct drm_device *dcss_drv_dev_to_drm(struct device *dev)
+@@ -31,30 +34,24 @@ struct drm_device *dcss_drv_dev_to_drm(s
  	return mdrv ? &mdrv->kms->base : NULL;
  }
  
@@ -5683,7 +5633,7 @@ index 8dc2f85c5..3e542c091 100644
  	if (IS_ERR(mdrv->dcss)) {
  		err = PTR_ERR(mdrv->dcss);
  		goto err;
-@@ -61,7 +58,7 @@ static int dcss_drv_platform_probe(struct platform_device *pdev)
+@@ -62,7 +59,7 @@ static int dcss_drv_platform_probe(struc
  
  	dev_set_drvdata(dev, mdrv);
  
@@ -5692,7 +5642,7 @@ index 8dc2f85c5..3e542c091 100644
  	if (IS_ERR(mdrv->kms)) {
  		err = PTR_ERR(mdrv->kms);
  		goto dcss_shutoff;
-@@ -79,19 +76,73 @@ static int dcss_drv_platform_probe(struct platform_device *pdev)
+@@ -80,19 +77,73 @@ err:
  	return err;
  }
  
@@ -5771,8 +5721,6 @@ index 8dc2f85c5..3e542c091 100644
  
  	return 0;
  }
-diff --git a/drivers/gpu/drm/imx/dcss/dcss-dtg.c b/drivers/gpu/drm/imx/dcss/dcss-dtg.c
-index 30de00540..c7a688b2a 100644
 --- a/drivers/gpu/drm/imx/dcss/dcss-dtg.c
 +++ b/drivers/gpu/drm/imx/dcss/dcss-dtg.c
 @@ -83,6 +83,7 @@ struct dcss_dtg {
@@ -5793,7 +5741,7 @@ index 30de00540..c7a688b2a 100644
  };
  
  static void dcss_dtg_write(struct dcss_dtg *dtg, u32 val, u32 ofs)
-@@ -159,6 +163,7 @@ int dcss_dtg_init(struct dcss_dev *dcss, unsigned long dtg_base)
+@@ -159,6 +163,7 @@ int dcss_dtg_init(struct dcss_dev *dcss,
  	dcss->dtg = dtg;
  	dtg->dev = dcss->dev;
  	dtg->ctxld = dcss->ctxld;
@@ -5801,7 +5749,7 @@ index 30de00540..c7a688b2a 100644
  
  	dtg->base_reg = ioremap(dtg_base, SZ_4K);
  	if (!dtg->base_reg) {
-@@ -170,6 +175,9 @@ int dcss_dtg_init(struct dcss_dev *dcss, unsigned long dtg_base)
+@@ -170,6 +175,9 @@ int dcss_dtg_init(struct dcss_dev *dcss,
  	dtg->base_ofs = dtg_base;
  	dtg->ctx_id = CTX_DB;
  
@@ -5811,7 +5759,7 @@ index 30de00540..c7a688b2a 100644
  	dtg->alpha = 255;
  
  	dtg->control_status |= OVL_DATA_MODE | BLENDER_VIDEO_ALPHA_SEL |
-@@ -220,8 +228,22 @@ void dcss_dtg_sync_set(struct dcss_dtg *dtg, struct videomode *vm)
+@@ -220,8 +228,22 @@ void dcss_dtg_sync_set(struct dcss_dtg *
  	dis_lrc_y = vm->vsync_len + vm->vfront_porch + vm->vback_porch +
  		    vm->vactive - 1;
  
@@ -5835,13 +5783,11 @@ index 30de00540..c7a688b2a 100644
  	clk_prepare_enable(dcss->pix_clk);
  
  	actual_clk = clk_get_rate(dcss->pix_clk);
-@@ -406,4 +428,3 @@ bool dcss_dtg_vblank_irq_valid(struct dcss_dtg *dtg)
+@@ -406,4 +428,3 @@ bool dcss_dtg_vblank_irq_valid(struct dc
  {
  	return !!(dcss_readl(dtg->base_reg + DCSS_DTG_INT_STATUS) & LINE1_IRQ);
  }
 -
-diff --git a/drivers/gpu/drm/imx/dcss/dcss-kms.c b/drivers/gpu/drm/imx/dcss/dcss-kms.c
-index 9b84df34a..6c9b5d98f 100644
 --- a/drivers/gpu/drm/imx/dcss/dcss-kms.c
 +++ b/drivers/gpu/drm/imx/dcss/dcss-kms.c
 @@ -13,6 +13,7 @@
@@ -5852,7 +5798,7 @@ index 9b84df34a..6c9b5d98f 100644
  
  #include "dcss-dev.h"
  #include "dcss-kms.h"
-@@ -69,6 +70,7 @@ static int dcss_kms_bridge_connector_init(struct dcss_kms_dev *kms)
+@@ -69,6 +70,7 @@ static int dcss_kms_bridge_connector_ini
  	struct drm_crtc *crtc = (struct drm_crtc *)&kms->crtc;
  	struct drm_panel *panel;
  	struct drm_bridge *bridge;
@@ -5860,7 +5806,7 @@ index 9b84df34a..6c9b5d98f 100644
  	int ret;
  
  	ret = drm_of_find_panel_or_bridge(ddev->dev->of_node, 0, 0,
-@@ -91,23 +93,23 @@ static int dcss_kms_bridge_connector_init(struct dcss_kms_dev *kms)
+@@ -91,23 +93,23 @@ static int dcss_kms_bridge_connector_ini
  		return ret;
  	}
  
@@ -5892,7 +5838,7 @@ index 9b84df34a..6c9b5d98f 100644
  {
  	struct dcss_kms_dev *kms;
  	struct drm_device *drm;
-@@ -130,19 +132,28 @@ struct dcss_kms_dev *dcss_kms_attach(struct dcss_dev *dcss)
+@@ -130,18 +132,29 @@ struct dcss_kms_dev *dcss_kms_attach(str
  	if (ret)
  		goto cleanup_mode_config;
  
@@ -5919,13 +5865,13 @@ index 9b84df34a..6c9b5d98f 100644
  
  	drm_kms_helper_poll_init(drm);
  
--	drm_bridge_connector_enable_hpd(kms->connector);
 +	if (!componentized)
 +		drm_bridge_connector_enable_hpd(kms->connector);
- 
++
  	ret = drm_dev_register(drm, 0);
  	if (ret)
-@@ -153,7 +164,8 @@ struct dcss_kms_dev *dcss_kms_attach(struct dcss_dev *dcss)
+ 		goto cleanup_crtc;
+@@ -151,7 +164,8 @@ struct dcss_kms_dev *dcss_kms_attach(str
  	return kms;
  
  cleanup_crtc:
@@ -5935,7 +5881,7 @@ index 9b84df34a..6c9b5d98f 100644
  	drm_kms_helper_poll_fini(drm);
  	dcss_crtc_deinit(crtc, drm);
  
-@@ -164,16 +176,20 @@ struct dcss_kms_dev *dcss_kms_attach(struct dcss_dev *dcss)
+@@ -162,16 +176,20 @@ cleanup_mode_config:
  	return ERR_PTR(ret);
  }
  
@@ -5958,8 +5904,6 @@ index 9b84df34a..6c9b5d98f 100644
 +		component_unbind_all(dcss->dev, drm);
  	drm->dev_private = NULL;
  }
-diff --git a/drivers/gpu/drm/imx/dcss/dcss-kms.h b/drivers/gpu/drm/imx/dcss/dcss-kms.h
-index dfe5dd99e..c3e0d0684 100644
 --- a/drivers/gpu/drm/imx/dcss/dcss-kms.h
 +++ b/drivers/gpu/drm/imx/dcss/dcss-kms.h
 @@ -32,8 +32,8 @@ struct dcss_kms_dev {
@@ -5973,9 +5917,6 @@ index dfe5dd99e..c3e0d0684 100644
  int dcss_crtc_init(struct dcss_crtc *crtc, struct drm_device *drm);
  void dcss_crtc_deinit(struct dcss_crtc *crtc, struct drm_device *drm);
  struct dcss_plane *dcss_plane_init(struct drm_device *drm,
-diff --git a/include/drm/bridge/cdns-mhdp-cbs.h b/include/drm/bridge/cdns-mhdp-cbs.h
-new file mode 100644
-index 000000000..ed67e184d
 --- /dev/null
 +++ b/include/drm/bridge/cdns-mhdp-cbs.h
 @@ -0,0 +1,29 @@
@@ -6008,9 +5949,6 @@ index 000000000..ed67e184d
 +			       struct cdns_mhdp_mst_cbs *cbs);
 +
 +#endif
-diff --git a/include/drm/bridge/cdns-mhdp-common.h b/include/drm/bridge/cdns-mhdp-common.h
-new file mode 100755
-index 000000000..752bf493f
 --- /dev/null
 +++ b/include/drm/bridge/cdns-mhdp-common.h
 @@ -0,0 +1,812 @@

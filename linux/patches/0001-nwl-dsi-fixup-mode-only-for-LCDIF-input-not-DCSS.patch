@@ -1,6 +1,6 @@
 --- a/drivers/gpu/drm/bridge/nwl-dsi.c
 +++ b/drivers/gpu/drm/bridge/nwl-dsi.c
-@@ -821,10 +821,17 @@ static int nwl_dsi_bridge_atomic_check(s
+@@ -815,10 +815,17 @@ static int nwl_dsi_bridge_atomic_check(s
  				       struct drm_connector_state *conn_state)
  {
  	struct drm_display_mode *adjusted_mode = &crtc_state->adjusted_mode;
