@@ -199,7 +199,7 @@ if [ -z "$(reprepro listfilter reform "Package (== reform-tools)")" ]; then
 	rm -Rf "$WORKDIR"
 fi
 
-if [ -z "$(reprepro listfilter reform "\$Source (== reform-handbook)")" ]; then
+if false && [ -z "$(reprepro listfilter reform "\$Source (== reform-handbook)")" ]; then
 	rm -Rf "$WORKDIR"
 	mkdir --mode=0777 "$WORKDIR"
 	(
