@@ -199,6 +199,7 @@ if [ -z "$(reprepro listfilter reform "Package (== reform-tools)")" ]; then
 	rm -Rf "$WORKDIR"
 fi
 
+# disabled because of https://bugs.debian.org/1019000
 if false && [ -z "$(reprepro listfilter reform "\$Source (== reform-handbook)")" ]; then
 	rm -Rf "$WORKDIR"
 	mkdir --mode=0777 "$WORKDIR"
