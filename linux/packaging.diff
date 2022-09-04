@@ -39,6 +39,26 @@ diff -Nru linux-5.13.12/debian/config/defines linux-5.13.12/debian/config/define
 diff -Nru linux-5.13.12/debian/rules.real linux-5.13.12/debian/rules.real
 --- linux-5.13.12/debian/rules.real	2021-08-09 15:42:36.000000000 +0200
 +++ linux-5.13.12/debian/rules.real	2022-01-12 15:02:01.000000000 +0100
+@@ -71,8 +71,7 @@ build-arch-arch: \
+ 	$(call if_package, bpftool,                      build-bpftool) \
+ 	$(call if_package, usbip,                        build-usbip) \
+ 	$(call if_package, linux-cpupower,               build-cpupower) \
+-	$(call if_package, hyperv-daemons,               build-hyperv-daemons) \
+-	$(call if_package, rtla,                         build-rtla)
++	$(call if_package, hyperv-daemons,               build-hyperv-daemons)
+ binary-arch-arch: \
+ 	$(call if_package, $(SOURCE_BASENAME)-config-$(VERSION), install-config_$(ARCH)) \
+ 	$(call if_package, linux-libc-dev,               install-libc-dev_$(ARCH)) \
+@@ -82,8 +81,7 @@ binary-arch-arch: \
+ 	$(call if_package, bpftool,                      install-bpftool) \
+ 	$(call if_package, usbip,                        install-usbip) \
+ 	$(call if_package, linux-cpupower,               install-cpupower) \
+-	$(call if_package, hyperv-daemons,               install-hyperv-daemons) \
+-	$(call if_package, rtla,                         install-rtla)
++	$(call if_package, hyperv-daemons,               install-hyperv-daemons)
+ 
+ build-indep: \
+ 	$(call if_package, $(SOURCE_BASENAME)-doc-$(VERSION), $(STAMPS_DIR)/build-doc)
 @@ -570,8 +570,8 @@
  ifneq (,$(filter linux-image-%,$(packages_enabled)))
  	dh_testdir
