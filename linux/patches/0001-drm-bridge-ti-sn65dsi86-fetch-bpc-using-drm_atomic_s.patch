@@ -15,11 +15,9 @@ Signed-off-by: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
  drivers/gpu/drm/bridge/ti-sn65dsi86.c | 22 ++++++++++++++++------
  1 file changed, 16 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/gpu/drm/bridge/ti-sn65dsi86.c b/drivers/gpu/drm/bridge/ti-sn65dsi86.c
-index 8cad662..df3a006 100644
 --- a/drivers/gpu/drm/bridge/ti-sn65dsi86.c
 +++ b/drivers/gpu/drm/bridge/ti-sn65dsi86.c
-@@ -778,9 +778,9 @@ static void ti_sn_bridge_set_dsi_rate(struct ti_sn65dsi86 *pdata)
+@@ -779,9 +779,9 @@ static void ti_sn_bridge_set_dsi_rate(st
  	regmap_write(pdata->regmap, SN_DSIA_CLK_FREQ_REG, val);
  }
  
@@ -31,7 +29,7 @@ index 8cad662..df3a006 100644
  		return 18;
  	else
  		return 24;
-@@ -795,7 +795,7 @@ static const unsigned int ti_sn_bridge_dp_rate_lut[] = {
+@@ -796,7 +796,7 @@ static const unsigned int ti_sn_bridge_d
  	0, 1620, 2160, 2430, 2700, 3240, 4320, 5400
  };
  
@@ -40,7 +38,7 @@ index 8cad662..df3a006 100644
  {
  	unsigned int bit_rate_khz, dp_rate_mhz;
  	unsigned int i;
-@@ -803,7 +803,7 @@ static int ti_sn_bridge_calc_min_dp_rate_idx(struct ti_sn65dsi86 *pdata)
+@@ -804,7 +804,7 @@ static int ti_sn_bridge_calc_min_dp_rate
  		&pdata->bridge.encoder->crtc->state->adjusted_mode;
  
  	/* Calculate minimum bit rate based on our pixel clock. */
@@ -49,8 +47,8 @@ index 8cad662..df3a006 100644
  
  	/* Calculate minimum DP data rate, taking 80% as per DP spec */
  	dp_rate_mhz = DIV_ROUND_UP(bit_rate_khz * DP_CLK_FUDGE_NUM,
-@@ -1014,12 +1014,21 @@ static int ti_sn_link_training(struct ti_sn65dsi86 *pdata, int dp_rate_idx,
- static void ti_sn_bridge_enable(struct drm_bridge *bridge)
+@@ -1016,12 +1016,21 @@ static void ti_sn_bridge_atomic_enable(s
+ 				       struct drm_bridge_state *old_bridge_state)
  {
  	struct ti_sn65dsi86 *pdata = bridge_to_ti_sn65dsi86(bridge);
 +	struct drm_connector *connector;
@@ -71,7 +69,7 @@ index 8cad662..df3a006 100644
  
  	max_dp_lanes = ti_sn_get_max_lanes(pdata);
  	pdata->dp_lanes = min(pdata->dp_lanes, max_dp_lanes);
-@@ -1045,8 +1054,9 @@ static void ti_sn_bridge_enable(struct drm_bridge *bridge)
+@@ -1047,8 +1056,9 @@ static void ti_sn_bridge_atomic_enable(s
  	drm_dp_dpcd_writeb(&pdata->aux, DP_EDP_CONFIGURATION_SET,
  			   DP_ALTERNATE_SCRAMBLER_RESET_ENABLE);
  
@@ -82,7 +80,7 @@ index 8cad662..df3a006 100644
  	regmap_update_bits(pdata->regmap, SN_DATA_FORMAT_REG, BPP_18_RGB, val);
  
  	/* DP lane config */
-@@ -1057,7 +1067,7 @@ static void ti_sn_bridge_enable(struct drm_bridge *bridge)
+@@ -1059,7 +1069,7 @@ static void ti_sn_bridge_atomic_enable(s
  	valid_rates = ti_sn_bridge_read_valid_rates(pdata);
  
  	/* Train until we run out of rates */
@@ -91,6 +89,3 @@ index 8cad662..df3a006 100644
  	     dp_rate_idx < ARRAY_SIZE(ti_sn_bridge_dp_rate_lut);
  	     dp_rate_idx++) {
  		if (!(valid_rates & BIT(dp_rate_idx)))
--- 
-2.36.1
-
