@@ -80,7 +80,7 @@ cat << 'END' | env --chdir=linux patch -p1
 diff -ru linux/debian/patches/series linux/debian/patches/series
 --- linux/debian/patches/series	2022-01-14 07:52:25.468668311 +0100
 +++ linux/debian/patches/series	2022-01-13 22:45:13.359057117 +0100
-@@ -128,3 +128,12 @@
+@@ -128,3 +128,14 @@
  bugfix/all/tools-include-uapi-fix-errno.h.patch
 
  # ABI maintenance
@@ -93,6 +93,8 @@ diff -ru linux/debian/patches/series linux/debian/patches/series
 +reform/mnt4001-lcdif-fix-pcie-interference.patch
 +reform/mnt4002-imx-gpcv2-wake-smccc.patch
 +reform/mnt5000-imx8mq-import-HDMI-driver-and-make-DCSS-compatible.patch
++reform/0001-drm-bridge-ti-sn65dsi86-fetch-bpc-using-drm_atomic_s.patch
++reform/0002-drm-bridge-ti-sn65dsi86-support-DRM_BRIDGE_ATTACH_NO.patch
 END
 
 env --chdir=linux QUILT_PATCHES=debian/patches quilt push -a
