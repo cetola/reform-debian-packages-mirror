@@ -15,6 +15,7 @@
 / {
 	model = "MNT Reform 2";
 	compatible = "boundary,imx8mq-nitrogen8m_som", "fsl,imx8mq";
+	chassis-type = "laptop";
 
 	chosen {
 		stdout-path = "serial0:115200n8";
@@ -92,7 +93,7 @@
 
 	backlight: backlight {
 		compatible = "pwm-backlight";
-		pwms = <&pwm2 0 10000>;
+		pwms = <&pwm2 0 10000 0>;
 		power-supply = <&reg_vref_5v>;
 		enable-gpios = <&gpio1 10 GPIO_ACTIVE_HIGH>;
 		brightness-levels = <0 8 16 32 64 128 160 200 255>;
@@ -199,7 +200,7 @@
 					<&clk IMX8MQ_VIDEO2_PLL_OUT>,
 					<&clk IMX8MQ_CLK_DISP_DTRC>,
 					<&clk IMX8MQ_VIDEO2_PLL1_REF_SEL>,
-					<&clk IMX8MQ_CLK_PHY_27MHZ>;
+					<&hdmi_phy_27m>;
 				clock-names = "apb", "axi", "rtrm", "pix", "dtrc", "pll_src", "pll_phy_ref";
 				assigned-clocks = <&clk IMX8MQ_CLK_DISP_AXI>,
 					<&clk IMX8MQ_CLK_DISP_RTRM>,
