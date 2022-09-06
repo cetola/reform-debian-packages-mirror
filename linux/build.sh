@@ -80,7 +80,7 @@ cat << 'END' | env --chdir=linux patch -p1
 diff -ru linux/debian/patches/series linux/debian/patches/series
 --- linux/debian/patches/series	2022-01-14 07:52:25.468668311 +0100
 +++ linux/debian/patches/series	2022-01-13 22:45:13.359057117 +0100
-@@ -128,3 +128,15 @@
+@@ -128,3 +128,13 @@
  bugfix/all/tools-include-uapi-fix-errno.h.patch
 
  # ABI maintenance
@@ -88,8 +88,6 @@ diff -ru linux/debian/patches/series linux/debian/patches/series
 +# reform
 +reform/0001-nwl-dsi-fixup-mode-only-for-LCDIF-input-not-DCSS.patch
 +reform/0005-pci-imx6-add-support-for-internal-refclk-imx8mq.patch
-+reform/mnt3004-MNT-Reform-imx8mq-add-PHY_27M-clock.patch
-+reform/mnt3006-MNT-Reform-imx8mq-add-PHY_27M-clock-missing-define.patch
 +reform/mnt4001-lcdif-fix-pcie-interference.patch
 +reform/mnt4002-imx-gpcv2-wake-smccc.patch
 +reform/mnt5000-imx8mq-import-HDMI-driver-and-make-DCSS-compatible.patch
