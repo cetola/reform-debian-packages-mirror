@@ -1,3 +1,14 @@
+From 7019a1da2c0b5b2eeb74bb6beab61189fbd793ce Mon Sep 17 00:00:00 2001
+From: "Lukas F. Hartmann" <lukas@mntre.com>
+Date: Wed, 7 Sep 2022 06:24:04 +0200
+Subject: [PATCH 4/9] mnt4002-imx-gpcv2-wake-smccc.patch
+
+---
+ drivers/irqchip/irq-imx-gpcv2.c | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
+
+diff --git a/drivers/irqchip/irq-imx-gpcv2.c b/drivers/irqchip/irq-imx-gpcv2.c
+index b9c22f764..4f6d92471 100644
 --- a/drivers/irqchip/irq-imx-gpcv2.c
 +++ b/drivers/irqchip/irq-imx-gpcv2.c
 @@ -3,6 +3,7 @@
@@ -22,7 +33,7 @@
  
  struct gpcv2_irqchip_data {
  	struct raw_spinlock	rlock;
-@@ -76,12 +84,17 @@ static int imx_gpcv2_irq_set_wake(struct
+@@ -76,12 +84,17 @@ static int imx_gpcv2_irq_set_wake(struct irq_data *d, unsigned int on)
  	unsigned int idx = d->hwirq / 32;
  	unsigned long flags;
  	u32 mask, val;
@@ -40,7 +51,7 @@
  	raw_spin_unlock_irqrestore(&cd->rlock, flags);
  
  	/*
-@@ -97,6 +110,7 @@ static void imx_gpcv2_irq_unmask(struct
+@@ -97,6 +110,7 @@ static void imx_gpcv2_irq_unmask(struct irq_data *d)
  	struct gpcv2_irqchip_data *cd = d->chip_data;
  	void __iomem *reg;
  	u32 val;
@@ -48,7 +59,7 @@
  
  	raw_spin_lock(&cd->rlock);
  	reg = gpcv2_idx_to_reg(cd, d->hwirq / 32);
-@@ -105,6 +119,10 @@ static void imx_gpcv2_irq_unmask(struct
+@@ -105,6 +119,10 @@ static void imx_gpcv2_irq_unmask(struct irq_data *d)
  	writel_relaxed(val, reg);
  	raw_spin_unlock(&cd->rlock);
  
@@ -59,7 +70,7 @@
  	irq_chip_unmask_parent(d);
  }
  
-@@ -113,12 +131,18 @@ static void imx_gpcv2_irq_mask(struct ir
+@@ -113,12 +131,18 @@ static void imx_gpcv2_irq_mask(struct irq_data *d)
  	struct gpcv2_irqchip_data *cd = d->chip_data;
  	void __iomem *reg;
  	u32 val;
@@ -78,3 +89,6 @@
  	raw_spin_unlock(&cd->rlock);
  
  	irq_chip_mask_parent(d);
+-- 
+2.36.1
+

@@ -1,11 +1,52 @@
-commit 8a2754000ceb516b665c02f7bcb32bcc4c07650a
-Author: Lukas F. Hartmann <lukas@mntre.com>
-Date:   Thu Jan 20 21:43:47 2022 +0100
+From 620ae6ca58ca57c017a8dfcbddf50d50966b04f1 Mon Sep 17 00:00:00 2001
+From: "Lukas F. Hartmann" <lukas@mntre.com>
+Date: Wed, 7 Sep 2022 06:25:09 +0200
+Subject: [PATCH 5/9] imx8mq: import HDMI driver and make DCSS compatible with
+ both HDMI and LCDIF
 
-    imx8mq: import HDMI driver and make DCSS compatible with both HDMI and LCDIF
-    
-    Rebased on 5.15.
+---
+ drivers/gpu/drm/bridge/cadence/Kconfig        |   26 +
+ drivers/gpu/drm/bridge/cadence/Makefile       |    9 +
+ drivers/gpu/drm/bridge/cadence/cdns-dp-core.c |  590 +++++++++
+ .../gpu/drm/bridge/cadence/cdns-hdmi-core.c   |  689 +++++++++++
+ .../gpu/drm/bridge/cadence/cdns-mhdp-audio.c  |  393 ++++++
+ .../gpu/drm/bridge/cadence/cdns-mhdp-cec.c    |  341 ++++++
+ .../gpu/drm/bridge/cadence/cdns-mhdp-common.c | 1059 +++++++++++++++++
+ .../gpu/drm/bridge/cadence/cdns-mhdp-hdmi.c   |  357 ++++++
+ drivers/gpu/drm/bridge/cadence/cdns-mhdp.h    |  209 ++++
+ drivers/gpu/drm/imx/Kconfig                   |    9 +
+ drivers/gpu/drm/imx/Makefile                  |    4 +
+ drivers/gpu/drm/imx/cdn-mhdp-dp-phy.c         |  529 ++++++++
+ drivers/gpu/drm/imx/cdn-mhdp-hdmi-phy.c       |  777 ++++++++++++
+ drivers/gpu/drm/imx/cdn-mhdp-imxdrv.c         |  211 ++++
+ drivers/gpu/drm/imx/cdn-mhdp-phy.h            |  155 +++
+ drivers/gpu/drm/imx/cdns-mhdp-imx.h           |   75 ++
+ drivers/gpu/drm/imx/dcss/dcss-dev.c           |   20 +-
+ drivers/gpu/drm/imx/dcss/dcss-dev.h           |    1 +
+ drivers/gpu/drm/imx/dcss/dcss-drv.c           |  103 +-
+ drivers/gpu/drm/imx/dcss/dcss-dtg.c           |   25 +-
+ drivers/gpu/drm/imx/dcss/dcss-kms.c           |   46 +-
+ drivers/gpu/drm/imx/dcss/dcss-kms.h           |    4 +-
+ include/drm/bridge/cdns-mhdp-cbs.h            |   29 +
+ include/drm/bridge/cdns-mhdp-common.h         |  812 +++++++++++++
+ 24 files changed, 6427 insertions(+), 46 deletions(-)
+ create mode 100644 drivers/gpu/drm/bridge/cadence/cdns-dp-core.c
+ create mode 100644 drivers/gpu/drm/bridge/cadence/cdns-hdmi-core.c
+ create mode 100644 drivers/gpu/drm/bridge/cadence/cdns-mhdp-audio.c
+ create mode 100644 drivers/gpu/drm/bridge/cadence/cdns-mhdp-cec.c
+ create mode 100644 drivers/gpu/drm/bridge/cadence/cdns-mhdp-common.c
+ create mode 100644 drivers/gpu/drm/bridge/cadence/cdns-mhdp-hdmi.c
+ create mode 100644 drivers/gpu/drm/bridge/cadence/cdns-mhdp.h
+ create mode 100644 drivers/gpu/drm/imx/cdn-mhdp-dp-phy.c
+ create mode 100644 drivers/gpu/drm/imx/cdn-mhdp-hdmi-phy.c
+ create mode 100644 drivers/gpu/drm/imx/cdn-mhdp-imxdrv.c
+ create mode 100644 drivers/gpu/drm/imx/cdn-mhdp-phy.h
+ create mode 100644 drivers/gpu/drm/imx/cdns-mhdp-imx.h
+ create mode 100644 include/drm/bridge/cdns-mhdp-cbs.h
+ create mode 100644 include/drm/bridge/cdns-mhdp-common.h
 
+diff --git a/drivers/gpu/drm/bridge/cadence/Kconfig b/drivers/gpu/drm/bridge/cadence/Kconfig
+index 1d06182be..5aa976e5e 100644
 --- a/drivers/gpu/drm/bridge/cadence/Kconfig
 +++ b/drivers/gpu/drm/bridge/cadence/Kconfig
 @@ -25,3 +25,29 @@ config DRM_CDNS_MHDP8546_J721E
@@ -38,6 +79,8 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
 +	depends on DRM_CDNS_HDMI
 +	select CEC_CORE
 +	select CEC_NOTIFIER
+diff --git a/drivers/gpu/drm/bridge/cadence/Makefile b/drivers/gpu/drm/bridge/cadence/Makefile
+index 4d2db8df1..a83e73939 100644
 --- a/drivers/gpu/drm/bridge/cadence/Makefile
 +++ b/drivers/gpu/drm/bridge/cadence/Makefile
 @@ -2,3 +2,12 @@
@@ -53,6 +96,9 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
 +cdns_mhdp_drmcore-$(CONFIG_DRM_CDNS_HDMI_CEC) += cdns-mhdp-cec.o
 +
 +obj-$(CONFIG_DRM_CDNS_MHDP)             += cdns_mhdp_drmcore.o
+diff --git a/drivers/gpu/drm/bridge/cadence/cdns-dp-core.c b/drivers/gpu/drm/bridge/cadence/cdns-dp-core.c
+new file mode 100644
+index 000000000..78defa00a
 --- /dev/null
 +++ b/drivers/gpu/drm/bridge/cadence/cdns-dp-core.c
 @@ -0,0 +1,590 @@
@@ -646,6 +692,9 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
 +MODULE_DESCRIPTION("Cadence Display Port transmitter driver");
 +MODULE_LICENSE("GPL");
 +MODULE_ALIAS("platform:cdn-dp");
+diff --git a/drivers/gpu/drm/bridge/cadence/cdns-hdmi-core.c b/drivers/gpu/drm/bridge/cadence/cdns-hdmi-core.c
+new file mode 100644
+index 000000000..16f4b219b
 --- /dev/null
 +++ b/drivers/gpu/drm/bridge/cadence/cdns-hdmi-core.c
 @@ -0,0 +1,689 @@
@@ -1338,6 +1387,9 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
 +MODULE_DESCRIPTION("Cadence HDMI transmitter driver");
 +MODULE_LICENSE("GPL");
 +MODULE_ALIAS("platform:cdn-hdmi");
+diff --git a/drivers/gpu/drm/bridge/cadence/cdns-mhdp-audio.c b/drivers/gpu/drm/bridge/cadence/cdns-mhdp-audio.c
+new file mode 100644
+index 000000000..5e71848ea
 --- /dev/null
 +++ b/drivers/gpu/drm/bridge/cadence/cdns-mhdp-audio.c
 @@ -0,0 +1,393 @@
@@ -1734,6 +1786,9 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
 +
 +	platform_device_unregister(mhdp->audio_pdev);
 +}
+diff --git a/drivers/gpu/drm/bridge/cadence/cdns-mhdp-cec.c b/drivers/gpu/drm/bridge/cadence/cdns-mhdp-cec.c
+new file mode 100644
+index 000000000..af8506444
 --- /dev/null
 +++ b/drivers/gpu/drm/bridge/cadence/cdns-mhdp-cec.c
 @@ -0,0 +1,341 @@
@@ -2078,6 +2133,9 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
 +MODULE_AUTHOR("Sandor.Yu@NXP.com");
 +MODULE_LICENSE("GPL");
 +MODULE_DESCRIPTION("NXP CDNS MHDP HDMI CEC driver");
+diff --git a/drivers/gpu/drm/bridge/cadence/cdns-mhdp-common.c b/drivers/gpu/drm/bridge/cadence/cdns-mhdp-common.c
+new file mode 100644
+index 000000000..0c61838f1
 --- /dev/null
 +++ b/drivers/gpu/drm/bridge/cadence/cdns-mhdp-common.c
 @@ -0,0 +1,1059 @@
@@ -3140,6 +3198,9 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
 +	return false;
 +}
 +EXPORT_SYMBOL(cdns_mhdp_check_alive);
+diff --git a/drivers/gpu/drm/bridge/cadence/cdns-mhdp-hdmi.c b/drivers/gpu/drm/bridge/cadence/cdns-mhdp-hdmi.c
+new file mode 100644
+index 000000000..39546fe2b
 --- /dev/null
 +++ b/drivers/gpu/drm/bridge/cadence/cdns-mhdp-hdmi.c
 @@ -0,0 +1,357 @@
@@ -3500,6 +3561,9 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
 +
 +	return cdns_mhdp_reg_write(mhdp, HDTX_CONTROLLER, val);
 +}
+diff --git a/drivers/gpu/drm/bridge/cadence/cdns-mhdp.h b/drivers/gpu/drm/bridge/cadence/cdns-mhdp.h
+new file mode 100644
+index 000000000..94d2b2585
 --- /dev/null
 +++ b/drivers/gpu/drm/bridge/cadence/cdns-mhdp.h
 @@ -0,0 +1,209 @@
@@ -3712,6 +3776,8 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
 +void cdns_mhdp_enable(struct drm_bridge *bridge);
 +
 +#endif
+diff --git a/drivers/gpu/drm/imx/Kconfig b/drivers/gpu/drm/imx/Kconfig
+index bb9738c7c..779c88308 100644
 --- a/drivers/gpu/drm/imx/Kconfig
 +++ b/drivers/gpu/drm/imx/Kconfig
 @@ -41,4 +41,13 @@ config DRM_IMX_HDMI
@@ -3728,6 +3794,8 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
 +          Choose this if you want to use HDMI on i.MX8.
 +
  source "drivers/gpu/drm/imx/dcss/Kconfig"
+diff --git a/drivers/gpu/drm/imx/Makefile b/drivers/gpu/drm/imx/Makefile
+index b644deffe..b43e3250b 100644
 --- a/drivers/gpu/drm/imx/Makefile
 +++ b/drivers/gpu/drm/imx/Makefile
 @@ -10,3 +10,7 @@ obj-$(CONFIG_DRM_IMX_LDB) += imx-ldb.o
@@ -3738,6 +3806,9 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
 +cdns_mhdp_imx-objs := cdn-mhdp-imxdrv.o cdn-mhdp-dp-phy.o cdn-mhdp-hdmi-phy.o
 +obj-$(CONFIG_DRM_IMX_CDNS_MHDP) += cdns_mhdp_imx.o
 +
+diff --git a/drivers/gpu/drm/imx/cdn-mhdp-dp-phy.c b/drivers/gpu/drm/imx/cdn-mhdp-dp-phy.c
+new file mode 100644
+index 000000000..ab155d6ef
 --- /dev/null
 +++ b/drivers/gpu/drm/imx/cdn-mhdp-dp-phy.c
 @@ -0,0 +1,529 @@
@@ -4270,6 +4341,9 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
 +
 +	return true;
 +}
+diff --git a/drivers/gpu/drm/imx/cdn-mhdp-hdmi-phy.c b/drivers/gpu/drm/imx/cdn-mhdp-hdmi-phy.c
+new file mode 100644
+index 000000000..d7b5034f3
 --- /dev/null
 +++ b/drivers/gpu/drm/imx/cdn-mhdp-hdmi-phy.c
 @@ -0,0 +1,777 @@
@@ -5050,6 +5124,9 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
 +
 +	return true;
 +}
+diff --git a/drivers/gpu/drm/imx/cdn-mhdp-imxdrv.c b/drivers/gpu/drm/imx/cdn-mhdp-imxdrv.c
+new file mode 100644
+index 000000000..daee92cb9
 --- /dev/null
 +++ b/drivers/gpu/drm/imx/cdn-mhdp-imxdrv.c
 @@ -0,0 +1,211 @@
@@ -5264,6 +5341,9 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
 +MODULE_AUTHOR("Sandor YU <sandor.yu@nxp.com>");
 +MODULE_LICENSE("GPL");
 +MODULE_ALIAS("platform:cdnhdmi-imx");
+diff --git a/drivers/gpu/drm/imx/cdn-mhdp-phy.h b/drivers/gpu/drm/imx/cdn-mhdp-phy.h
+new file mode 100644
+index 000000000..6ad1f372d
 --- /dev/null
 +++ b/drivers/gpu/drm/imx/cdn-mhdp-phy.h
 @@ -0,0 +1,155 @@
@@ -5422,6 +5502,9 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
 +int cdns_hdmi_phy_set_imx8mq(struct cdns_mhdp_device *hdp);
 +int cdns_hdmi_phy_set_imx8qm(struct cdns_mhdp_device *hdp);
 +#endif /* _CDNS_MHDP_PHY_H */
+diff --git a/drivers/gpu/drm/imx/cdns-mhdp-imx.h b/drivers/gpu/drm/imx/cdns-mhdp-imx.h
+new file mode 100644
+index 000000000..b95907ddc
 --- /dev/null
 +++ b/drivers/gpu/drm/imx/cdns-mhdp-imx.h
 @@ -0,0 +1,75 @@
@@ -5500,6 +5583,8 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
 +int cdns_mhdp_power_on_ls1028a(struct cdns_mhdp_device *mhdp);
 +void cdns_mhdp_pclk_rate_ls1028a(struct cdns_mhdp_device *mhdp);
 +#endif /* CDNS_MHDP_IMX_H_ */
+diff --git a/drivers/gpu/drm/imx/dcss/dcss-dev.c b/drivers/gpu/drm/imx/dcss/dcss-dev.c
+index 3f5750cc2..6c128803f 100644
 --- a/drivers/gpu/drm/imx/dcss/dcss-dev.c
 +++ b/drivers/gpu/drm/imx/dcss/dcss-dev.c
 @@ -17,6 +17,11 @@
@@ -5514,7 +5599,7 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
  	clk_prepare_enable(dcss->axi_clk);
  	clk_prepare_enable(dcss->apb_clk);
  	clk_prepare_enable(dcss->rtrm_clk);
-@@ -31,6 +36,11 @@ static void dcss_clocks_disable(struct d
+@@ -31,6 +36,11 @@ static void dcss_clocks_disable(struct dcss_dev *dcss)
  	clk_disable_unprepare(dcss->rtrm_clk);
  	clk_disable_unprepare(dcss->apb_clk);
  	clk_disable_unprepare(dcss->axi_clk);
@@ -5526,7 +5611,7 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
  }
  
  static void dcss_disable_dtg_and_ss_cb(void *data)
-@@ -139,6 +149,8 @@ static int dcss_clks_init(struct dcss_de
+@@ -139,6 +149,8 @@ static int dcss_clks_init(struct dcss_dev *dcss)
  		{"pix",   &dcss->pix_clk},
  		{"rtrm",  &dcss->rtrm_clk},
  		{"dtrc",  &dcss->dtrc_clk},
@@ -5535,7 +5620,7 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
  	};
  
  	for (i = 0; i < ARRAY_SIZE(clks); i++) {
-@@ -160,6 +172,8 @@ static void dcss_clks_release(struct dcs
+@@ -160,6 +172,8 @@ static void dcss_clks_release(struct dcss_dev *dcss)
  	devm_clk_put(dcss->dev, dcss->pix_clk);
  	devm_clk_put(dcss->dev, dcss->axi_clk);
  	devm_clk_put(dcss->dev, dcss->apb_clk);
@@ -5564,6 +5649,8 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
  
  	return 0;
  }
+diff --git a/drivers/gpu/drm/imx/dcss/dcss-dev.h b/drivers/gpu/drm/imx/dcss/dcss-dev.h
+index 1e582270c..083edf6d7 100644
 --- a/drivers/gpu/drm/imx/dcss/dcss-dev.h
 +++ b/drivers/gpu/drm/imx/dcss/dcss-dev.h
 @@ -93,6 +93,7 @@ struct dcss_dev {
@@ -5574,6 +5661,8 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
  struct dcss_dev *dcss_dev_create(struct device *dev, bool hdmi_output);
  void dcss_dev_destroy(struct dcss_dev *dcss);
  int dcss_dev_runtime_suspend(struct device *dev);
+diff --git a/drivers/gpu/drm/imx/dcss/dcss-drv.c b/drivers/gpu/drm/imx/dcss/dcss-drv.c
+index 24147ee70..2689d8a96 100644
 --- a/drivers/gpu/drm/imx/dcss/dcss-drv.c
 +++ b/drivers/gpu/drm/imx/dcss/dcss-drv.c
 @@ -6,6 +6,7 @@
@@ -5593,7 +5682,7 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
  };
  
  struct dcss_dev *dcss_drv_dev_to_dcss(struct device *dev)
-@@ -31,30 +34,24 @@ struct drm_device *dcss_drv_dev_to_drm(s
+@@ -31,30 +34,24 @@ struct drm_device *dcss_drv_dev_to_drm(struct device *dev)
  	return mdrv ? &mdrv->kms->base : NULL;
  }
  
@@ -5634,7 +5723,7 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
  	if (IS_ERR(mdrv->dcss)) {
  		err = PTR_ERR(mdrv->dcss);
  		goto err;
-@@ -62,7 +59,7 @@ static int dcss_drv_platform_probe(struc
+@@ -62,7 +59,7 @@ static int dcss_drv_platform_probe(struct platform_device *pdev)
  
  	dev_set_drvdata(dev, mdrv);
  
@@ -5643,28 +5732,23 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
  	if (IS_ERR(mdrv->kms)) {
  		err = PTR_ERR(mdrv->kms);
  		goto dcss_shutoff;
-@@ -80,19 +77,73 @@ err:
+@@ -80,19 +77,73 @@ static int dcss_drv_platform_probe(struct platform_device *pdev)
  	return err;
  }
  
--static int dcss_drv_platform_remove(struct platform_device *pdev)
 +static void dcss_drv_deinit(struct device *dev, bool componentized)
- {
--	struct dcss_drv *mdrv = dev_get_drvdata(&pdev->dev);
++{
 +	struct dcss_drv *mdrv = dev_get_drvdata(dev);
- 
- 	if (!mdrv)
--		return 0;
++
++	if (!mdrv)
 +		return;
- 
--	dcss_kms_detach(mdrv->kms);
++
 +	dcss_kms_detach(mdrv->kms, componentized);
- 	dcss_dev_destroy(mdrv->dcss);
- 
--	dev_set_drvdata(&pdev->dev, NULL);
++	dcss_dev_destroy(mdrv->dcss);
++
 +	dev_set_drvdata(dev, NULL);
- 
- 	kfree(mdrv);
++
++	kfree(mdrv);
 +}
 +
 +static int dcss_drv_bind(struct device *dev)
@@ -5711,10 +5795,19 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
 +	return component_master_add_with_match(dev, &dcss_master_ops, match);
 +}
 +
-+static int dcss_drv_platform_remove(struct platform_device *pdev)
-+{
-+	struct dcss_drv *mdrv = dev_get_drvdata(&pdev->dev);
-+
+ static int dcss_drv_platform_remove(struct platform_device *pdev)
+ {
+ 	struct dcss_drv *mdrv = dev_get_drvdata(&pdev->dev);
+ 
+-	if (!mdrv)
+-		return 0;
+-
+-	dcss_kms_detach(mdrv->kms);
+-	dcss_dev_destroy(mdrv->dcss);
+-
+-	dev_set_drvdata(&pdev->dev, NULL);
+-
+-	kfree(mdrv);
 +	if (mdrv->is_componentized)
 +		component_master_del(&pdev->dev, &dcss_master_ops);
 +	else
@@ -5722,6 +5815,8 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
  
  	return 0;
  }
+diff --git a/drivers/gpu/drm/imx/dcss/dcss-dtg.c b/drivers/gpu/drm/imx/dcss/dcss-dtg.c
+index 30de00540..c7a688b2a 100644
 --- a/drivers/gpu/drm/imx/dcss/dcss-dtg.c
 +++ b/drivers/gpu/drm/imx/dcss/dcss-dtg.c
 @@ -83,6 +83,7 @@ struct dcss_dtg {
@@ -5742,7 +5837,7 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
  };
  
  static void dcss_dtg_write(struct dcss_dtg *dtg, u32 val, u32 ofs)
-@@ -159,6 +163,7 @@ int dcss_dtg_init(struct dcss_dev *dcss,
+@@ -159,6 +163,7 @@ int dcss_dtg_init(struct dcss_dev *dcss, unsigned long dtg_base)
  	dcss->dtg = dtg;
  	dtg->dev = dcss->dev;
  	dtg->ctxld = dcss->ctxld;
@@ -5750,7 +5845,7 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
  
  	dtg->base_reg = ioremap(dtg_base, SZ_4K);
  	if (!dtg->base_reg) {
-@@ -170,6 +175,9 @@ int dcss_dtg_init(struct dcss_dev *dcss,
+@@ -170,6 +175,9 @@ int dcss_dtg_init(struct dcss_dev *dcss, unsigned long dtg_base)
  	dtg->base_ofs = dtg_base;
  	dtg->ctx_id = CTX_DB;
  
@@ -5760,7 +5855,7 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
  	dtg->alpha = 255;
  
  	dtg->control_status |= OVL_DATA_MODE | BLENDER_VIDEO_ALPHA_SEL |
-@@ -220,8 +228,22 @@ void dcss_dtg_sync_set(struct dcss_dtg *
+@@ -220,8 +228,22 @@ void dcss_dtg_sync_set(struct dcss_dtg *dtg, struct videomode *vm)
  	dis_lrc_y = vm->vsync_len + vm->vfront_porch + vm->vback_porch +
  		    vm->vactive - 1;
  
@@ -5784,11 +5879,13 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
  	clk_prepare_enable(dcss->pix_clk);
  
  	actual_clk = clk_get_rate(dcss->pix_clk);
-@@ -406,4 +428,3 @@ bool dcss_dtg_vblank_irq_valid(struct dc
+@@ -406,4 +428,3 @@ bool dcss_dtg_vblank_irq_valid(struct dcss_dtg *dtg)
  {
  	return !!(dcss_readl(dtg->base_reg + DCSS_DTG_INT_STATUS) & LINE1_IRQ);
  }
 -
+diff --git a/drivers/gpu/drm/imx/dcss/dcss-kms.c b/drivers/gpu/drm/imx/dcss/dcss-kms.c
+index 8cf3352d8..6c9b5d98f 100644
 --- a/drivers/gpu/drm/imx/dcss/dcss-kms.c
 +++ b/drivers/gpu/drm/imx/dcss/dcss-kms.c
 @@ -13,6 +13,7 @@
@@ -5799,7 +5896,7 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
  
  #include "dcss-dev.h"
  #include "dcss-kms.h"
-@@ -69,6 +70,7 @@ static int dcss_kms_bridge_connector_ini
+@@ -69,6 +70,7 @@ static int dcss_kms_bridge_connector_init(struct dcss_kms_dev *kms)
  	struct drm_crtc *crtc = (struct drm_crtc *)&kms->crtc;
  	struct drm_panel *panel;
  	struct drm_bridge *bridge;
@@ -5807,7 +5904,7 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
  	int ret;
  
  	ret = drm_of_find_panel_or_bridge(ddev->dev->of_node, 0, 0,
-@@ -91,23 +93,23 @@ static int dcss_kms_bridge_connector_ini
+@@ -91,23 +93,23 @@ static int dcss_kms_bridge_connector_init(struct dcss_kms_dev *kms)
  		return ret;
  	}
  
@@ -5839,7 +5936,7 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
  {
  	struct dcss_kms_dev *kms;
  	struct drm_device *drm;
-@@ -130,18 +132,29 @@ struct dcss_kms_dev *dcss_kms_attach(str
+@@ -130,18 +132,29 @@ struct dcss_kms_dev *dcss_kms_attach(struct dcss_dev *dcss)
  	if (ret)
  		goto cleanup_mode_config;
  
@@ -5872,7 +5969,7 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
  	ret = drm_dev_register(drm, 0);
  	if (ret)
  		goto cleanup_crtc;
-@@ -151,7 +164,8 @@ struct dcss_kms_dev *dcss_kms_attach(str
+@@ -151,7 +164,8 @@ struct dcss_kms_dev *dcss_kms_attach(struct dcss_dev *dcss)
  	return kms;
  
  cleanup_crtc:
@@ -5882,7 +5979,7 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
  	drm_kms_helper_poll_fini(drm);
  	dcss_crtc_deinit(crtc, drm);
  
-@@ -162,16 +176,20 @@ cleanup_mode_config:
+@@ -162,16 +176,20 @@ struct dcss_kms_dev *dcss_kms_attach(struct dcss_dev *dcss)
  	return ERR_PTR(ret);
  }
  
@@ -5905,6 +6002,8 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
 +		component_unbind_all(dcss->dev, drm);
  	drm->dev_private = NULL;
  }
+diff --git a/drivers/gpu/drm/imx/dcss/dcss-kms.h b/drivers/gpu/drm/imx/dcss/dcss-kms.h
+index dfe5dd99e..c3e0d0684 100644
 --- a/drivers/gpu/drm/imx/dcss/dcss-kms.h
 +++ b/drivers/gpu/drm/imx/dcss/dcss-kms.h
 @@ -32,8 +32,8 @@ struct dcss_kms_dev {
@@ -5918,6 +6017,9 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
  int dcss_crtc_init(struct dcss_crtc *crtc, struct drm_device *drm);
  void dcss_crtc_deinit(struct dcss_crtc *crtc, struct drm_device *drm);
  struct dcss_plane *dcss_plane_init(struct drm_device *drm,
+diff --git a/include/drm/bridge/cdns-mhdp-cbs.h b/include/drm/bridge/cdns-mhdp-cbs.h
+new file mode 100644
+index 000000000..ed67e184d
 --- /dev/null
 +++ b/include/drm/bridge/cdns-mhdp-cbs.h
 @@ -0,0 +1,29 @@
@@ -5950,6 +6052,9 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
 +			       struct cdns_mhdp_mst_cbs *cbs);
 +
 +#endif
+diff --git a/include/drm/bridge/cdns-mhdp-common.h b/include/drm/bridge/cdns-mhdp-common.h
+new file mode 100644
+index 000000000..77a99db59
 --- /dev/null
 +++ b/include/drm/bridge/cdns-mhdp-common.h
 @@ -0,0 +1,812 @@
@@ -6765,3 +6870,6 @@ Date:   Thu Jan 20 21:43:47 2022 +0100
 +#endif
 +
 +#endif /* CDNS_MHDP_COMMON_H_ */
+-- 
+2.36.1
+

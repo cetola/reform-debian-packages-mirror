@@ -76,26 +76,9 @@ env --chdir=linux ../kernel-team/utils/kconfigeditor2/process.py .
 mkdir linux/debian/patches/reform
 cp patches/* linux/debian/patches/reform
 
-cat << 'END' | env --chdir=linux patch -p1
-diff -ru linux/debian/patches/series linux/debian/patches/series
---- linux/debian/patches/series	2022-01-14 07:52:25.468668311 +0100
-+++ linux/debian/patches/series	2022-01-13 22:45:13.359057117 +0100
-@@ -128,3 +128,14 @@
- bugfix/all/tools-include-uapi-fix-errno.h.patch
-
- # ABI maintenance
-+
-+# reform
-+reform/0001-nwl-dsi-fixup-mode-only-for-LCDIF-input-not-DCSS.patch
-+reform/0005-pci-imx6-add-support-for-internal-refclk-imx8mq.patch
-+reform/mnt4001-lcdif-fix-pcie-interference.patch
-+reform/mnt4002-imx-gpcv2-wake-smccc.patch
-+reform/mnt5000-imx8mq-import-HDMI-driver-and-make-DCSS-compatible.patch
-+reform/0001-drm-bridge-ti-sn65dsi86-Use-atomic-variants-of-drm_b.patch
-+reform/0001-drm-bridge-ti-sn65dsi86-fetch-bpc-using-drm_atomic_s.patch
-+reform/0002-drm-bridge-ti-sn65dsi86-support-DRM_BRIDGE_ATTACH_NO.patch
-+reform/set-phy-mode-in-nwl-dsi-mode-set.patch
-END
+for f in patches/*; do
+	echo "reform/${f##patches/}" >> linux/debian/patches/series
+done
 
 env --chdir=linux QUILT_PATCHES=debian/patches quilt push -a
 env --chdir=linux QUILT_PATCHES=debian/patches quilt new reform/dts.patch

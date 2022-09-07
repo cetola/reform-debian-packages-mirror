@@ -1,7 +1,7 @@
-From 69ed3dd6be9cf5d75252940b9a927dff4bab7860 Mon Sep 17 00:00:00 2001
+From 66dff9ed14351aa06f5790907958d1eee12e4d58 Mon Sep 17 00:00:00 2001
 From: Liu Ying <victor.liu@nxp.com>
 Date: Tue, 19 Apr 2022 09:08:48 +0800
-Subject: [PATCH] drm/bridge: nwl-dsi: Set PHY mode in nwl_dsi_mode_set()
+Subject: [PATCH 9/9] drm/bridge: nwl-dsi: Set PHY mode in nwl_dsi_mode_set()
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -33,7 +33,7 @@ Link: https://patchwork.freedesktop.org/patch/msgid/20220419010852.452169-2-vict
  1 file changed, 6 insertions(+)
 
 diff --git a/drivers/gpu/drm/bridge/nwl-dsi.c b/drivers/gpu/drm/bridge/nwl-dsi.c
-index ad74e6558eb3de..d83111be48296a 100644
+index b36239d6c..7aa35583b 100644
 --- a/drivers/gpu/drm/bridge/nwl-dsi.c
 +++ b/drivers/gpu/drm/bridge/nwl-dsi.c
 @@ -665,6 +665,12 @@ static int nwl_dsi_mode_set(struct nwl_dsi *dsi)
@@ -49,3 +49,6 @@ index ad74e6558eb3de..d83111be48296a 100644
  	ret = phy_configure(dsi->phy, phy_cfg);
  	if (ret < 0) {
  		DRM_DEV_ERROR(dev, "Failed to configure DSI phy: %d\n", ret);
+-- 
+2.36.1
+

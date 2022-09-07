@@ -1,6 +1,17 @@
+From 32fa3f26636f93bece891a458744ba0145e43edf Mon Sep 17 00:00:00 2001
+From: "Lukas F. Hartmann" <lukas@mntre.com>
+Date: Wed, 7 Sep 2022 06:23:35 +0200
+Subject: [PATCH 3/9] lcdif-fix-pcie-interference
+
+---
+ drivers/gpu/drm/mxsfb/mxsfb_kms.c | 34 ++++++++++++++++++++++++++++++-
+ 1 file changed, 33 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/mxsfb/mxsfb_kms.c b/drivers/gpu/drm/mxsfb/mxsfb_kms.c
+index f021ab2c4..8000020e0 100644
 --- a/drivers/gpu/drm/mxsfb/mxsfb_kms.c
 +++ b/drivers/gpu/drm/mxsfb/mxsfb_kms.c
-@@ -302,7 +302,7 @@ static void mxsfb_crtc_mode_set_nofb(str
+@@ -302,7 +302,7 @@ static void mxsfb_crtc_mode_set_nofb(struct mxsfb_drm_private *mxsfb,
  
  	mxsfb_set_formats(mxsfb, bus_format);
  
@@ -9,7 +20,7 @@
  
  	mxsfb_set_mode(mxsfb, bus_flags);
  }
-@@ -661,12 +661,44 @@ static const uint64_t mxsfb_modifiers[]
+@@ -661,12 +661,44 @@ static const uint64_t mxsfb_modifiers[] = {
   * Initialization
   */
  
@@ -54,3 +65,6 @@
  	drm_plane_helper_add(&mxsfb->planes.primary,
  			     &mxsfb_plane_primary_helper_funcs);
  	ret = drm_universal_plane_init(mxsfb->drm, &mxsfb->planes.primary, 1,
+-- 
+2.36.1
+
