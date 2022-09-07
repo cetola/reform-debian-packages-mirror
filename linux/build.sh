@@ -39,8 +39,16 @@ else
 	dpkg-source -x linux_*.dsc linux
 fi
 
-env --chdir=linux dch --local "+$OURSUITE" "apply mnt reform patch"
-env --chdir=linux dch --force-distribution --distribution="$OURSUITE" --release ""
+# we add a suffix based on SOURCE_DATE_EPOCH if it is set or "now" otherwise
+datesuffix="$(date --utc ${SOURCE_DATE_EPOCH:+--date=@$SOURCE_DATE_EPOCH} +%Y%m%dT%H%M%SZ)"
+faketime=
+# if we have the faketime utility and if SOURCE_DATE_EPOCH is set, set a
+# reproducible d/changelog timestamp using faketime
+if command -v faketime >/dev/null && [ -n "${SOURCE_DATE_EPOCH:+x}" ]; then
+	faketime="faketime @$SOURCE_DATE_EPOCH"
+fi
+env --chdir=linux $faketime dch --local "+$OURSUITE$datesuffix" "apply mnt reform patch"
+env --chdir=linux $faketime dch --force-distribution --distribution="$OURSUITE" --release ""
 
 env --chdir=linux patch -p1 < packaging.diff
 
