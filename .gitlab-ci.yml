@@ -7,7 +7,7 @@ build:
       - repo
   script:
     - apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
-    - apt-get --no-install-recommends -y install fakechroot fakeroot devscripts mmdebstrap python3 reprepro sbuild schroot debhelper debian-keyring quilt pristine-tar rsync git python3-debian faketime
+    - apt-get --no-install-recommends -y install fakechroot fakeroot devscripts mmdebstrap/bookworm python3/bookworm reprepro sbuild schroot debhelper debian-keyring quilt pristine-tar rsync git python3-debian faketime
     - test -d /srv/chroot/unstable-sbuild && test "$(stat -c %Y /srv/chroot/unstable-sbuild)" -lt "$(date --date "14 days ago" +%s)" && rm -rf /srv/chroot/unstable-sbuild /etc/schroot/chroot.d/unstable-amd64-sbuild-*
     - test -d /srv/chroot/testing-sbuild && test "$(stat -c %Y /srv/chroot/testing-sbuild)" -lt "$(date --date "14 days ago" +%s)" && rm -rf /srv/chroot/testing-sbuild /etc/schroot/chroot.d/testing-amd64-sbuild-*
     - test -d /srv/chroot/unstable-sbuild || sbuild-createchroot --debootstrap=mmdebstrap --alias=sid unstable /srv/chroot/unstable-sbuild http://deb.debian.org/debian
