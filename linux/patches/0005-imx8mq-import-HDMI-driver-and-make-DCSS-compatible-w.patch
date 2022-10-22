@@ -1,7 +1,7 @@
-From 620ae6ca58ca57c017a8dfcbddf50d50966b04f1 Mon Sep 17 00:00:00 2001
+From c148d9c6e43239676c0ca109f7a3b9d17d7e7a15 Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
-Date: Wed, 7 Sep 2022 06:25:09 +0200
-Subject: [PATCH 5/9] imx8mq: import HDMI driver and make DCSS compatible with
+Date: Sat, 22 Oct 2022 17:12:28 +0200
+Subject: [PATCH 5/7] imx8mq: import HDMI driver and make DCSS compatible with
  both HDMI and LCDIF
 
 ---
@@ -46,7 +46,7 @@ Subject: [PATCH 5/9] imx8mq: import HDMI driver and make DCSS compatible with
  create mode 100644 include/drm/bridge/cdns-mhdp-common.h
 
 diff --git a/drivers/gpu/drm/bridge/cadence/Kconfig b/drivers/gpu/drm/bridge/cadence/Kconfig
-index 1d06182be..5aa976e5e 100644
+index 1d06182..5aa976e 100644
 --- a/drivers/gpu/drm/bridge/cadence/Kconfig
 +++ b/drivers/gpu/drm/bridge/cadence/Kconfig
 @@ -25,3 +25,29 @@ config DRM_CDNS_MHDP8546_J721E
@@ -80,7 +80,7 @@ index 1d06182be..5aa976e5e 100644
 +	select CEC_CORE
 +	select CEC_NOTIFIER
 diff --git a/drivers/gpu/drm/bridge/cadence/Makefile b/drivers/gpu/drm/bridge/cadence/Makefile
-index 4d2db8df1..a83e73939 100644
+index 4d2db8d..a83e739 100644
 --- a/drivers/gpu/drm/bridge/cadence/Makefile
 +++ b/drivers/gpu/drm/bridge/cadence/Makefile
 @@ -2,3 +2,12 @@
@@ -98,7 +98,7 @@ index 4d2db8df1..a83e73939 100644
 +obj-$(CONFIG_DRM_CDNS_MHDP)             += cdns_mhdp_drmcore.o
 diff --git a/drivers/gpu/drm/bridge/cadence/cdns-dp-core.c b/drivers/gpu/drm/bridge/cadence/cdns-dp-core.c
 new file mode 100644
-index 000000000..78defa00a
+index 0000000..78defa0
 --- /dev/null
 +++ b/drivers/gpu/drm/bridge/cadence/cdns-dp-core.c
 @@ -0,0 +1,590 @@
@@ -694,7 +694,7 @@ index 000000000..78defa00a
 +MODULE_ALIAS("platform:cdn-dp");
 diff --git a/drivers/gpu/drm/bridge/cadence/cdns-hdmi-core.c b/drivers/gpu/drm/bridge/cadence/cdns-hdmi-core.c
 new file mode 100644
-index 000000000..16f4b219b
+index 0000000..16f4b21
 --- /dev/null
 +++ b/drivers/gpu/drm/bridge/cadence/cdns-hdmi-core.c
 @@ -0,0 +1,689 @@
@@ -1389,7 +1389,7 @@ index 000000000..16f4b219b
 +MODULE_ALIAS("platform:cdn-hdmi");
 diff --git a/drivers/gpu/drm/bridge/cadence/cdns-mhdp-audio.c b/drivers/gpu/drm/bridge/cadence/cdns-mhdp-audio.c
 new file mode 100644
-index 000000000..5e71848ea
+index 0000000..5e71848
 --- /dev/null
 +++ b/drivers/gpu/drm/bridge/cadence/cdns-mhdp-audio.c
 @@ -0,0 +1,393 @@
@@ -1788,7 +1788,7 @@ index 000000000..5e71848ea
 +}
 diff --git a/drivers/gpu/drm/bridge/cadence/cdns-mhdp-cec.c b/drivers/gpu/drm/bridge/cadence/cdns-mhdp-cec.c
 new file mode 100644
-index 000000000..af8506444
+index 0000000..af85064
 --- /dev/null
 +++ b/drivers/gpu/drm/bridge/cadence/cdns-mhdp-cec.c
 @@ -0,0 +1,341 @@
@@ -2135,7 +2135,7 @@ index 000000000..af8506444
 +MODULE_DESCRIPTION("NXP CDNS MHDP HDMI CEC driver");
 diff --git a/drivers/gpu/drm/bridge/cadence/cdns-mhdp-common.c b/drivers/gpu/drm/bridge/cadence/cdns-mhdp-common.c
 new file mode 100644
-index 000000000..0c61838f1
+index 0000000..0c61838
 --- /dev/null
 +++ b/drivers/gpu/drm/bridge/cadence/cdns-mhdp-common.c
 @@ -0,0 +1,1059 @@
@@ -3200,7 +3200,7 @@ index 000000000..0c61838f1
 +EXPORT_SYMBOL(cdns_mhdp_check_alive);
 diff --git a/drivers/gpu/drm/bridge/cadence/cdns-mhdp-hdmi.c b/drivers/gpu/drm/bridge/cadence/cdns-mhdp-hdmi.c
 new file mode 100644
-index 000000000..39546fe2b
+index 0000000..39546fe
 --- /dev/null
 +++ b/drivers/gpu/drm/bridge/cadence/cdns-mhdp-hdmi.c
 @@ -0,0 +1,357 @@
@@ -3563,7 +3563,7 @@ index 000000000..39546fe2b
 +}
 diff --git a/drivers/gpu/drm/bridge/cadence/cdns-mhdp.h b/drivers/gpu/drm/bridge/cadence/cdns-mhdp.h
 new file mode 100644
-index 000000000..94d2b2585
+index 0000000..94d2b25
 --- /dev/null
 +++ b/drivers/gpu/drm/bridge/cadence/cdns-mhdp.h
 @@ -0,0 +1,209 @@
@@ -3777,7 +3777,7 @@ index 000000000..94d2b2585
 +
 +#endif
 diff --git a/drivers/gpu/drm/imx/Kconfig b/drivers/gpu/drm/imx/Kconfig
-index bb9738c7c..779c88308 100644
+index bb9738c..779c883 100644
 --- a/drivers/gpu/drm/imx/Kconfig
 +++ b/drivers/gpu/drm/imx/Kconfig
 @@ -41,4 +41,13 @@ config DRM_IMX_HDMI
@@ -3795,7 +3795,7 @@ index bb9738c7c..779c88308 100644
 +
  source "drivers/gpu/drm/imx/dcss/Kconfig"
 diff --git a/drivers/gpu/drm/imx/Makefile b/drivers/gpu/drm/imx/Makefile
-index b644deffe..b43e3250b 100644
+index b644def..b43e325 100644
 --- a/drivers/gpu/drm/imx/Makefile
 +++ b/drivers/gpu/drm/imx/Makefile
 @@ -10,3 +10,7 @@ obj-$(CONFIG_DRM_IMX_LDB) += imx-ldb.o
@@ -3808,7 +3808,7 @@ index b644deffe..b43e3250b 100644
 +
 diff --git a/drivers/gpu/drm/imx/cdn-mhdp-dp-phy.c b/drivers/gpu/drm/imx/cdn-mhdp-dp-phy.c
 new file mode 100644
-index 000000000..ab155d6ef
+index 0000000..ab155d6
 --- /dev/null
 +++ b/drivers/gpu/drm/imx/cdn-mhdp-dp-phy.c
 @@ -0,0 +1,529 @@
@@ -4343,7 +4343,7 @@ index 000000000..ab155d6ef
 +}
 diff --git a/drivers/gpu/drm/imx/cdn-mhdp-hdmi-phy.c b/drivers/gpu/drm/imx/cdn-mhdp-hdmi-phy.c
 new file mode 100644
-index 000000000..d7b5034f3
+index 0000000..d7b5034
 --- /dev/null
 +++ b/drivers/gpu/drm/imx/cdn-mhdp-hdmi-phy.c
 @@ -0,0 +1,777 @@
@@ -5126,7 +5126,7 @@ index 000000000..d7b5034f3
 +}
 diff --git a/drivers/gpu/drm/imx/cdn-mhdp-imxdrv.c b/drivers/gpu/drm/imx/cdn-mhdp-imxdrv.c
 new file mode 100644
-index 000000000..daee92cb9
+index 0000000..daee92c
 --- /dev/null
 +++ b/drivers/gpu/drm/imx/cdn-mhdp-imxdrv.c
 @@ -0,0 +1,211 @@
@@ -5343,7 +5343,7 @@ index 000000000..daee92cb9
 +MODULE_ALIAS("platform:cdnhdmi-imx");
 diff --git a/drivers/gpu/drm/imx/cdn-mhdp-phy.h b/drivers/gpu/drm/imx/cdn-mhdp-phy.h
 new file mode 100644
-index 000000000..6ad1f372d
+index 0000000..6ad1f37
 --- /dev/null
 +++ b/drivers/gpu/drm/imx/cdn-mhdp-phy.h
 @@ -0,0 +1,155 @@
@@ -5504,7 +5504,7 @@ index 000000000..6ad1f372d
 +#endif /* _CDNS_MHDP_PHY_H */
 diff --git a/drivers/gpu/drm/imx/cdns-mhdp-imx.h b/drivers/gpu/drm/imx/cdns-mhdp-imx.h
 new file mode 100644
-index 000000000..b95907ddc
+index 0000000..b95907d
 --- /dev/null
 +++ b/drivers/gpu/drm/imx/cdns-mhdp-imx.h
 @@ -0,0 +1,75 @@
@@ -5584,7 +5584,7 @@ index 000000000..b95907ddc
 +void cdns_mhdp_pclk_rate_ls1028a(struct cdns_mhdp_device *mhdp);
 +#endif /* CDNS_MHDP_IMX_H_ */
 diff --git a/drivers/gpu/drm/imx/dcss/dcss-dev.c b/drivers/gpu/drm/imx/dcss/dcss-dev.c
-index 3f5750cc2..6c128803f 100644
+index 3f5750c..6c12880 100644
 --- a/drivers/gpu/drm/imx/dcss/dcss-dev.c
 +++ b/drivers/gpu/drm/imx/dcss/dcss-dev.c
 @@ -17,6 +17,11 @@
@@ -5650,7 +5650,7 @@ index 3f5750cc2..6c128803f 100644
  	return 0;
  }
 diff --git a/drivers/gpu/drm/imx/dcss/dcss-dev.h b/drivers/gpu/drm/imx/dcss/dcss-dev.h
-index 1e582270c..083edf6d7 100644
+index 1e58227..083edf6 100644
 --- a/drivers/gpu/drm/imx/dcss/dcss-dev.h
 +++ b/drivers/gpu/drm/imx/dcss/dcss-dev.h
 @@ -93,6 +93,7 @@ struct dcss_dev {
@@ -5662,18 +5662,18 @@ index 1e582270c..083edf6d7 100644
  void dcss_dev_destroy(struct dcss_dev *dcss);
  int dcss_dev_runtime_suspend(struct device *dev);
 diff --git a/drivers/gpu/drm/imx/dcss/dcss-drv.c b/drivers/gpu/drm/imx/dcss/dcss-drv.c
-index 24147ee70..2689d8a96 100644
+index 1c70f70..d6960da 100644
 --- a/drivers/gpu/drm/imx/dcss/dcss-drv.c
 +++ b/drivers/gpu/drm/imx/dcss/dcss-drv.c
-@@ -6,6 +6,7 @@
- #include <linux/module.h>
+@@ -7,6 +7,7 @@
  #include <linux/kernel.h>
+ #include <linux/of.h>
  #include <linux/platform_device.h>
 +#include <linux/component.h>
  #include <drm/drm_module.h>
  #include <drm/drm_of.h>
  
-@@ -15,6 +16,8 @@
+@@ -16,6 +17,8 @@
  struct dcss_drv {
  	struct dcss_dev *dcss;
  	struct dcss_kms_dev *kms;
@@ -5682,7 +5682,7 @@ index 24147ee70..2689d8a96 100644
  };
  
  struct dcss_dev *dcss_drv_dev_to_dcss(struct device *dev)
-@@ -31,30 +34,24 @@ struct drm_device *dcss_drv_dev_to_drm(struct device *dev)
+@@ -32,30 +35,24 @@ struct drm_device *dcss_drv_dev_to_drm(struct device *dev)
  	return mdrv ? &mdrv->kms->base : NULL;
  }
  
@@ -5723,7 +5723,7 @@ index 24147ee70..2689d8a96 100644
  	if (IS_ERR(mdrv->dcss)) {
  		err = PTR_ERR(mdrv->dcss);
  		goto err;
-@@ -62,7 +59,7 @@ static int dcss_drv_platform_probe(struct platform_device *pdev)
+@@ -63,7 +60,7 @@ static int dcss_drv_platform_probe(struct platform_device *pdev)
  
  	dev_set_drvdata(dev, mdrv);
  
@@ -5732,7 +5732,7 @@ index 24147ee70..2689d8a96 100644
  	if (IS_ERR(mdrv->kms)) {
  		err = PTR_ERR(mdrv->kms);
  		goto dcss_shutoff;
-@@ -80,19 +77,73 @@ static int dcss_drv_platform_probe(struct platform_device *pdev)
+@@ -81,19 +78,73 @@ static int dcss_drv_platform_probe(struct platform_device *pdev)
  	return err;
  }
  
@@ -5816,7 +5816,7 @@ index 24147ee70..2689d8a96 100644
  	return 0;
  }
 diff --git a/drivers/gpu/drm/imx/dcss/dcss-dtg.c b/drivers/gpu/drm/imx/dcss/dcss-dtg.c
-index 30de00540..c7a688b2a 100644
+index 30de005..c7a688b 100644
 --- a/drivers/gpu/drm/imx/dcss/dcss-dtg.c
 +++ b/drivers/gpu/drm/imx/dcss/dcss-dtg.c
 @@ -83,6 +83,7 @@ struct dcss_dtg {
@@ -5885,7 +5885,7 @@ index 30de00540..c7a688b2a 100644
  }
 -
 diff --git a/drivers/gpu/drm/imx/dcss/dcss-kms.c b/drivers/gpu/drm/imx/dcss/dcss-kms.c
-index 8cf3352d8..6c9b5d98f 100644
+index 8cf3352..6c9b5d9 100644
 --- a/drivers/gpu/drm/imx/dcss/dcss-kms.c
 +++ b/drivers/gpu/drm/imx/dcss/dcss-kms.c
 @@ -13,6 +13,7 @@
@@ -6003,7 +6003,7 @@ index 8cf3352d8..6c9b5d98f 100644
  	drm->dev_private = NULL;
  }
 diff --git a/drivers/gpu/drm/imx/dcss/dcss-kms.h b/drivers/gpu/drm/imx/dcss/dcss-kms.h
-index dfe5dd99e..c3e0d0684 100644
+index dfe5dd9..c3e0d06 100644
 --- a/drivers/gpu/drm/imx/dcss/dcss-kms.h
 +++ b/drivers/gpu/drm/imx/dcss/dcss-kms.h
 @@ -32,8 +32,8 @@ struct dcss_kms_dev {
@@ -6019,7 +6019,7 @@ index dfe5dd99e..c3e0d0684 100644
  struct dcss_plane *dcss_plane_init(struct drm_device *drm,
 diff --git a/include/drm/bridge/cdns-mhdp-cbs.h b/include/drm/bridge/cdns-mhdp-cbs.h
 new file mode 100644
-index 000000000..ed67e184d
+index 0000000..ed67e18
 --- /dev/null
 +++ b/include/drm/bridge/cdns-mhdp-cbs.h
 @@ -0,0 +1,29 @@
@@ -6054,7 +6054,7 @@ index 000000000..ed67e184d
 +#endif
 diff --git a/include/drm/bridge/cdns-mhdp-common.h b/include/drm/bridge/cdns-mhdp-common.h
 new file mode 100644
-index 000000000..77a99db59
+index 0000000..77a99db
 --- /dev/null
 +++ b/include/drm/bridge/cdns-mhdp-common.h
 @@ -0,0 +1,812 @@
@@ -6871,5 +6871,5 @@ index 000000000..77a99db59
 +
 +#endif /* CDNS_MHDP_COMMON_H_ */
 -- 
-2.36.1
+2.37.2
 

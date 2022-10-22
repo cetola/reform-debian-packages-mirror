@@ -1,7 +1,7 @@
-From 8fab93c64b320dbcd0302784b284ddd22c7e21f1 Mon Sep 17 00:00:00 2001
+From 330e2f7b2653315d48729200004f15df5948ec76 Mon Sep 17 00:00:00 2001
 From: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
 Date: Mon, 11 Jul 2022 12:21:16 +0300
-Subject: [PATCH 7/9] drm/bridge: ti-sn65dsi86: fetch bpc using
+Subject: [PATCH 6/7] drm/bridge: ti-sn65dsi86: fetch bpc using
  drm_atomic_state
 
 Rather than reading the pdata->connector directly, fetch the connector
@@ -16,7 +16,7 @@ Signed-off-by: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
  1 file changed, 16 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/gpu/drm/bridge/ti-sn65dsi86.c b/drivers/gpu/drm/bridge/ti-sn65dsi86.c
-index a192f76d6..526e0904c 100644
+index d6dd4d9..b362a7b 100644
 --- a/drivers/gpu/drm/bridge/ti-sn65dsi86.c
 +++ b/drivers/gpu/drm/bridge/ti-sn65dsi86.c
 @@ -779,9 +779,9 @@ static void ti_sn_bridge_set_dsi_rate(struct ti_sn65dsi86 *pdata)
@@ -92,5 +92,5 @@ index a192f76d6..526e0904c 100644
  	     dp_rate_idx++) {
  		if (!(valid_rates & BIT(dp_rate_idx)))
 -- 
-2.36.1
+2.37.2
 
