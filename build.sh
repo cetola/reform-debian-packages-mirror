@@ -13,12 +13,13 @@ PATCHDIR=$(realpath patches)
 REPREPRO_BASE_DIR=$(realpath repo)
 HTTP_PORT=7251
 : "${MIRROR:=http://deb.debian.org/debian}"
-# if we are in a git repository and if SOURCE_DATE_EPOCH is not set, use the
-# timestamp of the latest git commit
-if [ -z ${SOURCE_DATE_EPOCH+x} ] && git -C . rev-parse 2>/dev/null; then
+# If we are in a git repository and if SOURCE_DATE_EPOCH is not set or set but
+# null, use the timestamp of the latest git commit. Otherwise, use the provided
+# value (if not null) or default to the timestamp of now.
+if [ -z ${SOURCE_DATE_EPOCH:+x} ] && git -C . rev-parse 2>/dev/null; then
 	SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)
 else
-	SOURCE_DATE_EPOCH=$(date +%s)
+	: "${SOURCE_DATE_EPOCH:=$(date +%s)}"
 fi
 export SOURCE_DATE_EPOCH
 export REPREPRO_BASE_DIR
