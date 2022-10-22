@@ -71,4 +71,57 @@ diff -Nru libffi-3.4.3/debian/patches/series libffi-3.4.3/debian/patches/series
  738.diff
 -739.diff
  740.diff
+diff --git a/src/aarch64/ffi.c b/src/aarch64/ffi.c
+index 83e56531..be87051b 100644
+--- a/src/aarch64/ffi.c
++++ b/src/aarch64/ffi.c
+@@ -323,40 +323,24 @@ extend_integer_type (void *source, int type)
+   switch (type)
+     {
+     case FFI_TYPE_UINT8:
+-      UINT8 u8;
+-      memcpy (&u8, source, sizeof (u8));
+-      return u8;
++      return *(UINT8 *) source;
+     case FFI_TYPE_SINT8:
+-      SINT8 s8;
+-      memcpy (&s8, source, sizeof (s8));
+-      return s8;
++      return *(SINT8 *) source;
+     case FFI_TYPE_UINT16:
+-      UINT16 u16;
+-      memcpy (&u16, source, sizeof (u16));
+-      return u16;
++      return *(UINT16 *) source;
+     case FFI_TYPE_SINT16:
+-      SINT8 s16;
+-      memcpy (&s16, source, sizeof (s16));
+-      return s16;
++      return *(SINT16 *) source;
+     case FFI_TYPE_UINT32:
+-      UINT8 u32;
+-      memcpy (&u32, source, sizeof (u32));
+-      return u32;
++      return *(UINT32 *) source;
+     case FFI_TYPE_INT:
+     case FFI_TYPE_SINT32:
+-      SINT8 s32;
+-      memcpy (&s32, source, sizeof (s32));
+-      return s32;
++      return *(SINT32 *) source;
+     case FFI_TYPE_UINT64:
+     case FFI_TYPE_SINT64:
+-      UINT64 u64;
+-      memcpy (&u64, source, sizeof (u64));
+-      return u64;
++      return *(UINT64 *) source;
+       break;
+     case FFI_TYPE_POINTER:
+-      uintptr_t uptr;
+-      memcpy (&uptr, source, sizeof (uptr));
+-      return uptr;
++      return *(uintptr_t *) source;
+     default:
+       abort();
+     }
 EOF
