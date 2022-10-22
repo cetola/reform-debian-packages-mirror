@@ -133,12 +133,13 @@ for p in patches/*; do
 			sbuild -d "$BASESUITE" --host="$HOST_ARCH" --no-arch-all --arch-any --nolog --no-clean-source --no-source-only-changes --no-run-lintian --no-run-autopkgtest --extra-repository="$SRC_LIST_PATCHED" --no-apt-upgrade --no-apt-distupgrade
 			reprepro include "$OURSUITE" ../*.changes
 		fi
-		# natively build arch:all packages
-		if [ -n "$(env DEB_HOST_ARCH=$HOST_ARCH dh_listpackages -i)" ]; then
-			rm -f ../*.changes
-			sbuild -d "$BASESUITE" --arch-all --no-arch-any --nolog --no-clean-source --no-source-only-changes --no-run-lintian --no-run-autopkgtest --extra-repository="$SRC_LIST_PATCHED" --no-apt-upgrade --no-apt-distupgrade
-			reprepro include "$OURSUITE" ../*.changes
-		fi
+		# natively build everything
+		# just building arch:all packages is not enough in case later
+		# packages need to install native arch versions of m-a:same
+		# packages and we need to prevent a version skew
+		rm -f ../*.changes
+		sbuild -d "$BASESUITE" --arch-all --arch-any --nolog --no-clean-source --no-source-only-changes --no-run-lintian --no-run-autopkgtest --extra-repository="$SRC_LIST_PATCHED" --no-apt-upgrade --no-apt-distupgrade
+		reprepro include "$OURSUITE" ../*.changes
 		cd ..
 	)
 	rm -Rf "$WORKDIR"
