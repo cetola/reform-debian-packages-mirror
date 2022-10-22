@@ -1,0 +1,74 @@
+#!/bin/sh
+set -e
+# #1022232
+# https://community.mnt.re/t/psa-dont-apt-upgrade-libffi8-package-currently-breaks-wayland/1243
+# breaking MR: https://github.com/libffi/libffi/pull/739/files
+# upstream issue: https://github.com/libffi/libffi/issues/744
+patch -p1 << 'EOF'
+diff -Nru libffi-3.4.3/debian/patches/739.diff libffi-3.4.3/debian/patches/739.diff
+--- libffi-3.4.3/debian/patches/739.diff	2022-10-20 12:32:50.000000000 +0200
++++ libffi-3.4.3/debian/patches/739.diff	1970-01-01 01:00:00.000000000 +0100
+@@ -1,53 +0,0 @@
+-diff --git a/src/aarch64/ffi.c b/src/aarch64/ffi.c
+-index 83e56531..be87051b 100644
+---- a/src/aarch64/ffi.c
+-+++ b/src/aarch64/ffi.c
+-@@ -323,24 +323,40 @@ extend_integer_type (void *source, int type)
+-   switch (type)
+-     {
+-     case FFI_TYPE_UINT8:
+--      return *(UINT8 *) source;
+-+      UINT8 u8;
+-+      memcpy (&u8, source, sizeof (u8));
+-+      return u8;
+-     case FFI_TYPE_SINT8:
+--      return *(SINT8 *) source;
+-+      SINT8 s8;
+-+      memcpy (&s8, source, sizeof (s8));
+-+      return s8;
+-     case FFI_TYPE_UINT16:
+--      return *(UINT16 *) source;
+-+      UINT16 u16;
+-+      memcpy (&u16, source, sizeof (u16));
+-+      return u16;
+-     case FFI_TYPE_SINT16:
+--      return *(SINT16 *) source;
+-+      SINT8 s16;
+-+      memcpy (&s16, source, sizeof (s16));
+-+      return s16;
+-     case FFI_TYPE_UINT32:
+--      return *(UINT32 *) source;
+-+      UINT8 u32;
+-+      memcpy (&u32, source, sizeof (u32));
+-+      return u32;
+-     case FFI_TYPE_INT:
+-     case FFI_TYPE_SINT32:
+--      return *(SINT32 *) source;
+-+      SINT8 s32;
+-+      memcpy (&s32, source, sizeof (s32));
+-+      return s32;
+-     case FFI_TYPE_UINT64:
+-     case FFI_TYPE_SINT64:
+--      return *(UINT64 *) source;
+-+      UINT64 u64;
+-+      memcpy (&u64, source, sizeof (u64));
+-+      return u64;
+-       break;
+-     case FFI_TYPE_POINTER:
+--      return *(uintptr_t *) source;
+-+      uintptr_t uptr;
+-+      memcpy (&uptr, source, sizeof (uptr));
+-+      return uptr;
+-     default:
+-       abort();
+-     }
+diff -Nru libffi-3.4.3/debian/patches/series libffi-3.4.3/debian/patches/series
+--- libffi-3.4.3/debian/patches/series	2022-10-20 12:32:50.000000000 +0200
++++ libffi-3.4.3/debian/patches/series	2022-10-22 16:16:32.000000000 +0200
+@@ -1,5 +1,4 @@
+ # empty
+ no-toolexeclibdir.diff
+ 738.diff
+-739.diff
+ 740.diff
+EOF
