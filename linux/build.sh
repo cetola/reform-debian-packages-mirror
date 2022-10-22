@@ -47,8 +47,8 @@ faketime=
 if command -v faketime >/dev/null && [ -n "${SOURCE_DATE_EPOCH:+x}" ]; then
 	faketime="faketime @$SOURCE_DATE_EPOCH"
 fi
-env --chdir=linux $faketime dch --local "+$OURSUITE$datesuffix" "apply mnt reform patch"
-env --chdir=linux $faketime dch --force-distribution --distribution="$OURSUITE" --release ""
+env --chdir=linux TZ=UTC $faketime dch --local "+$OURSUITE$datesuffix" "apply mnt reform patch"
+env --chdir=linux TZ=UTC $faketime dch --force-distribution --distribution="$OURSUITE" --release ""
 
 env --chdir=linux patch -p1 < packaging.diff
 
