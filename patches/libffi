@@ -5,123 +5,51 @@ set -e
 # breaking MR: https://github.com/libffi/libffi/pull/739/files
 # upstream issue: https://github.com/libffi/libffi/issues/744
 patch -p1 << 'EOF'
-diff -Nru libffi-3.4.3/debian/patches/739.diff libffi-3.4.3/debian/patches/739.diff
---- libffi-3.4.3/debian/patches/739.diff	2022-10-20 12:32:50.000000000 +0200
-+++ libffi-3.4.3/debian/patches/739.diff	1970-01-01 01:00:00.000000000 +0100
-@@ -1,53 +0,0 @@
--diff --git a/src/aarch64/ffi.c b/src/aarch64/ffi.c
--index 83e56531..be87051b 100644
----- a/src/aarch64/ffi.c
--+++ b/src/aarch64/ffi.c
--@@ -323,24 +323,40 @@ extend_integer_type (void *source, int type)
--   switch (type)
--     {
--     case FFI_TYPE_UINT8:
---      return *(UINT8 *) source;
--+      UINT8 u8;
--+      memcpy (&u8, source, sizeof (u8));
--+      return u8;
--     case FFI_TYPE_SINT8:
---      return *(SINT8 *) source;
--+      SINT8 s8;
--+      memcpy (&s8, source, sizeof (s8));
--+      return s8;
--     case FFI_TYPE_UINT16:
---      return *(UINT16 *) source;
--+      UINT16 u16;
--+      memcpy (&u16, source, sizeof (u16));
--+      return u16;
--     case FFI_TYPE_SINT16:
---      return *(SINT16 *) source;
--+      SINT8 s16;
--+      memcpy (&s16, source, sizeof (s16));
--+      return s16;
--     case FFI_TYPE_UINT32:
---      return *(UINT32 *) source;
--+      UINT8 u32;
--+      memcpy (&u32, source, sizeof (u32));
--+      return u32;
--     case FFI_TYPE_INT:
--     case FFI_TYPE_SINT32:
---      return *(SINT32 *) source;
--+      SINT8 s32;
--+      memcpy (&s32, source, sizeof (s32));
--+      return s32;
--     case FFI_TYPE_UINT64:
--     case FFI_TYPE_SINT64:
---      return *(UINT64 *) source;
--+      UINT64 u64;
--+      memcpy (&u64, source, sizeof (u64));
--+      return u64;
--       break;
--     case FFI_TYPE_POINTER:
---      return *(uintptr_t *) source;
--+      uintptr_t uptr;
--+      memcpy (&uptr, source, sizeof (uptr));
--+      return uptr;
--     default:
--       abort();
--     }
+diff -Nru libffi-3.4.3/debian/patches/745.diff libffi-3.4.3/debian/patches/745.diff
+--- libffi-3.4.3/debian/patches/745.diff	1970-01-01 01:00:00.000000000 +0100
++++ libffi-3.4.3/debian/patches/745.diff	2022-10-23 12:57:42.000000000 +0200
+@@ -0,0 +1,35 @@
++From 80d984377d8d5fc3b86786b8a99fdd8d2ee4ec4c Mon Sep 17 00:00:00 2001
++From: Icecream95 <ixn@disroot.org>
++Date: Sun, 23 Oct 2022 19:15:11 +1300
++Subject: [PATCH] Fix types of temporary variables in aarch64
++ extend_integer_type
++
++Fixes truncated values in weston-info output.
++---
++ src/aarch64/ffi.c | 6 +++---
++ 1 file changed, 3 insertions(+), 3 deletions(-)
++
++diff --git a/src/aarch64/ffi.c b/src/aarch64/ffi.c
++index dc6338bc..6544ac0f 100644
++--- a/src/aarch64/ffi.c
+++++ b/src/aarch64/ffi.c
++@@ -335,16 +335,16 @@ extend_integer_type (void *source, int t
++       memcpy (&u16, source, sizeof (u16));
++       return u16;
++     case FFI_TYPE_SINT16:
++-      SINT8 s16;
+++      SINT16 s16;
++       memcpy (&s16, source, sizeof (s16));
++       return s16;
++     case FFI_TYPE_UINT32:
++-      UINT8 u32;
+++      UINT32 u32;
++       memcpy (&u32, source, sizeof (u32));
++       return u32;
++     case FFI_TYPE_INT:
++     case FFI_TYPE_SINT32:
++-      SINT8 s32;
+++      SINT32 s32;
++       memcpy (&s32, source, sizeof (s32));
++       return s32;
++     case FFI_TYPE_UINT64:
 diff -Nru libffi-3.4.3/debian/patches/series libffi-3.4.3/debian/patches/series
 --- libffi-3.4.3/debian/patches/series	2022-10-20 12:32:50.000000000 +0200
-+++ libffi-3.4.3/debian/patches/series	2022-10-22 16:16:32.000000000 +0200
-@@ -1,5 +1,4 @@
- # empty
- no-toolexeclibdir.diff
++++ libffi-3.4.3/debian/patches/series	2022-10-23 12:57:42.000000000 +0200
+@@ -3,3 +3,4 @@
  738.diff
--739.diff
+ 739.diff
  740.diff
-diff --git a/src/aarch64/ffi.c b/src/aarch64/ffi.c
-index 83e56531..be87051b 100644
---- a/src/aarch64/ffi.c
-+++ b/src/aarch64/ffi.c
-@@ -323,40 +323,24 @@ extend_integer_type (void *source, int type)
-   switch (type)
-     {
-     case FFI_TYPE_UINT8:
--      UINT8 u8;
--      memcpy (&u8, source, sizeof (u8));
--      return u8;
-+      return *(UINT8 *) source;
-     case FFI_TYPE_SINT8:
--      SINT8 s8;
--      memcpy (&s8, source, sizeof (s8));
--      return s8;
-+      return *(SINT8 *) source;
-     case FFI_TYPE_UINT16:
--      UINT16 u16;
--      memcpy (&u16, source, sizeof (u16));
--      return u16;
-+      return *(UINT16 *) source;
-     case FFI_TYPE_SINT16:
--      SINT8 s16;
--      memcpy (&s16, source, sizeof (s16));
--      return s16;
-+      return *(SINT16 *) source;
-     case FFI_TYPE_UINT32:
--      UINT8 u32;
--      memcpy (&u32, source, sizeof (u32));
--      return u32;
-+      return *(UINT32 *) source;
-     case FFI_TYPE_INT:
-     case FFI_TYPE_SINT32:
--      SINT8 s32;
--      memcpy (&s32, source, sizeof (s32));
--      return s32;
-+      return *(SINT32 *) source;
-     case FFI_TYPE_UINT64:
-     case FFI_TYPE_SINT64:
--      UINT64 u64;
--      memcpy (&u64, source, sizeof (u64));
--      return u64;
-+      return *(UINT64 *) source;
-       break;
-     case FFI_TYPE_POINTER:
--      uintptr_t uptr;
--      memcpy (&uptr, source, sizeof (uptr));
--      return uptr;
-+      return *(uintptr_t *) source;
-     default:
-       abort();
-     }
++745.diff
 EOF
