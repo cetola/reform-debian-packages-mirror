@@ -1305,7 +1305,7 @@ index 0000000..16f4b21
 +	dev_set_drvdata(dev, mhdp);
 +
 +	/* register audio driver */
-+	//cdns_mhdp_register_audio_driver(dev);
++	cdns_mhdp_register_audio_driver(dev);
 +
 +	/* register cec driver */
 +#ifdef CONFIG_DRM_CDNS_HDMI_CEC
@@ -1321,7 +1321,7 @@ index 0000000..16f4b21
 +#ifdef CONFIG_DRM_CDNS_HDMI_CEC
 +	cdns_mhdp_unregister_cec_driver(mhdp->dev);
 +#endif
-+	//cdns_mhdp_unregister_audio_driver(mhdp->dev);
++	cdns_mhdp_unregister_audio_driver(mhdp->dev);
 +}
 +
 +/* -----------------------------------------------------------------------------
