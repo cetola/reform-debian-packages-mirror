@@ -5,14 +5,21 @@ build:
     paths:
       - output.log
       - repo
-  script:
-    - apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
-    - apt-get --no-install-recommends -y install fakechroot fakeroot devscripts mmdebstrap/bookworm python3/bookworm reprepro sbuild schroot debhelper debian-keyring quilt pristine-tar rsync git python3-debian faketime
-    - test -d /srv/chroot/unstable-sbuild && test "$(stat -c %Y /srv/chroot/unstable-sbuild)" -lt "$(date --date "14 days ago" +%s)" && rm -rf /srv/chroot/unstable-sbuild /etc/schroot/chroot.d/unstable-amd64-sbuild-*
-    - test -d /srv/chroot/testing-sbuild && test "$(stat -c %Y /srv/chroot/testing-sbuild)" -lt "$(date --date "14 days ago" +%s)" && rm -rf /srv/chroot/testing-sbuild /etc/schroot/chroot.d/testing-amd64-sbuild-*
-    - test -d /srv/chroot/unstable-sbuild || sbuild-createchroot --debootstrap=mmdebstrap --alias=sid unstable /srv/chroot/unstable-sbuild http://deb.debian.org/debian
-    - test -d /srv/chroot/testing-sbuild || sbuild-createchroot --debootstrap=mmdebstrap testing /srv/chroot/testing-sbuild http://deb.debian.org/debian
-    - id build >/dev/null || adduser --gecos build --disabled-password build
-    - id build >/dev/null || adduser build sbuild
-    - chown build -R .
-    - runuser build -c ./build.sh 2>&1 | ./filter-output
+  script: |
+    apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
+    apt-get --no-install-recommends -y install fakechroot fakeroot devscripts mmdebstrap/bookworm python3/bookworm reprepro sbuild schroot debhelper debian-keyring quilt pristine-tar rsync git python3-debian faketime
+    if [ ! -e /proc/sys/fs/binfmt_misc/status ]; then
+      mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
+    fi
+    apt-get --no-install-recommends -y install arch-test binfmt-support qemu-user-static
+    arch-test arm64
+    test -d /srv/chroot/unstable-sbuild && test "$(stat -c %Y /srv/chroot/unstable-sbuild)" -lt "$(date --date "14 days ago" +%s)" && rm -rf /srv/chroot/unstable-sbuild /etc/schroot/chroot.d/unstable-amd64-sbuild-*
+    test -d /srv/chroot/unstable-arm64-sbuild && test "$(stat -c %Y /srv/chroot/unstable-arm64-sbuild)" -lt "$(date --date "14 days ago" +%s)" && rm -rf /srv/chroot/unstable-arm64-sbuild /etc/schroot/chroot.d/unstable-arm64-sbuild-*
+    test -d /srv/chroot/testing-sbuild && test "$(stat -c %Y /srv/chroot/testing-sbuild)" -lt "$(date --date "14 days ago" +%s)" && rm -rf /srv/chroot/testing-sbuild /etc/schroot/chroot.d/testing-amd64-sbuild-*
+    test -d /srv/chroot/unstable-sbuild || sbuild-createchroot --debootstrap=mmdebstrap --alias=sid unstable /srv/chroot/unstable-sbuild http://deb.debian.org/debian
+    test -d /srv/chroot/unstable-arm64-sbuild || sbuild-createchroot --debootstrap=mmdebstrap --alias=sid --arch=arm64 unstable /srv/chroot/unstable-arm64-sbuild http://deb.debian.org/debian
+    test -d /srv/chroot/testing-sbuild || sbuild-createchroot --debootstrap=mmdebstrap testing /srv/chroot/testing-sbuild http://deb.debian.org/debian
+    id build >/dev/null || adduser --gecos build --disabled-password build
+    id build >/dev/null || adduser build sbuild
+    chown build -R .
+    runuser build -c ./build.sh 2>&1 | ./filter-output

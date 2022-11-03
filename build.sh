@@ -46,8 +46,12 @@ SRC_LIST_PATCHED="deb [ trusted=yes ] http://127.0.0.1:$HTTP_PORT/ $OURSUITE mai
 BUILD_ARCH=$(dpkg --print-architecture)
 HOST_ARCH=arm64
 
+# the remaining code assumes that the native arch is different from the host arch
+[ "$BUILD_ARCH" != "$HOST_ARCH" ]
+
 DEB_BUILD_PROFILES="nobiarch nocheck noudeb"
 if [ "$BUILD_ARCH" != "$HOST_ARCH" ]; then
+	# FIXME: the cross profile must not be set during native build
 	DEB_BUILD_PROFILES="cross $DEB_BUILD_PROFILES"
 fi
 export DEB_BUILD_PROFILES
@@ -86,6 +90,9 @@ cat << END > "$chdistdata/base/etc/apt/sources.list"
 deb-src $MIRROR $BASESUITE main
 END
 chdist_base apt-get update
+
+COMMON_SBUILD_OPTS="-d $BASESUITE --nolog --no-clean-source --no-source-only-changes --no-run-lintian --no-run-autopkgtest --no-apt-upgrade --no-apt-distupgrade"
+COMMON_BUILD_PROFILES="nobiarch,nocheck,noudeb"
 
 for p in patches/*; do
 	p=${p#patches/}
@@ -128,19 +135,36 @@ for p in patches/*; do
 		dch --force-distribution --distribution="$OURSUITE" --release ""
 		"$PATCHDIR/$p"
 		# cross build foreign arch:any packages
-		if [ -n "$(env DEB_HOST_ARCH=$HOST_ARCH dh_listpackages -a)" ]; then
+		if [ -n "$(env DEB_HOST_ARCH=$HOST_ARCH DEB_BUILD_PROFILES="cross $(echo $COMMON_BUILD_PROFILES | tr ',' ' ')" dh_listpackages -a)" ]; then
 			rm -f ../*.changes
-			sbuild -d "$BASESUITE" --host="$HOST_ARCH" --no-arch-all --arch-any --nolog --no-clean-source --no-source-only-changes --no-run-lintian --no-run-autopkgtest --extra-repository="$SRC_LIST_PATCHED" --no-apt-upgrade --no-apt-distupgrade
+			ret=0
+			sbuild --host="$HOST_ARCH" \
+				--no-arch-all --arch-any \
+				--profiles="cross,$COMMON_BUILD_PROFILES" \
+				$COMMON_SBUILD_OPTS \
+				--extra-repository="$SRC_LIST_PATCHED" || ret=$?
+			if [ "$ret" -ne 0 ]; then
+				# cross building failed -- try building
+				# "natively" with qemu-user
+				sbuild --build="$HOST_ARCH" --host="$HOST_ARCH" \
+					--no-arch-all --arch-any \
+					--profiles="$COMMON_BUILD_PROFILES" \
+					$COMMON_SBUILD_OPTS \
+					--extra-repository="$SRC_LIST_PATCHED"
+			fi
 			reprepro include "$OURSUITE" ../*.changes
 		fi
 		# natively build arch:all packages and build-arch packages
 		# just building arch:all packages is not enough in case later
 		# packages need to install native arch versions of m-a:same
 		# packages and we need to prevent a version skew
-		if [ -n "$(env DEB_HOST_ARCH=$BUILD_ARCH dh_listpackages -i)" ] \
-		|| [ -n "$(env DEB_HOST_ARCH=$BUILD_ARCH dh_listpackages -a)" ]; then
+		if [ -n "$(env DEB_HOST_ARCH=$BUILD_ARCH DEB_BUILD_PROFILES="cross $(echo $COMMON_BUILD_PROFILES | tr ',' ' ')" dh_listpackages -i)" ] \
+		|| [ -n "$(env DEB_HOST_ARCH=$BUILD_ARCH DEB_BUILD_PROFILES="cross $(echo $COMMON_BUILD_PROFILES | tr ',' ' ')" dh_listpackages -a)" ]; then
 			rm -f ../*.changes
-			sbuild -d "$BASESUITE" --arch-all --arch-any --nolog --no-clean-source --no-source-only-changes --no-run-lintian --no-run-autopkgtest --extra-repository="$SRC_LIST_PATCHED" --no-apt-upgrade --no-apt-distupgrade
+			sbuild --arch-all --arch-any \
+				--profiles="$COMMON_BUILD_PROFILES" \
+				$COMMON_SBUILD_OPTS \
+				--extra-repository="$SRC_LIST_PATCHED"
 			reprepro include "$OURSUITE" ../*.changes
 		fi
 		cd ..
@@ -159,7 +183,7 @@ if [ -z "$(reprepro listfilter reform "\$Source (== box64)")" ]; then
 		git checkout upstream
 		git checkout master
 		pristine-tar checkout ../box64_0.1.8.orig.tar.xz
-		sbuild -d "$BASESUITE" --host="$HOST_ARCH" --no-arch-all --arch-any --nolog --no-clean-source --no-source-only-changes --no-run-lintian --no-run-autopkgtest --extra-repository="$SRC_LIST_PATCHED" --no-apt-upgrade --no-apt-distupgrade
+		sbuild --host="$HOST_ARCH" --no-arch-all --arch-any $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
 		reprepro include "$OURSUITE" ../box64_0.1.8-1_arm64.changes
 		cd ..
 	)
@@ -203,7 +227,7 @@ if [ -z "$(reprepro listfilter reform "Package (== reform-tools)")" ]; then
 		cd "$WORKDIR"
 		git clone https://source.mnt.re/reform/reform-tools.git
 		cd reform-tools
-		sbuild -d "$BASESUITE" --arch-all --arch-any --nolog --no-clean-source --no-source-only-changes --no-run-lintian --no-run-autopkgtest --extra-repository="$SRC_LIST_PATCHED" --no-apt-upgrade --no-apt-distupgrade
+		sbuild --arch-all --arch-any $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
 		reprepro include "$OURSUITE" ../reform-tools_*_amd64.changes
 		cd ..
 	)
@@ -217,7 +241,7 @@ if [ -z "$(reprepro listfilter reform "\$Source (== reform-handbook)")" ]; then
 		cd "$WORKDIR"
 		git clone https://source.mnt.re/reform/reform-handbook.git
 		cd reform-handbook
-		sbuild -d "$BASESUITE" --arch-all --arch-any --nolog --no-clean-source --no-source-only-changes --no-run-lintian --no-run-autopkgtest --extra-repository="$SRC_LIST_PATCHED" --no-apt-upgrade --no-apt-distupgrade
+		sbuild --arch-all --arch-any $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
 		reprepro include "$OURSUITE" ../reform-handbook_*_amd64.changes
 		cd ..
 	)
