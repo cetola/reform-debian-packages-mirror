@@ -1,0 +1,407 @@
+#!/bin/sh
+set -e
+patch -p1 << 'EOF'
+diff -Nru gst-plugins-bad1.0-1.20.3/debian/patches/1147.patch gst-plugins-bad1.0-1.20.3/debian/patches/1147.patch
+--- gst-plugins-bad1.0-1.20.3/debian/patches/1147.patch	1970-01-01 01:00:00.000000000 +0100
++++ gst-plugins-bad1.0-1.20.3/debian/patches/1147.patch	2022-10-30 17:54:00.000000000 +0100
+@@ -0,0 +1,212 @@
++From 3ccf81a9e20283de238590f9976a4f2195b501e0 Mon Sep 17 00:00:00 2001
++From: =?UTF-8?q?Rafa=C5=82=20Dzi=C4=99giel?= <rafostar.github@gmail.com>
++Date: Thu, 14 Oct 2021 10:18:40 +0200
++Subject: [PATCH 1/4] mpdparser: Return correct mediaURL value
++
++This fixes a problem where get_mediaURL was returning NULL when segmentURL
++was unavailable instead of baseURL as a fallback.
++---
++ ext/dash/gstmpdparser.c | 2 +-
++ 1 file changed, 1 insertion(+), 1 deletion(-)
++
++--- a/ext/dash/gstmpdparser.c
+++++ b/ext/dash/gstmpdparser.c
++@@ -1366,34 +1366,56 @@ gst_mpdparser_free_active_stream (GstAct
++   }
++ }
++ 
++-const gchar *
+++static gchar *
+++get_base_url_with_query (GstActiveStream * stream)
+++{
+++  GstUri *uri;
+++  gchar *uri_str;
+++
+++  if (!stream->queryURL)
+++    return g_strdup (stream->baseURL);
+++
+++  uri = gst_uri_from_string (stream->baseURL);
+++  gst_uri_set_query_string (uri, stream->queryURL);
+++  uri_str = gst_uri_to_string (uri);
+++
+++  gst_uri_unref (uri);
+++  return uri_str;
+++}
+++
+++/*
+++ * gst_mpdparser_get_initializationURL:
+++ *
+++ * Returns: (transfer full): stream initializationURL if available,
+++ *   baseURL combined with queryURL otherwise.
+++ */
+++gchar *
++ gst_mpdparser_get_initializationURL (GstActiveStream * stream,
++     GstMPDURLTypeNode * InitializationURL)
++ {
++-  const gchar *url_prefix;
++-
++   g_return_val_if_fail (stream != NULL, NULL);
++ 
++-  url_prefix = (InitializationURL
++-      && InitializationURL->sourceURL) ? InitializationURL->sourceURL : stream->
++-      baseURL;
++-
++-  return url_prefix;
+++  return (InitializationURL && InitializationURL->sourceURL)
+++      ? g_strdup (InitializationURL->sourceURL)
+++      : get_base_url_with_query (stream);
++ }
++ 
+++/*
+++ * gst_mpdparser_get_mediaURL:
+++ *
+++ * Returns: (transfer full): stream mediaURL if available,
+++ *   baseURL combined with queryURL otherwise.
+++ */
++ gchar *
++ gst_mpdparser_get_mediaURL (GstActiveStream * stream,
++     GstMPDSegmentURLNode * segmentURL)
++ {
++-  const gchar *url_prefix;
++-
++   g_return_val_if_fail (stream != NULL, NULL);
++   g_return_val_if_fail (segmentURL != NULL, NULL);
++ 
++-  url_prefix = segmentURL->media ? segmentURL->media : stream->baseURL;
++-  g_return_val_if_fail (url_prefix != NULL, NULL);
++-
++-  return segmentURL->media;
+++  return (segmentURL->media)
+++      ? g_strdup (segmentURL->media)
+++      : get_base_url_with_query (stream);
++ }
++ 
++ /* navigation functions */
++--- a/ext/dash/gstmpdclient.c
+++++ b/ext/dash/gstmpdclient.c
++@@ -2025,9 +2025,7 @@ gst_mpd_client_get_next_fragment (GstMPD
++ 
++     GST_DEBUG ("currentChunk->SegmentURL = %p", currentChunk->SegmentURL);
++     if (currentChunk->SegmentURL != NULL) {
++-      mediaURL =
++-          g_strdup (gst_mpdparser_get_mediaURL (stream,
++-              currentChunk->SegmentURL));
+++      mediaURL = gst_mpdparser_get_mediaURL (stream, currentChunk->SegmentURL);
++       indexURL = g_strdup (currentChunk->SegmentURL->index);
++     } else if (stream->cur_seg_template != NULL) {
++       mediaURL =
++@@ -2299,9 +2297,8 @@ gst_mpd_client_get_next_header (GstMPDCl
++   *uri = NULL;
++   if (stream->cur_segment_base) {
++     if (stream->cur_segment_base->Initialization) {
++-      *uri =
++-          g_strdup (gst_mpdparser_get_initializationURL (stream,
++-              stream->cur_segment_base->Initialization));
+++      *uri = gst_mpdparser_get_initializationURL (stream,
+++          stream->cur_segment_base->Initialization);
++       if (stream->cur_segment_base->Initialization->range) {
++         *range_start =
++             stream->cur_segment_base->Initialization->range->first_byte_pos;
++@@ -2309,9 +2306,8 @@ gst_mpd_client_get_next_header (GstMPDCl
++             stream->cur_segment_base->Initialization->range->last_byte_pos;
++       }
++     } else if (stream->cur_segment_base->indexRange) {
++-      *uri =
++-          g_strdup (gst_mpdparser_get_initializationURL (stream,
++-              stream->cur_segment_base->Initialization));
+++      *uri = gst_mpdparser_get_initializationURL (stream,
+++          stream->cur_segment_base->Initialization);
++       *range_start = 0;
++       *range_end = stream->cur_segment_base->indexRange->first_byte_pos - 1;
++     }
++@@ -2346,9 +2342,8 @@ gst_mpd_client_get_next_header_index (Gs
++   GST_DEBUG ("Looking for current representation index");
++   *uri = NULL;
++   if (stream->cur_segment_base && stream->cur_segment_base->indexRange) {
++-    *uri =
++-        g_strdup (gst_mpdparser_get_initializationURL (stream,
++-            stream->cur_segment_base->RepresentationIndex));
+++    *uri = gst_mpdparser_get_initializationURL (stream,
+++        stream->cur_segment_base->RepresentationIndex);
++     *range_start = stream->cur_segment_base->indexRange->first_byte_pos;
++     *range_end = stream->cur_segment_base->indexRange->last_byte_pos;
++   } else if (stream->cur_seg_template && stream->cur_seg_template->index) {
++--- a/ext/dash/gstmpdparser.h
+++++ b/ext/dash/gstmpdparser.h
++@@ -162,7 +162,7 @@ void gst_mpdparser_media_fragment_info_c
++ /* Active stream methods*/
++ void gst_mpdparser_init_active_stream_segments (GstActiveStream * stream);
++ gchar *gst_mpdparser_get_mediaURL (GstActiveStream * stream, GstMPDSegmentURLNode * segmentURL);
++-const gchar *gst_mpdparser_get_initializationURL (GstActiveStream * stream, GstMPDURLTypeNode * InitializationURL);
+++gchar *gst_mpdparser_get_initializationURL (GstActiveStream * stream, GstMPDURLTypeNode * InitializationURL);
++ gchar *gst_mpdparser_build_URL_from_template (const gchar * url_template, const gchar * id, guint number, guint bandwidth, guint64 time);
++ 
++ G_END_DECLS
++--- a/tests/check/elements/dash_mpd.c
+++++ b/tests/check/elements/dash_mpd.c
++@@ -4231,6 +4231,57 @@ GST_START_TEST (dash_mpdparser_get_baseU
++ GST_END_TEST;
++ 
++ /*
+++ * Test getting baseURL with query
+++ *
+++ */
+++GST_START_TEST (dash_mpdparser_get_baseURL_with_query)
+++{
+++  gboolean ret;
+++  gchar *uri;
+++  gint64 range_start, range_end;
+++  const gchar *xml =
+++      "<?xml version=\"1.0\"?>"
+++      "<MPD xmlns=\"urn:mpeg:dash:schema:mpd:2011\""
+++      "     profiles=\"urn:mpeg:dash:profile:isoff-main:2011\">"
+++      "  <Period id=\"Period0\" duration=\"P0Y0M1DT1H1M1S\">"
+++      "    <AdaptationSet id=\"1\" mimeType=\"audio\" lang=\"en\">"
+++      "      <Representation>"
+++      "        <BaseURL>http://example.com/test?param1=value1&amp;param2=value2</BaseURL>"
+++      "        <SegmentBase indexRange=\"100-200\" indexRangeExact=\"true\">"
+++      "          <Initialization range=\"0-100\" />"
+++      "        </SegmentBase>"
+++      "      </Representation></AdaptationSet></Period></MPD>";
+++
+++  GstMPDClient *mpdclient = setup_mpd_client (xml);
+++
+++  /* get segment url and range from segment Initialization */
+++  ret =
+++      gst_mpd_client_get_next_header (mpdclient, &uri, 0, &range_start,
+++      &range_end);
+++  assert_equals_int (ret, TRUE);
+++  assert_equals_string (uri,
+++      "http://example.com/test?param1=value1&param2=value2");
+++  assert_equals_int64 (range_start, 0);
+++  assert_equals_int64 (range_end, 100);
+++  g_free (uri);
+++
+++  /* get segment url and range from segment indexRange */
+++  ret =
+++      gst_mpd_client_get_next_header_index (mpdclient, &uri, 0, &range_start,
+++      &range_end);
+++  assert_equals_int (ret, TRUE);
+++  assert_equals_string (uri,
+++      "http://example.com/test?param1=value1&param2=value2");
+++  assert_equals_int64 (range_start, 100);
+++  assert_equals_int64 (range_end, 200);
+++  g_free (uri);
+++
+++  gst_mpd_client_free (mpdclient);
+++}
+++
+++GST_END_TEST;
+++
+++/*
++  * Test getting mediaPresentationDuration
++  *
++  */
++@@ -6631,6 +6682,7 @@ dash_suite (void)
++   tcase_add_test (tc_complexMPD, dash_mpdparser_get_baseURL6);
++   tcase_add_test (tc_complexMPD, dash_mpdparser_get_baseURL7);
++   tcase_add_test (tc_complexMPD, dash_mpdparser_get_baseURL8);
+++  tcase_add_test (tc_complexMPD, dash_mpdparser_get_baseURL_with_query);
++   tcase_add_test (tc_complexMPD, dash_mpdparser_get_mediaPresentationDuration);
++   tcase_add_test (tc_complexMPD, dash_mpdparser_get_streamPresentationOffset);
++   tcase_add_test (tc_complexMPD, dash_mpdparser_segments);
+diff -Nru gst-plugins-bad1.0-1.20.3/debian/patches/gst-plugins-bad-dashdemux-improve-initial-representation-selection.patch gst-plugins-bad1.0-1.20.3/debian/patches/gst-plugins-bad-dashdemux-improve-initial-representation-selection.patch
+--- gst-plugins-bad1.0-1.20.3/debian/patches/gst-plugins-bad-dashdemux-improve-initial-representation-selection.patch	1970-01-01 01:00:00.000000000 +0100
++++ gst-plugins-bad1.0-1.20.3/debian/patches/gst-plugins-bad-dashdemux-improve-initial-representation-selection.patch	2022-10-30 17:56:10.000000000 +0100
+@@ -0,0 +1,90 @@
++From 1f4f61e8a3cfda508a05d731cda5485fd4144b10 Mon Sep 17 00:00:00 2001
++From: =?UTF-8?q?Rafa=C5=82=20Dzi=C4=99giel?= <rafostar.github@gmail.com>
++Date: Fri, 11 Feb 2022 12:28:20 +0100
++Subject: [PATCH] dashdemux: Improve initial representation selection
++
++Do not always start with lowest quality possible. Use properties set
++by user to select best allowed initial representation at startup too.
++---
++ .../gst-plugins-bad/ext/dash/gstdashdemux.c   | 10 +++++++--
++ .../gst-plugins-bad/ext/dash/gstmpdclient.c   | 22 ++++++++++++++++---
++ .../gst-plugins-bad/ext/dash/gstmpdclient.h   |  2 +-
++ 3 files changed, 28 insertions(+), 6 deletions(-)
++
++--- a/ext/dash/gstdashdemux.c
+++++ b/ext/dash/gstdashdemux.c
++@@ -756,13 +756,19 @@ gst_dash_demux_setup_mpdparser_streams (
++ {
++   gboolean has_streams = FALSE;
++   GList *adapt_sets, *iter;
+++  guint connection_speed;
+++
+++  /* Using g_object_get so it goes through mutex locking in adaptivedemux */
+++  g_object_get (demux, "connection-speed", &connection_speed, NULL);
++ 
++   adapt_sets = gst_mpd_client_get_adaptation_sets (client);
++   for (iter = adapt_sets; iter; iter = g_list_next (iter)) {
++     GstMPDAdaptationSetNode *adapt_set_node = iter->data;
++ 
++-    gst_mpd_client_setup_streaming (client, adapt_set_node);
++-    has_streams = TRUE;
+++    has_streams |= gst_mpd_client_setup_streaming (client, adapt_set_node,
+++        connection_speed * 1000, demux->max_video_width,
+++        demux->max_video_height, demux->max_video_framerate_n,
+++        demux->max_video_framerate_d);
++   }
++ 
++   if (!has_streams) {
++--- a/ext/dash/gstmpdclient.c
+++++ b/ext/dash/gstmpdclient.c
++@@ -1597,11 +1597,14 @@ gst_mpd_client_get_adaptation_sets (GstM
++ 
++ gboolean
++ gst_mpd_client_setup_streaming (GstMPDClient * client,
++-    GstMPDAdaptationSetNode * adapt_set)
+++    GstMPDAdaptationSetNode * adapt_set, gint64 max_bandwidth,
+++    gint max_video_width, gint max_video_height,
+++    gint max_video_framerate_n, gint max_video_framerate_d)
++ {
++-  GstMPDRepresentationNode *representation;
+++  GstMPDRepresentationNode *representation = NULL;
++   GList *rep_list = NULL;
++   GstActiveStream *stream;
+++  gint rep_id;
++ 
++   rep_list = adapt_set->Representations;
++   if (!rep_list) {
++@@ -1629,8 +1632,21 @@ gst_mpd_client_setup_streaming (GstMPDCl
++     representation = gst_mpd_client_get_lowest_representation (rep_list);
++   }
++ #else
+++  rep_id = gst_mpd_client_get_rep_idx_with_max_bandwidth (rep_list,
+++      max_bandwidth, max_video_width, max_video_height,
+++      max_video_framerate_n, max_video_framerate_d);
+++
+++  if (rep_id >= 0) {
+++    GList *best_rep;
+++
+++    best_rep = g_list_nth (rep_list, rep_id);
+++    if (best_rep)
+++      representation = (GstMPDRepresentationNode *) best_rep->data;
+++  }
+++
++   /* slow start */
++-  representation = gst_mpd_client_get_lowest_representation (rep_list);
+++  if (!representation)
+++    representation = gst_mpd_client_get_lowest_representation (rep_list);
++ #endif
++ 
++   if (!representation) {
++--- a/ext/dash/gstmpdclient.h
+++++ b/ext/dash/gstmpdclient.h
++@@ -69,7 +69,7 @@ void gst_mpd_client_fetch_on_load_extern
++ 
++ /* Streaming management */
++ gboolean gst_mpd_client_setup_media_presentation (GstMPDClient *client, GstClockTime time, gint period_index, const gchar *period_id);
++-gboolean gst_mpd_client_setup_streaming (GstMPDClient * client, GstMPDAdaptationSetNode * adapt_set);
+++gboolean gst_mpd_client_setup_streaming (GstMPDClient * client, GstMPDAdaptationSetNode * adapt_set, gint64 max_bandwidth, gint max_video_width, gint max_video_height, gint max_video_framerate_n, gint max_video_framerate_d);
++ gboolean gst_mpd_client_setup_representation (GstMPDClient *client, GstActiveStream *stream, GstMPDRepresentationNode *representation);
++ 
++ GstClockTime gst_mpd_client_get_next_fragment_duration (GstMPDClient * client, GstActiveStream * stream);
+diff -Nru gst-plugins-bad1.0-1.20.3/debian/patches/gst-plugins-bad-dashdemux-sidx-range-download.patch gst-plugins-bad1.0-1.20.3/debian/patches/gst-plugins-bad-dashdemux-sidx-range-download.patch
+--- gst-plugins-bad1.0-1.20.3/debian/patches/gst-plugins-bad-dashdemux-sidx-range-download.patch	1970-01-01 01:00:00.000000000 +0100
++++ gst-plugins-bad1.0-1.20.3/debian/patches/gst-plugins-bad-dashdemux-sidx-range-download.patch	2022-10-30 17:55:10.000000000 +0100
+@@ -0,0 +1,80 @@
++From be0f4bc94fad9fe182c97eef389954b5f63f7092 Mon Sep 17 00:00:00 2001
++From: Jun Xie <jun.xie@samsung.com>
++Date: Sat, 4 Nov 2017 14:48:54 +0800
++Subject: [PATCH] dashdemux: fix segmentBase type with 'sidx' not using range
++ download issue
++
++1. for utilizing range download and enable bitrate switch
++   * update fragment info after 'sidx' is downloaded and parsed,
++     so that media segment's range is set by 'sidx' entry info.
++   * while updating fragment info, setting range_end by 'sidx' entry size.
++
++2. for singleSegmentBase type WITHOUT @indexRange explicitly presented in MPD file
++   * set '*sidx_seek_needed' to true, early terminate currently no-range downloading whole file,
++     then jump to the requested SIDX entry by using sidx info.
++
++3. for 'ref type 1' 'sidx'
++   * keep current behaviour for 'ref type 1', download as a whole file without range download
++
++https://bugzilla.gnome.org/show_bug.cgi?id=788763
++
++--- a/ext/dash/gstdashdemux.c
+++++ b/ext/dash/gstdashdemux.c
++@@ -1358,7 +1358,7 @@ gst_dash_demux_stream_update_fragment_in
++             stream->fragment.range_start + entry->size - 1;
++         dashstream->actual_position += entry->duration;
++       } else {
++-        stream->fragment.range_end = fragment.range_end;
+++        stream->fragment.range_end = stream->fragment.range_start + entry->size - 1;
++       }
++     } else {
++       dashstream->actual_position = stream->fragment.timestamp =
++@@ -1574,7 +1574,7 @@ gst_dash_demux_stream_has_next_subfragme
++ 
++   if (dashstream->sidx_parser.status == GST_ISOFF_SIDX_PARSER_FINISHED) {
++     if (stream->demux->segment.rate > 0.0) {
++-      if (sidx->entry_index + 1 < sidx->entries_count)
+++      if (sidx->entry_index < sidx->entries_count)
++         return TRUE;
++     } else {
++       if (sidx->entry_index >= 1)
++@@ -2905,6 +2905,7 @@ gst_dash_demux_parse_isobmff (GstAdaptiv
++       GstByteReader sub_reader;
++       GstIsoffParserResult res;
++       guint dummy;
+++      gboolean ref_type1_found = FALSE;
++ 
++       dash_stream->sidx_base_offset =
++           dash_stream->isobmff_parser.current_start_offset + size;
++@@ -2934,6 +2935,7 @@ gst_dash_demux_parse_isobmff (GstAdaptiv
++             GST_FIXME_OBJECT (stream->pad, "SIDX ref_type 1 not supported yet");
++             dash_stream->sidx_position = GST_CLOCK_TIME_NONE;
++             gst_isoff_sidx_parser_clear (&dash_stream->sidx_parser);
+++            ref_type1_found = TRUE;
++             break;
++           }
++         }
++@@ -2970,8 +2972,9 @@ gst_dash_demux_parse_isobmff (GstAdaptiv
++           }
++         }
++ 
++-        if (dash_stream->sidx_parser.status == GST_ISOFF_SIDX_PARSER_FINISHED &&
++-            SIDX (dash_stream)->entry_index != 0) {
+++        if ((dash_stream->sidx_parser.status == GST_ISOFF_SIDX_PARSER_FINISHED &&
+++            SIDX (dash_stream)->entry_index != 0) || (!stream->downloading_index &&
+++            !ref_type1_found)) {
++           /* Need to jump to the requested SIDX entry. Push everything up to
++            * the SIDX box below and let the caller handle everything else */
++           *sidx_seek_needed = TRUE;
++--- a/gst-libs/gst/adaptivedemux/gstadaptivedemux.c
+++++ b/gst-libs/gst/adaptivedemux/gstadaptivedemux.c
++@@ -3378,6 +3378,9 @@ gst_adaptive_demux_stream_download_heade
++       ret = gst_adaptive_demux_stream_download_uri (demux, stream,
++           stream->fragment.index_uri, stream->fragment.index_range_start,
++           stream->fragment.index_range_end, NULL);
+++
+++      gst_adaptive_demux_stream_update_fragment_info(stream->demux, stream);
+++
++       stream->downloading_index = FALSE;
++     }
++   }
+diff -Nru gst-plugins-bad1.0-1.20.3/debian/patches/series gst-plugins-bad1.0-1.20.3/debian/patches/series
+--- gst-plugins-bad1.0-1.20.3/debian/patches/series	2022-08-17 21:23:16.000000000 +0200
++++ gst-plugins-bad1.0-1.20.3/debian/patches/series	2022-10-30 17:55:56.000000000 +0100
+@@ -1,2 +1,5 @@
+ 02_opencv-data-path.patch
+ Skip-failing-tests.patch
++1147.patch
++gst-plugins-bad-dashdemux-sidx-range-download.patch
++gst-plugins-bad-dashdemux-improve-initial-representation-selection.patch
+EOF

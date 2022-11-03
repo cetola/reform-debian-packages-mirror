@@ -1,0 +1,73 @@
+#!/bin/sh
+set -e
+# https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/19280
+patch -p1 << 'EOF'
+diff -u mesa-22.2.2/debian/patches/series mesa-22.2.2/debian/patches/series
+--- mesa-22.2.2/debian/patches/series
++++ mesa-22.2.2/debian/patches/series
+@@ -1,3 +1,4 @@
+ 07_gallium-fix-build-failure-on-powerpcspe.diff
+ path_max.diff
+ src_glx_dri_common.h.diff
++19280.patch
+--- mesa-22.2.2.orig/debian/patches/19280.patch
++++ mesa-22.2.2/debian/patches/19280.patch
+@@ -0,0 +1,57 @@
++From 1e12f2c796019f03773f2a4a50fc3fa27b3f2b2c Mon Sep 17 00:00:00 2001
++From: Lucas Stach <l.stach@pengutronix.de>
++Date: Mon, 24 Oct 2022 18:40:50 +0200
++Subject: [PATCH] etnaviv: properly reference flush_resources
++
++The flush_resources recorded in the context need to stay alive until
++the context is flushed, at which point additional resolve operations
++are done to those resources. While the backing BO is alive due to being
++referenced in the cmdstream, the resource might already be destroyed
++at this point.
++
++Keep a reference to the resource to make sure it is still available at
++context flush time.
++
++Fixes: 7b9d8d1936d7 ("etnaviv: flush used render buffers on context flush when neccessary")
++Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
++---
++ src/gallium/drivers/etnaviv/etnaviv_context.c |  1 +
++ src/gallium/drivers/etnaviv/etnaviv_state.c   | 10 ++++++++--
++ 2 files changed, 9 insertions(+), 2 deletions(-)
++
++diff --git a/src/gallium/drivers/etnaviv/etnaviv_context.c b/src/gallium/drivers/etnaviv/etnaviv_context.c
++index da1af2e6b4a1..dd12b5737423 100644
++--- a/src/gallium/drivers/etnaviv/etnaviv_context.c
+++++ b/src/gallium/drivers/etnaviv/etnaviv_context.c
++@@ -518,6 +518,7 @@ etna_flush(struct pipe_context *pctx, struct pipe_fence_handle **fence,
++       struct pipe_resource *prsc = (struct pipe_resource *)entry->key;
++ 
++       pctx->flush_resource(pctx, prsc);
+++      pipe_reference(&prsc->reference, NULL);
++    }
++    _mesa_set_clear(ctx->flush_resources, NULL);
++ 
++diff --git a/src/gallium/drivers/etnaviv/etnaviv_state.c b/src/gallium/drivers/etnaviv/etnaviv_state.c
++index 6cc7d92cddef..6bc836459eb1 100644
++--- a/src/gallium/drivers/etnaviv/etnaviv_state.c
+++++ b/src/gallium/drivers/etnaviv/etnaviv_state.c
++@@ -793,8 +793,14 @@ etna_record_flush_resources(struct etna_context *ctx)
++    if (fb->nr_cbufs > 0) {
++       struct etna_surface *surf = etna_surface(fb->cbufs[0]);
++ 
++-      if (!etna_resource(surf->prsc)->explicit_flush)
++-         _mesa_set_add(ctx->flush_resources, surf->prsc);
+++      if (!etna_resource(surf->prsc)->explicit_flush) {
+++         bool found;
+++
+++         _mesa_set_search_or_add(ctx->flush_resources, surf->prsc, &found);
+++
+++         if (!found)
+++            pipe_reference(NULL, &surf->prsc->reference);
+++      }
++    }
++ 
++    return true;
++-- 
++GitLab
++
+EOF
