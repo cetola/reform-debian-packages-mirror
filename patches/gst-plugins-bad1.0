@@ -403,5 +403,5 @@ diff -Nru gst-plugins-bad1.0-1.20.3/debian/patches/series gst-plugins-bad1.0-1.2
  Skip-failing-tests.patch
 +1147.patch
 +gst-plugins-bad-dashdemux-sidx-range-download.patch
-+gst-plugins-bad-dashdemux-improve-initial-representation-selection.patch
++#gst-plugins-bad-dashdemux-improve-initial-representation-selection.patch
 EOF
