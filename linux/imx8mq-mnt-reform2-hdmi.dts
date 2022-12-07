@@ -13,7 +13,7 @@
 #include "imx8mq.dtsi"
 
 / {
-	model = "MNT Reform 2";
+	model = "MNT Reform 2 HDMI";
 	compatible = "boundary,imx8mq-nitrogen8m_som", "fsl,imx8mq";
 	chassis-type = "laptop";
 
