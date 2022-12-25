@@ -7,7 +7,7 @@ build:
       - repo
   script: |
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
-    apt-get --no-install-recommends -y install fakechroot fakeroot devscripts mmdebstrap/bookworm python3/bookworm reprepro sbuild schroot debhelper debian-keyring quilt pristine-tar rsync git python3-debian faketime
+    apt-get --no-install-recommends -y install -oDebug::pkgProblemResolver=true -oDebug::pkgDepCache::Marker=1 -oDebug::pkgDepCache::AutoInstall=1 fakechroot fakeroot devscripts mmdebstrap/bookworm python3/bookworm reprepro sbuild schroot debhelper debian-keyring quilt pristine-tar rsync git python3-debian faketime python3-jinja2
     if [ ! -e /proc/sys/fs/binfmt_misc/status ]; then
       mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
     fi
