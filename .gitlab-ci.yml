@@ -6,6 +6,7 @@ build:
       - output.log
       - repo
   script: |
+    set -x
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
     apt-get --no-install-recommends -y install -oDebug::pkgProblemResolver=true -oDebug::pkgDepCache::Marker=1 -oDebug::pkgDepCache::AutoInstall=1 fakechroot fakeroot devscripts mmdebstrap/bookworm reprepro sbuild schroot debhelper debian-keyring quilt pristine-tar rsync git python3-debian faketime python3-jinja2
     if [ ! -e /proc/sys/fs/binfmt_misc/status ]; then
@@ -22,4 +23,4 @@ build:
     id build >/dev/null || adduser --gecos build --disabled-password build
     id build >/dev/null || adduser build sbuild
     chown build -R .
-    runuser build -c ./build.sh 2>&1 | ./filter-output
+    runuser build -c sh -x ./build.sh 2>&1 | ./filter-output
