@@ -25,4 +25,4 @@ build:
         adduser build sbuild
     fi
     chown build -R .
-    runuser build -c sh -x ./build.sh 2>&1 | ./filter-output
+    runuser -u build -- sh -x ./build.sh 2>&1 | ./filter-output
