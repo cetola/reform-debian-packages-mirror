@@ -98,8 +98,12 @@ env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/fre
 sed -i '/imx8mq-mnt-reform2.dtb/a dtb-$(CONFIG_ARCH_MXC) += imx8mq-mnt-reform2-hdmi.dtb' linux/arch/arm64/boot/dts/freescale/Makefile
 env --chdir=linux QUILT_PATCHES=debian/patches quilt refresh
 
-env --chdir=linux \
-	DEB_BUILD_PROFILES="cross nodoc pkg.linux.nokerneldbg pkg.linux.nokerneldbginfo" \
+DEB_BUILD_PROFILES="nodoc pkg.linux.nokerneldbg pkg.linux.nokerneldbginfo"
+if [ "$BUILD_ARCH" != "$HOST_ARCH" ]; then
+	DEB_BUILD_PROFILES="cross $DEB_BUILD_PROFILES"
+fi
+
+env --chdir=linux DEB_BUILD_PROFILES="$DEB_BUILD_PROFILES" \
 	sbuild -d "$BASESUITE" --arch-any --arch-all --host="$HOST_ARCH" \
 		--nolog --no-source-only-changes --no-run-lintian --no-run-autopkgtest
 
