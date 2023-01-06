@@ -1,7 +1,7 @@
-From 8bdade8b2e46a32aba6a44ef8814c1f902012fa8 Mon Sep 17 00:00:00 2001
+From ededab5e560e2143c0277dd230b879f109cfbf5e Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Wed, 7 Sep 2022 06:24:04 +0200
-Subject: [PATCH 4/7] mnt4002-imx-gpcv2-wake-smccc.patch
+Subject: [PATCH 4/5] mnt4002-imx-gpcv2-wake-smccc.patch
 
 ---
  drivers/irqchip/irq-imx-gpcv2.c | 24 ++++++++++++++++++++++++
@@ -90,5 +90,5 @@ index b9c22f7..4f6d924 100644
  
  	irq_chip_mask_parent(d);
 -- 
-2.37.2
+2.39.0
 

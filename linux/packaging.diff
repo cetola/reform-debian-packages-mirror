@@ -1,80 +1,8 @@
-diff -Nru linux-5.13.12/debian/config/arm64/defines linux-5.13.12/debian/config/arm64/defines
---- linux-5.13.12/debian/config/arm64/defines	2021-01-25 17:25:29.000000000 +0100
-+++ linux-5.13.12/debian/config/arm64/defines	2022-01-12 15:02:01.000000000 +0100
-@@ -3,11 +3,10 @@
- kernel-arch: arm64
- featuresets:
-  none
-- rt
- 
- [build]
- image-file: arch/arm64/boot/Image
--signed-code: true
-+signed-code: false
- vdso: true
- 
- [image]
-diff -Nru linux-5.13.12/debian/config/arm64/none/defines linux-5.13.12/debian/config/arm64/none/defines
---- linux-5.13.12/debian/config/arm64/none/defines	2021-01-25 17:25:29.000000000 +0100
-+++ linux-5.13.12/debian/config/arm64/none/defines	2022-01-12 15:02:01.000000000 +0100
-@@ -1,7 +1,6 @@
- [base]
- flavours:
-  arm64
-- cloud-arm64
- default-flavour: arm64
- 
- [cloud-arm64_image]
-diff -Nru linux-5.13.12/debian/config/defines linux-5.13.12/debian/config/defines
---- linux-5.13.12/debian/config/defines	2021-08-09 15:42:56.000000000 +0200
-+++ linux-5.13.12/debian/config/defines	2022-01-12 15:02:01.000000000 +0100
-@@ -172,3 +172,7 @@
- # initramfs-generators
- initramfs-fallback: linux-initramfs-tool
- initramfs-tools: initramfs-tools (>= 0.120+deb8u2)
-+
-+[packages]:
-+installer: false
-+docs: false
-diff -Nru linux-5.13.12/debian/rules.real linux-5.13.12/debian/rules.real
---- linux-5.13.12/debian/rules.real	2021-08-09 15:42:36.000000000 +0200
-+++ linux-5.13.12/debian/rules.real	2022-01-12 15:02:01.000000000 +0100
-@@ -71,8 +71,7 @@ build-arch-arch: \
- 	$(call if_package, bpftool,                      build-bpftool) \
- 	$(call if_package, usbip,                        build-usbip) \
- 	$(call if_package, linux-cpupower,               build-cpupower) \
--	$(call if_package, hyperv-daemons,               build-hyperv-daemons) \
--	$(call if_package, rtla,                         build-rtla)
-+	$(call if_package, hyperv-daemons,               build-hyperv-daemons)
- binary-arch-arch: \
- 	$(call if_package, $(SOURCE_BASENAME)-config-$(VERSION), install-config_$(ARCH)) \
- 	$(call if_package, linux-libc-dev,               install-libc-dev_$(ARCH)) \
-@@ -82,8 +81,7 @@ binary-arch-arch: \
- 	$(call if_package, bpftool,                      install-bpftool) \
- 	$(call if_package, usbip,                        install-usbip) \
- 	$(call if_package, linux-cpupower,               install-cpupower) \
--	$(call if_package, hyperv-daemons,               install-hyperv-daemons) \
--	$(call if_package, rtla,                         install-rtla)
-+	$(call if_package, hyperv-daemons,               install-hyperv-daemons)
- 
- build-indep: \
- 	$(call if_package, $(SOURCE_BASENAME)-doc-$(VERSION), $(STAMPS_DIR)/build-doc)
-@@ -570,8 +570,8 @@
- ifneq (,$(filter linux-image-%,$(packages_enabled)))
- 	dh_testdir
- 	dh_prep
--	kernel-wedge install-files $(ABINAME)
--	kernel-wedge check $(PACKAGE_NAMES)
-+	#kernel-wedge install-files $(ABINAME)
-+	#kernel-wedge check $(PACKAGE_NAMES)
- 	dh_fixperms
- ifeq ($(UDEB_UNSIGNED_TEST_BUILD),False)
- 	dh_gencontrol
 diff --git a/debian/bin/gencontrol.py b/debian/bin/gencontrol.py
-index ece5ee3..9fad58a 100755
+index 02d457dd3..e49c2f585 100755
 --- a/debian/bin/gencontrol.py
 +++ b/debian/bin/gencontrol.py
-@@ -77,13 +77,9 @@ class Gencontrol(Base):
+@@ -74,13 +74,9 @@ class Gencontrol(Base):
          for env, attr, desc in self.env_flags:
              setattr(self, attr, False)
              if os.getenv(env):
@@ -91,3 +19,59 @@ index ece5ee3..9fad58a 100755
  
      def _setup_makeflags(self, names, makeflags, data):
          for src, dst, optional in names:
+diff --git a/debian/config/arm64/defines b/debian/config/arm64/defines
+index e64418af6..486876d23 100644
+--- a/debian/config/arm64/defines
++++ b/debian/config/arm64/defines
+@@ -3,11 +3,10 @@ cross-compile-compat: arm-linux-gnueabihf-
+ kernel-arch: arm64
+ featuresets:
+  none
+- rt
+ 
+ [build]
+ image-file: arch/arm64/boot/Image
+-signed-code: true
++signed-code: false
+ vdso: true
+ 
+ [image]
+diff --git a/debian/config/arm64/none/defines b/debian/config/arm64/none/defines
+index b754cf65e..93d1fe516 100644
+--- a/debian/config/arm64/none/defines
++++ b/debian/config/arm64/none/defines
+@@ -1,7 +1,6 @@
+ [base]
+ flavours:
+  arm64
+- cloud-arm64
+ default-flavour: arm64
+ quick-flavour: cloud-arm64
+ 
+diff --git a/debian/config/defines b/debian/config/defines
+index 113926e5f..5acb3fa1f 100644
+--- a/debian/config/defines
++++ b/debian/config/defines
+@@ -171,3 +171,7 @@ gcc-12: gcc-12 <!stage1 !cross !pkg.linux.nokernel>, gcc-12-@gnu-type-package@ <
+ # initramfs-generators
+ initramfs-fallback: linux-initramfs-tool
+ initramfs-tools: initramfs-tools (>= 0.120+deb8u2)
++
++[packages]:
++installer: false
++docs: false
+diff --git a/debian/rules.real b/debian/rules.real
+index 9bb0c617b..daf5b388e 100644
+--- a/debian/rules.real
++++ b/debian/rules.real
+@@ -485,8 +485,8 @@ binary_udeb binary_udeb_test: export KW_CONFIG_DIR=debian/installer
+ binary_udeb:
+ 	dh_testdir
+ 	dh_prep
+-	kernel-wedge install-files $(ABINAME)
+-	kernel-wedge check $(PACKAGE_NAMES)
++	#kernel-wedge install-files $(ABINAME)
++	#kernel-wedge check $(PACKAGE_NAMES)
+ 	dh_fixperms
+ 	dh_gencontrol
+ 	dh_builddeb -- $(BUILDDEB_ARGS)

@@ -1,7 +1,7 @@
-From e0ab52e9cfe03580140e18aaae15b5127b4e10b3 Mon Sep 17 00:00:00 2001
+From c3afae0a6418f8b05c5d1a28442ca6c5dd6bc5d7 Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Wed, 7 Sep 2022 06:20:37 +0200
-Subject: [PATCH 1/7] nwl-dsi-fixup-mode-only-for-LCDIF-input-not-DCSS
+Subject: [PATCH 1/5] nwl-dsi-fixup-mode-only-for-LCDIF-input-not-DCSS
 
 ---
  drivers/gpu/drm/bridge/nwl-dsi.c | 13 ++++++++++---
@@ -33,5 +33,5 @@ index 6dc2a4e..13c5ade 100644
  	/*
  	 * Do a full modeset if crtc_state->active is changed to be true.
 -- 
-2.37.2
+2.39.0
 

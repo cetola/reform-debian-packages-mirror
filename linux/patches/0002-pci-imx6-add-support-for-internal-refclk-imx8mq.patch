@@ -1,17 +1,17 @@
-From 3b78052d1470fd1ec8d745430a728033b159b793 Mon Sep 17 00:00:00 2001
+From 01951ef9d3d9d52640feaf8272c0fea75703bff1 Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Sat, 22 Oct 2022 17:11:19 +0200
-Subject: [PATCH 2/7] pci-imx6-add-support-for-internal-refclk-imx8mq
+Subject: [PATCH 2/5] pci-imx6-add-support-for-internal-refclk-imx8mq
 
 ---
  drivers/pci/controller/dwc/pci-imx6.c | 44 +++++++++++++++++++++++++--
  1 file changed, 42 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/pci/controller/dwc/pci-imx6.c b/drivers/pci/controller/dwc/pci-imx6.c
-index 6e5debd..e1014b2 100644
+index 1dde5c5..58d9591 100644
 --- a/drivers/pci/controller/dwc/pci-imx6.c
 +++ b/drivers/pci/controller/dwc/pci-imx6.c
-@@ -67,6 +67,7 @@ struct imx6_pcie {
+@@ -69,6 +69,7 @@ struct imx6_pcie {
  	struct dw_pcie		*pci;
  	int			reset_gpio;
  	bool			gpio_active_high;
@@ -19,7 +19,7 @@ index 6e5debd..e1014b2 100644
  	bool			link_is_up;
  	struct clk		*pcie_bus;
  	struct clk		*pcie_phy;
-@@ -154,6 +155,40 @@ static unsigned int imx6_pcie_grp_offset(const struct imx6_pcie *imx6_pcie)
+@@ -157,6 +158,40 @@ static unsigned int imx6_pcie_grp_offset(const struct imx6_pcie *imx6_pcie)
  	return imx6_pcie->controller_id == 1 ? IOMUXC_GPR16 : IOMUXC_GPR14;
  }
  
@@ -60,7 +60,7 @@ index 6e5debd..e1014b2 100644
  static void imx6_pcie_configure_type(struct imx6_pcie *imx6_pcie)
  {
  	unsigned int mask, val;
-@@ -299,6 +334,9 @@ static int pcie_phy_write(struct imx6_pcie *imx6_pcie, int addr, u16 data)
+@@ -302,6 +337,9 @@ static int pcie_phy_write(struct imx6_pcie *imx6_pcie, int addr, u16 data)
  
  static void imx6_pcie_init_phy(struct imx6_pcie *imx6_pcie)
  {
@@ -69,8 +69,8 @@ index 6e5debd..e1014b2 100644
 +
  	switch (imx6_pcie->drvdata->variant) {
  	case IMX8MM:
- 		/*
-@@ -314,7 +352,8 @@ static void imx6_pcie_init_phy(struct imx6_pcie *imx6_pcie)
+ 	case IMX8MP:
+@@ -318,7 +356,8 @@ static void imx6_pcie_init_phy(struct imx6_pcie *imx6_pcie)
  		regmap_update_bits(imx6_pcie->iomuxc_gpr,
  				   imx6_pcie_grp_offset(imx6_pcie),
  				   IMX8MQ_GPR_PCIE_REF_USE_PAD,
@@ -80,7 +80,7 @@ index 6e5debd..e1014b2 100644
  		/*
  		 * Regarding the datasheet, the PCIE_VPH is suggested
  		 * to be 1.8V. If the PCIE_VPH is supplied by 3.3V, the
-@@ -1158,7 +1197,8 @@ static int imx6_pcie_probe(struct platform_device *pdev)
+@@ -1169,7 +1208,8 @@ static int imx6_pcie_probe(struct platform_device *pdev)
  		imx6_pcie->pcie_aux = devm_clk_get(dev, "pcie_aux");
  		if (IS_ERR(imx6_pcie->pcie_aux))
  			return dev_err_probe(dev, PTR_ERR(imx6_pcie->pcie_aux),
@@ -91,5 +91,5 @@ index 6e5debd..e1014b2 100644
  	case IMX7D:
  		if (dbi_base->start == IMX8MQ_PCIE2_BASE_ADDR)
 -- 
-2.37.2
+2.39.0
 
