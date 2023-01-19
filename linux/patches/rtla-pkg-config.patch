@@ -1,0 +1,11 @@
+--- ./tools/tracing/rtla/Makefile.bak	2023-01-19 22:41:31.091662669 +0100
++++ ./tools/tracing/rtla/Makefile	2023-01-19 22:41:52.099223585 +0100
+@@ -18,7 +18,7 @@
+ $(call allow-override,CC,$(CROSS_COMPILE)gcc)
+ $(call allow-override,AR,$(CROSS_COMPILE)ar)
+ $(call allow-override,STRIP,$(CROSS_COMPILE)strip)
+-$(call allow-override,PKG_CONFIG,pkg-config)
++$(call allow-override,PKG_CONFIG,$(CROSS_COMPILE)pkg-config)
+ $(call allow-override,LD_SO_CONF_PATH,/etc/ld.so.conf.d/)
+ $(call allow-override,LDCONFIG,ldconfig)
+ 
