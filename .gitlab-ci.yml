@@ -2,6 +2,7 @@ image: debian:bookworm-slim
 
 build:
   artifacts:
+    when: always
     paths:
       - output.log
       - repo
