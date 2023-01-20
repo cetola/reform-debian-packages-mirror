@@ -1,7 +1,7 @@
 From 7c11eb42d4434c041f00a1f4d9668221d0151687 Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Sat, 22 Oct 2022 17:12:28 +0200
-Subject: [PATCH 5/5] imx8mq: import HDMI driver and make DCSS compatible with
+Subject: [PATCH 5/6] imx8mq: import HDMI driver and make DCSS compatible with
  both HDMI and LCDIF
 
 ---

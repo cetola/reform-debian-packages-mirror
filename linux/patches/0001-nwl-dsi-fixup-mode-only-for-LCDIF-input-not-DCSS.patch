@@ -1,7 +1,7 @@
 From c3afae0a6418f8b05c5d1a28442ca6c5dd6bc5d7 Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Wed, 7 Sep 2022 06:20:37 +0200
-Subject: [PATCH 1/5] nwl-dsi-fixup-mode-only-for-LCDIF-input-not-DCSS
+Subject: [PATCH 1/6] nwl-dsi-fixup-mode-only-for-LCDIF-input-not-DCSS
 
 ---
  drivers/gpu/drm/bridge/nwl-dsi.c | 13 ++++++++++---

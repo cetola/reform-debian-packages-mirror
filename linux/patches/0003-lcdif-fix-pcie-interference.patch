@@ -1,7 +1,7 @@
 From 7ebe66c198cc1f76d55bd42d81ae724f74b832a9 Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Wed, 7 Sep 2022 06:23:35 +0200
-Subject: [PATCH 3/5] lcdif-fix-pcie-interference
+Subject: [PATCH 3/6] lcdif-fix-pcie-interference
 
 ---
  drivers/gpu/drm/mxsfb/mxsfb_kms.c | 34 ++++++++++++++++++++++++++++++-

@@ -1,7 +1,7 @@
 From ededab5e560e2143c0277dd230b879f109cfbf5e Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Wed, 7 Sep 2022 06:24:04 +0200
-Subject: [PATCH 4/5] mnt4002-imx-gpcv2-wake-smccc.patch
+Subject: [PATCH 4/6] mnt4002-imx-gpcv2-wake-smccc.patch
 
 ---
  drivers/irqchip/irq-imx-gpcv2.c | 24 ++++++++++++++++++++++++

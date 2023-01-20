@@ -1,7 +1,7 @@
 From 01951ef9d3d9d52640feaf8272c0fea75703bff1 Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Sat, 22 Oct 2022 17:11:19 +0200
-Subject: [PATCH 2/5] pci-imx6-add-support-for-internal-refclk-imx8mq
+Subject: [PATCH 2/6] pci-imx6-add-support-for-internal-refclk-imx8mq
 
 ---
  drivers/pci/controller/dwc/pci-imx6.c | 44 +++++++++++++++++++++++++--
