@@ -45,4 +45,4 @@ Scripts for running the reform.
 To just rebuild the kernel and not the rest, you can run this:
 
     chdist --data-dir=./chdist apt-get base update
-    env --chdir=./linux BUILD_ARCH=arm64 HOST_ARCH=arm64 BASESUITE=unstable OURSUITE=reform ./build.sh
+    env --chdir=./linux DEBEMAIL='robot <reform@reform.repo>' BUILD_ARCH=arm64 HOST_ARCH=arm64 BASESUITE=unstable OURSUITE=reform ./build.sh
