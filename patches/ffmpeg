@@ -6,8 +6,21 @@ set -e
 #  - https://github.com/LibreELEC/LibreELEC.tv/tree/master/packages/multimedia/ffmpeg/patches
 #  - https://github.com/Miouyouyou/FFmpeg-V4L2-Request
 #
-# FIXME: h264 video is tinged red (but done in hardware)
-# FIXME: h265 decoding doesn't work: "hevc: v4l2_request_queue_decode: request 38 timeout"
+# mpv -vo=dmabuf-wayland --hwdec=drm ...
+#
+# FIXME: no gui overlay in mpv with -vo=dmabuf-wayland
+# FIXME: irregular small stutters of h264 video output
+# FIXME: h265 decoding doesn't work at all with:
+#
+# [ffmpeg/video] hevc: v4l2_request_probe_video_device: try output format failed
+# [ffmpeg/video] hevc: ff_v4l2_request_query_control: query control failed, Invalid argument (22)
+# [ffmpeg/video] hevc: ff_v4l2_request_query_control: query control failed, Invalid argument (22)
+# Using hardware decoding (drm).
+# [ffmpeg/video] hevc: v4l2_request_queue_decode: request 46 timeout
+# [ffmpeg/video] hevc: v4l2_request_queue_decode: reinit request 46 failed, Device or resource busy (16)
+# [ffmpeg/video] hevc: hardware accelerator failed to decode picture
+# Error while decoding frame (hardware decoding)!
+
 patch -p1 << 'EOF'
 diff -Nru ffmpeg-5.1.2/debian/patches/752aba0d5a67c9cd392f6bcc4f0f15710d875931.patch ffmpeg-5.1.2/debian/patches/752aba0d5a67c9cd392f6bcc4f0f15710d875931.patch
 --- ffmpeg-5.1.2/debian/patches/752aba0d5a67c9cd392f6bcc4f0f15710d875931.patch	1970-01-01 01:00:00.000000000 +0100
