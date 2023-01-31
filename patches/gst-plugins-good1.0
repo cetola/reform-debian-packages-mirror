@@ -334,5 +334,5 @@ diff -Nru gst-plugins-good1.0-1.22.0/debian/patches/series gst-plugins-good1.0-1
 +++ gst-plugins-good1.0-1.22.0/debian/patches/series	2023-01-29 14:55:20.000000000 +0100
 @@ -1 +1,2 @@
  Skip-failing-tests.patch
-+#3419.patch
++3419.patch
 EOF

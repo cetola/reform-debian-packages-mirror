@@ -420,5 +420,5 @@ diff -Nru gst-plugins-bad1.0-1.22.0/debian/patches/series gst-plugins-bad1.0-1.2
  02_opencv-data-path.patch
  Skip-failing-tests.patch
 +gst-plugins-bad-dashdemux-sidx-range-download.patch
-+#3419.patch
++3419.patch
 EOF
