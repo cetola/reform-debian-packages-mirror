@@ -182,7 +182,7 @@ if [ -z "$(reprepro listfilter reform "\$Source (== box64)")" ]; then
 		git checkout pristine-tar
 		git checkout upstream
 		git checkout master
-		pristine-tar checkout ../box64_0.1.8.orig.tar.xz
+		pristine-tar checkout ../box64_0.2.2+dfsg1.orig.tar.xz
 		ret=0
 		sbuild --host="$HOST_ARCH" --arch-all --arch-any $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED" || ret=$?
 		if [ "$ret" -ne 0 ]; then
@@ -190,7 +190,7 @@ if [ -z "$(reprepro listfilter reform "\$Source (== box64)")" ]; then
 			# "natively" with qemu-user
 			sbuild --build="$HOST_ARCH" --host="$HOST_ARCH" --arch-all --arch-any $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
 		fi
-		reprepro include "$OURSUITE" ../box64_0.1.8-1_arm64.changes
+		reprepro include "$OURSUITE" ../box64_0.2.2+dfsg1-1_arm64.changes
 		cd ..
 	)
 	rm -Rf "$WORKDIR"
