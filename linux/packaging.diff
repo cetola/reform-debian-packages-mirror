@@ -60,18 +60,3 @@ index 113926e5f..5acb3fa1f 100644
 +[packages]:
 +installer: false
 +docs: false
-diff --git a/debian/rules.real b/debian/rules.real
-index 9bb0c617b..daf5b388e 100644
---- a/debian/rules.real
-+++ b/debian/rules.real
-@@ -485,8 +485,8 @@ binary_udeb binary_udeb_test: export KW_CONFIG_DIR=debian/installer
- binary_udeb:
- 	dh_testdir
- 	dh_prep
--	kernel-wedge install-files $(ABINAME)
--	kernel-wedge check $(PACKAGE_NAMES)
-+	#kernel-wedge install-files $(ABINAME)
-+	#kernel-wedge check $(PACKAGE_NAMES)
- 	dh_fixperms
- 	dh_gencontrol
- 	dh_builddeb -- $(BUILDDEB_ARGS)
