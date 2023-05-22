@@ -18,8 +18,8 @@ build:
     test -d /srv/chroot/unstable-sbuild && test "$(stat -c %Y /srv/chroot/unstable-sbuild)" -lt "$(date --date "14 days ago" +%s)" && rm -rf /srv/chroot/unstable-sbuild /etc/schroot/chroot.d/unstable-amd64-sbuild-*
     test -d /srv/chroot/unstable-arm64-sbuild && test "$(stat -c %Y /srv/chroot/unstable-arm64-sbuild)" -lt "$(date --date "14 days ago" +%s)" && rm -rf /srv/chroot/unstable-arm64-sbuild /etc/schroot/chroot.d/unstable-arm64-sbuild-*
     #test -d /srv/chroot/testing-sbuild && test "$(stat -c %Y /srv/chroot/testing-sbuild)" -lt "$(date --date "14 days ago" +%s)" && rm -rf /srv/chroot/testing-sbuild /etc/schroot/chroot.d/testing-amd64-sbuild-*
-    test -d /srv/chroot/unstable-sbuild || sbuild-createchroot --debootstrap=mmdebstrap unstable /srv/chroot/unstable-sbuild http://deb.debian.org/debian
-    test -d /srv/chroot/unstable-arm64-sbuild || sbuild-createchroot --debootstrap=mmdebstrap --arch=arm64 unstable /srv/chroot/unstable-arm64-sbuild http://deb.debian.org/debian
+    test -d /srv/chroot/unstable-sbuild || sbuild-createchroot --include=adduser --debootstrap=mmdebstrap unstable /srv/chroot/unstable-sbuild http://deb.debian.org/debian
+    test -d /srv/chroot/unstable-arm64-sbuild || sbuild-createchroot --include=adduser --debootstrap=mmdebstrap --arch=arm64 unstable /srv/chroot/unstable-arm64-sbuild http://deb.debian.org/debian
     #test -d /srv/chroot/testing-sbuild || sbuild-createchroot --debootstrap=mmdebstrap testing /srv/chroot/testing-sbuild http://deb.debian.org/debian
     if ! id build 2>/dev/null; then
         adduser --gecos build --disabled-password build
