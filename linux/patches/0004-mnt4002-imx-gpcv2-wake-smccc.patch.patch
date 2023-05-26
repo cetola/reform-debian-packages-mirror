@@ -1,14 +1,14 @@
-From ededab5e560e2143c0277dd230b879f109cfbf5e Mon Sep 17 00:00:00 2001
+From bc414bfce55a47edd2ce075b17c3ef8ca2e3a270 Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Wed, 7 Sep 2022 06:24:04 +0200
-Subject: [PATCH 4/6] mnt4002-imx-gpcv2-wake-smccc.patch
+Subject: [PATCH 4/5] mnt4002-imx-gpcv2-wake-smccc.patch
 
 ---
  drivers/irqchip/irq-imx-gpcv2.c | 24 ++++++++++++++++++++++++
  1 file changed, 24 insertions(+)
 
 diff --git a/drivers/irqchip/irq-imx-gpcv2.c b/drivers/irqchip/irq-imx-gpcv2.c
-index b9c22f7..4f6d924 100644
+index 8a0e82067924..75196a0d8745 100644
 --- a/drivers/irqchip/irq-imx-gpcv2.c
 +++ b/drivers/irqchip/irq-imx-gpcv2.c
 @@ -3,6 +3,7 @@
@@ -90,5 +90,5 @@ index b9c22f7..4f6d924 100644
  
  	irq_chip_mask_parent(d);
 -- 
-2.39.0
+2.40.0
 
