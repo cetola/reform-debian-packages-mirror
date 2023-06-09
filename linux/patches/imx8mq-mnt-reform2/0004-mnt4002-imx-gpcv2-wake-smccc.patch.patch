@@ -1,4 +1,4 @@
-From a1ab5c500f36b5d76a627ff16c8cd97e951de62c Mon Sep 17 00:00:00 2001
+From 1636b47d4f5a89cc1791d5b2a29a0443713b4f93 Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Wed, 7 Sep 2022 06:24:04 +0200
 Subject: [PATCH 4/5] mnt4002-imx-gpcv2-wake-smccc.patch
