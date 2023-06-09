@@ -1,0 +1,116 @@
+From: Haibo Chen <haibo.chen@xxxxxxx>
+
+During the card init, the host side sometimes may need to distinguish
+the card type to handle accordingly. So need to give host->card value
+earlier.
+
+Signed-off-by: Haibo Chen <haibo.chen@xxxxxxx>
+---
+ drivers/mmc/core/mmc.c  |  9 +++++----
+ drivers/mmc/core/sd.c   |  7 +++++--
+ drivers/mmc/core/sdio.c | 10 ++++++----
+ 3 files changed, 16 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/mmc/core/mmc.c b/drivers/mmc/core/mmc.c
+index 89cd48fcec79..63de76a51be3 100644
+--- a/drivers/mmc/core/mmc.c
++++ b/drivers/mmc/core/mmc.c
+@@ -1658,6 +1658,8 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
+ 			goto err;
+ 		}
+
++		host->card = card;
++
+ 		card->ocr = ocr;
+ 		card->type = MMC_TYPE_MMC;
+ 		card->rca = 1;
+@@ -1926,14 +1928,13 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
+ 		goto free_card;
+ 	}
+
+-	if (!oldcard)
+-		host->card = card;
+-
+ 	return 0;
+
+ free_card:
+-	if (!oldcard)
++	if (!oldcard) {
+ 		mmc_remove_card(card);
++		host->card = NULL;
++	}
+ err:
+ 	return err;
+ }
+diff --git a/drivers/mmc/core/sd.c b/drivers/mmc/core/sd.c
+index 72b664ed90cf..147b188b916e 100644
+--- a/drivers/mmc/core/sd.c
++++ b/drivers/mmc/core/sd.c
+@@ -1431,6 +1431,8 @@ static int mmc_sd_init_card(struct mmc_host *host, u32 ocr,
+ 		if (IS_ERR(card))
+ 			return PTR_ERR(card);
+
++		host->card = card;
++
+ 		card->ocr = ocr;
+ 		card->type = MMC_TYPE_SD;
+ 		memcpy(card->raw_cid, cid, sizeof(card->raw_cid));
+@@ -1563,12 +1565,13 @@ static int mmc_sd_init_card(struct mmc_host *host, u32 ocr,
+ 		goto free_card;
+ 	}
+
+-	host->card = card;
+ 	return 0;
+
+ free_card:
+-	if (!oldcard)
++	if (!oldcard) {
+ 		mmc_remove_card(card);
++		host->card = NULL;
++	}
+
+ 	return err;
+ }
+diff --git a/drivers/mmc/core/sdio.c b/drivers/mmc/core/sdio.c
+index f64b9ac76a5c..5bcf4ada4738 100644
+--- a/drivers/mmc/core/sdio.c
++++ b/drivers/mmc/core/sdio.c
+@@ -699,6 +699,9 @@ static int mmc_sdio_init_card(struct mmc_host *host, u32 ocr,
+ 	if (IS_ERR(card))
+ 		return PTR_ERR(card);
+
++	if (!oldcard)
++		host->card = card;
++
+ 	if ((rocr & R4_MEMORY_PRESENT) &&
+ 	    mmc_sd_get_cid(host, ocr & rocr, card->raw_cid, NULL) == 0) {
+ 		card->type = MMC_TYPE_SD_COMBO;
+@@ -800,8 +803,6 @@ static int mmc_sdio_init_card(struct mmc_host *host, u32 ocr,
+
+ 		if (oldcard)
+ 			mmc_remove_card(card);
+-		else
+-			host->card = card;
+
+ 		return 0;
+ 	}
+@@ -898,14 +899,15 @@ static int mmc_sdio_init_card(struct mmc_host *host, u32 ocr,
+ 		goto remove;
+ 	}
+
+-	host->card = card;
+ 	return 0;
+
+ mismatch:
+ 	pr_debug("%s: Perhaps the card was replaced\n", mmc_hostname(host));
+ remove:
+-	if (oldcard != card)
++	if (oldcard != card) {
+ 		mmc_remove_card(card);
++		host->card = NULL;
++	}
+ 	return err;
+ }
+
+--
+2.34.1
