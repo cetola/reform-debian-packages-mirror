@@ -82,11 +82,9 @@ env --chdir=linux debian/rules source
 env --chdir=linux ../kernel-team/utils/kconfigeditor2/process.py .
 
 mkdir linux/debian/patches/reform
-cp patches/* linux/debian/patches/reform
+cp -a patches/* linux/debian/patches/reform
 
-for f in patches/*; do
-	echo "reform/${f##patches/}" >> linux/debian/patches/series
-done
+find patches/ -type f -name "*.patch" | sort | sed 's/^patches\//reform\//' >> linux/debian/patches/series
 
 env --chdir=linux QUILT_PATCHES=debian/patches quilt push -a
 env --chdir=linux QUILT_PATCHES=debian/patches quilt new reform/dts.patch
@@ -94,7 +92,10 @@ env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/fre
 cp imx8mq-mnt-reform2.dts linux/arch/arm64/boot/dts/freescale/imx8mq-mnt-reform2.dts
 env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/freescale/imx8mq-mnt-reform2-hdmi.dts
 cp imx8mq-mnt-reform2-hdmi.dts linux/arch/arm64/boot/dts/freescale/imx8mq-mnt-reform2-hdmi.dts
+env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/freescale/imx8mp-mnt-pocket-reform.dts
+cp imx8mp-mnt-pocket-reform.dts linux/arch/arm64/boot/dts/freescale/imx8mp-mnt-pocket-reform.dts
 env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/freescale/Makefile
+sed -i '/imx8mq-mnt-reform2.dtb/a dtb-$(CONFIG_ARCH_MXC) += imx8mp-mnt-pocket-reform.dtb' linux/arch/arm64/boot/dts/freescale/Makefile
 sed -i '/imx8mq-mnt-reform2.dtb/a dtb-$(CONFIG_ARCH_MXC) += imx8mq-mnt-reform2-hdmi.dtb' linux/arch/arm64/boot/dts/freescale/Makefile
 env --chdir=linux QUILT_PATCHES=debian/patches quilt refresh
 
@@ -105,6 +106,6 @@ fi
 
 env --chdir=linux DEB_BUILD_PROFILES="$DEB_BUILD_PROFILES" \
 	sbuild -d "$BASESUITE" --arch-any --arch-all --host="$HOST_ARCH" \
-		--nolog --no-source-only-changes --no-run-lintian --no-run-autopkgtest
+		--no-source-only-changes --no-run-lintian --no-run-autopkgtest
 
 reprepro include "$OURSUITE" "./linux_$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog)_arm64.changes"
