@@ -18,13 +18,11 @@ Tested-by: Marek Vasut <marex@denx.de>
  3 files changed, 209 insertions(+)
  create mode 100644 drivers/gpu/drm/bridge/imx/imx8mp-hdmi-pvi.c
 
-diff --git a/drivers/gpu/drm/bridge/imx/Kconfig b/drivers/gpu/drm/bridge/imx/Kconfig
-index d828d8bfd893..e6cc4000bccd 100644
 --- a/drivers/gpu/drm/bridge/imx/Kconfig
 +++ b/drivers/gpu/drm/bridge/imx/Kconfig
-@@ -53,4 +53,11 @@ config DRM_IMX8MP_DW_HDMI_BRIDGE
- 	  Choose this to enable support for the internal HDMI encoder found
- 	  on the i.MX8MP SoC.
+@@ -44,4 +44,11 @@ config DRM_IMX8QXP_PIXEL_LINK_TO_DPI
+ 	  Choose this to enable pixel link to display pixel interface(PXL2DPI)
+ 	  found in Freescale i.MX8qxp processor.
  
 +config DRM_IMX8MP_HDMI_PVI
 +	tristate "i.MX8MP HDMI PVI bridge support"
@@ -34,9 +32,6 @@ index d828d8bfd893..e6cc4000bccd 100644
 +	  Video Interface found on the i.MX8MP SoC.
 +
  endif # ARCH_MXC || COMPILE_TEST
-diff --git a/drivers/gpu/drm/bridge/imx/imx8mp-hdmi-pvi.c b/drivers/gpu/drm/bridge/imx/imx8mp-hdmi-pvi.c
-new file mode 100644
-index 000000000000..962779dc539e
 --- /dev/null
 +++ b/drivers/gpu/drm/bridge/imx/imx8mp-hdmi-pvi.c
 @@ -0,0 +1,201 @@
@@ -241,6 +236,3 @@ index 000000000000..962779dc539e
 +
 +MODULE_DESCRIPTION("i.MX8MP HDMI TX Parallel Video Interface bridge driver");
 +MODULE_LICENSE("GPL");
--- 
-cgit v1.2.1
-

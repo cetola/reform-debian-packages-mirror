@@ -12,13 +12,11 @@ Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
  arch/arm64/boot/dts/freescale/imx8mp.dtsi | 13 +++++++++++++
  1 file changed, 13 insertions(+)
 
-diff --git a/arch/arm64/boot/dts/freescale/imx8mp.dtsi b/arch/arm64/boot/dts/freescale/imx8mp.dtsi
-index a6df80092fbd..71c2397bf7c2 100644
 --- a/arch/arm64/boot/dts/freescale/imx8mp.dtsi
 +++ b/arch/arm64/boot/dts/freescale/imx8mp.dtsi
-@@ -1132,6 +1132,19 @@
- 						     "hdmi-tx", "hdmi-tx-phy";
- 				#power-domain-cells = <1>;
+@@ -1105,6 +1105,19 @@
+ 				intf_mode = <&gpr 0x4>;
+ 				status = "disabled";
  			};
 +
 +			irqsteer_hdmi: interrupt-controller@32fc2000 {
@@ -35,7 +33,4 @@ index a6df80092fbd..71c2397bf7c2 100644
 +			};
  		};
  
- 		gpu3d: gpu@38000000 {
--- 
-cgit v1.2.1
-
+ 		noc: interconnect@32700000 {

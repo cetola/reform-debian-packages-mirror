@@ -3784,10 +3784,10 @@ diff --git a/drivers/gpu/drm/imx/Kconfig b/drivers/gpu/drm/imx/Kconfig
 index e5749927fd6c..d4af27b65556 100644
 --- a/drivers/gpu/drm/imx/Kconfig
 +++ b/drivers/gpu/drm/imx/Kconfig
-@@ -2,3 +2,4 @@
- 
+@@ -3,3 +3,4 @@
  source "drivers/gpu/drm/imx/dcss/Kconfig"
  source "drivers/gpu/drm/imx/ipuv3/Kconfig"
+ source "drivers/gpu/drm/imx/lcdc/Kconfig"
 +source "drivers/gpu/drm/imx/cdns/Kconfig"
 diff --git a/drivers/gpu/drm/imx/cdn-mhdp-dp-phy.c b/drivers/gpu/drm/imx/cdn-mhdp-dp-phy.c
 new file mode 100644

@@ -79,14 +79,12 @@ V3: Rename audio_ahb to plain ahb
  arch/arm64/boot/dts/freescale/imx8mp.dtsi | 153 ++++++++++++++++++++++
  1 file changed, 153 insertions(+)
 
-diff --git a/arch/arm64/boot/dts/freescale/imx8mp.dtsi b/arch/arm64/boot/dts/freescale/imx8mp.dtsi
-index 8c76725e3d20d..9bf60a1863757 100644
 --- a/arch/arm64/boot/dts/freescale/imx8mp.dtsi
 +++ b/arch/arm64/boot/dts/freescale/imx8mp.dtsi
-@@ -551,6 +551,13 @@ pgc_usb2_phy: power-domain@3 {
+@@ -579,6 +579,13 @@
  						reg = <IMX8MP_POWER_DOMAIN_USB2_PHY>;
  					};
-
+ 
 +					pgc_audio: power-domain@5 {
 +						#power-domain-cells = <0>;
 +						reg = <IMX8MP_POWER_DOMAIN_AUDIOMIX>;
@@ -97,10 +95,10 @@ index 8c76725e3d20d..9bf60a1863757 100644
  					pgc_gpu2d: power-domain@6 {
  						#power-domain-cells = <0>;
  						reg = <IMX8MP_POWER_DOMAIN_GPU2D>;
-@@ -1044,6 +1051,152 @@ eqos: ethernet@30bf0000 {
+@@ -1258,6 +1265,152 @@
  			};
  		};
-
+ 
 +		aips5: bus@30c00000 {
 +			compatible = "fsl,aips-bus", "simple-bus";
 +			reg = <0x30c00000 0x400000>;
@@ -250,5 +248,3 @@ index 8c76725e3d20d..9bf60a1863757 100644
  		aips4: bus@32c00000 {
  			compatible = "fsl,aips-bus", "simple-bus";
  			reg = <0x32c00000 0x400000>;
---
-2.35.1

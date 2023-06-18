@@ -11,13 +11,11 @@ Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
  arch/arm64/boot/dts/freescale/imx8mp.dtsi | 83 +++++++++++++++++++++++++++++++
  1 file changed, 83 insertions(+)
 
-diff --git a/arch/arm64/boot/dts/freescale/imx8mp.dtsi b/arch/arm64/boot/dts/freescale/imx8mp.dtsi
-index 71c2397bf7c2..254d610b93b7 100644
 --- a/arch/arm64/boot/dts/freescale/imx8mp.dtsi
 +++ b/arch/arm64/boot/dts/freescale/imx8mp.dtsi
-@@ -1145,6 +1145,89 @@
- 				clock-names = "ipg";
- 				power-domains = <&hdmi_blk_ctrl IMX8MP_HDMIBLK_PD_IRQSTEER>;
+@@ -1125,6 +1125,89 @@
+ 					opp-hz = /bits/ 64 <1000000000>;
+ 				};
  			};
 +
 +			hdmi_pvi: display-bridge@32fc4000 {
@@ -104,7 +102,4 @@ index 71c2397bf7c2..254d610b93b7 100644
 +			};
  		};
  
- 		gpu3d: gpu@38000000 {
--- 
-cgit v1.2.1
-
+ 		aips4: bus@32c00000 {

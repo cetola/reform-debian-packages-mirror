@@ -13,14 +13,12 @@ Signed-off-by: Haibo Chen <haibo.chen@xxxxxxx>
  drivers/mmc/host/sdhci-esdhc-imx.c | 14 ++++++++++++++
  1 file changed, 14 insertions(+)
 
-diff --git a/drivers/mmc/host/sdhci-esdhc-imx.c b/drivers/mmc/host/sdhci-esdhc-imx.c
-index bf8d6f60a9ee..d6ce4c8d23dc 100644
 --- a/drivers/mmc/host/sdhci-esdhc-imx.c
 +++ b/drivers/mmc/host/sdhci-esdhc-imx.c
-@@ -448,6 +448,20 @@ static inline void usdhc_auto_tuning_mode_sel_and_en(struct sdhci_host *host)
- 		break;
- 	}
-
+@@ -475,6 +475,20 @@ static inline void usdhc_auto_tuning_mod
+ 	if (imx_data->init_card_type == MMC_TYPE_SDIO)
+ 		auto_tune_buswidth = ESDHC_VEND_SPEC2_AUTO_TUNE_1BIT_EN;
+ 
 +	/*
 +	 * For USDHC, auto tuning circuit can not handle the async sdio
 +	 * device interrupt correctly. When sdio device use 4 data lines,
@@ -38,5 +36,3 @@ index bf8d6f60a9ee..d6ce4c8d23dc 100644
  	esdhc_clrset_le(host, ESDHC_VEND_SPEC2_AUTO_TUNE_MODE_MASK,
  			auto_tune_buswidth | ESDHC_VEND_SPEC2_AUTO_TUNE_CMD_EN,
  			ESDHC_VEND_SPEC2);
---
-2.34.1
