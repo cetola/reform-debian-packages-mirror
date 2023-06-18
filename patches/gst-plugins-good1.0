@@ -1,9 +1,9 @@
 #!/bin/sh
 set -e
 patch -p1 << 'EOF'
-diff -Nru gst-plugins-good1.0-1.22.0/debian/patches/3419.patch gst-plugins-good1.0-1.22.0/debian/patches/3419.patch
---- gst-plugins-good1.0-1.22.0/debian/patches/3419.patch	1970-01-01 01:00:00.000000000 +0100
-+++ gst-plugins-good1.0-1.22.0/debian/patches/3419.patch	2023-01-29 14:55:20.000000000 +0100
+diff -Nru gst-plugins-good1.0-1.22.3/debian/patches/3419.patch gst-plugins-good1.0-1.22.3/debian/patches/3419.patch
+--- gst-plugins-good1.0-1.22.3/debian/patches/3419.patch	1970-01-01 01:00:00.000000000 +0100
++++ gst-plugins-good1.0-1.22.3/debian/patches/3419.patch	2023-06-18 15:17:17.000000000 +0200
 @@ -0,0 +1,324 @@
 +From 1af3f5e25e02ef9398c1ad5ccbfe2882a4f2744c Mon Sep 17 00:00:00 2001
 +From: =?UTF-8?q?Rafa=C5=82=20Dzi=C4=99giel?= <rafostar.github@gmail.com>
@@ -329,10 +329,9 @@ diff -Nru gst-plugins-good1.0-1.22.0/debian/patches/3419.patch gst-plugins-good1
 +-- 
 +GitLab
 +
-diff -Nru gst-plugins-good1.0-1.22.0/debian/patches/series gst-plugins-good1.0-1.22.0/debian/patches/series
---- gst-plugins-good1.0-1.22.0/debian/patches/series	2023-01-28 20:00:56.000000000 +0100
-+++ gst-plugins-good1.0-1.22.0/debian/patches/series	2023-01-29 14:55:20.000000000 +0100
-@@ -1 +1,2 @@
- Skip-failing-tests.patch
+diff -Nru gst-plugins-good1.0-1.22.3/debian/patches/series gst-plugins-good1.0-1.22.3/debian/patches/series
+--- gst-plugins-good1.0-1.22.3/debian/patches/series	2023-06-12 20:42:30.000000000 +0200
++++ gst-plugins-good1.0-1.22.3/debian/patches/series	2023-06-18 15:18:19.000000000 +0200
+@@ -0,0 +1 @@
 +3419.patch
 EOF
