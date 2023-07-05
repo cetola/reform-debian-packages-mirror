@@ -1,0 +1,35 @@
+diff --git a/drivers/gpu/drm/meson/meson_venc.c b/drivers/gpu/drm/meson/meson_venc.c
+index 10a0b06fd00d..d2220171bfb6 100644
+--- a/drivers/gpu/drm/meson/meson_venc.c
++++ b/drivers/gpu/drm/meson/meson_venc.c
+@@ -867,10 +867,10 @@ meson_venc_hdmi_supported_mode(const struct drm_display_mode *mode)
+ 			    DRM_MODE_FLAG_PVSYNC | DRM_MODE_FLAG_NVSYNC))
+ 		return MODE_BAD;
+ 
+-	if (mode->hdisplay < 640 || mode->hdisplay > 1920)
++	if (mode->hdisplay < 400 || mode->hdisplay > 1920)
+ 		return MODE_BAD_HVALUE;
+ 
+-	if (mode->vdisplay < 480 || mode->vdisplay > 1200)
++	if (mode->vdisplay < 480 || mode->vdisplay > 1920)
+ 		return MODE_BAD_VVALUE;
+ 
+ 	return MODE_OK;
+@@ -1710,7 +1710,7 @@ void meson_venc_mipi_dsi_mode_set(struct meson_drm *priv,
+ 	writel_relaxed(vavon_eline, priv->io_base + _REG(L_OEV1_VE_ADDR));
+ 
+ 	/* Hsync signal for TTL */
+-	if (mode->flags & DRM_MODE_FLAG_PHSYNC) {
++	if (mode->flags & DRM_MODE_FLAG_NHSYNC) {
+ 		writel_relaxed(hso_begin, priv->io_base + _REG(L_STH1_HS_ADDR));
+ 		writel_relaxed(hso_end, priv->io_base + _REG(L_STH1_HE_ADDR));
+ 	} else {
+@@ -1723,7 +1723,7 @@ void meson_venc_mipi_dsi_mode_set(struct meson_drm *priv,
+ 	/* Vsync signal for TTL */
+ 	writel_relaxed(vso_begin, priv->io_base + _REG(L_STV1_HS_ADDR));
+ 	writel_relaxed(vso_end, priv->io_base + _REG(L_STV1_HE_ADDR));
+-	if (mode->flags & DRM_MODE_FLAG_PVSYNC) {
++	if (mode->flags & DRM_MODE_FLAG_NVSYNC) {
+ 		writel_relaxed(vso_bline, priv->io_base + _REG(L_STV1_VS_ADDR));
+ 		writel_relaxed(vso_eline, priv->io_base + _REG(L_STV1_VE_ADDR));
+ 	} else {
