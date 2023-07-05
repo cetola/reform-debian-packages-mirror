@@ -1,0 +1,29 @@
+diff --git a/drivers/gpu/drm/panel/panel-edp.c b/drivers/gpu/drm/panel/panel-edp.c
+index e23ddab2126e..ae2aaea02ebf 100644
+--- a/drivers/gpu/drm/panel/panel-edp.c
++++ b/drivers/gpu/drm/panel/panel-edp.c
+@@ -1325,15 +1325,20 @@ static const struct panel_desc innolux_n116bge = {
+ };
+ 
+ static const struct drm_display_mode innolux_n125hce_gn1_mode = {
+-	.clock = 162000,
++	//.clock = 162000, 70Hz
++	// wrong colors are only if this mismatches dtb assigned clock
++	.clock = 156000, // 68Hz
++	//.clock = 153600, // 65Hz (921.6mhz)
++	//.clock = 138780, // 59Hz (832.68mhz)
++	//.clock = 138780, // 59Hz (832.68mhz)
+ 	.hdisplay = 1920,
+ 	.hsync_start = 1920 + 40,
+ 	.hsync_end = 1920 + 40 + 40,
+ 	.htotal = 1920 + 40 + 40 + 80,
+ 	.vdisplay = 1080,
+-	.vsync_start = 1080 + 4,
+-	.vsync_end = 1080 + 4 + 4,
+-	.vtotal = 1080 + 4 + 4 + 24,
++	.vsync_start = 1080 + 1,
++	.vsync_end = 1080 + 1 + 4,
++	.vtotal = 1080 + 1 + 4 + 27,
+ };
+ 
+ static const struct panel_desc innolux_n125hce_gn1 = {
