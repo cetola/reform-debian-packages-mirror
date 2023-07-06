@@ -172,29 +172,29 @@ for p in patches/*; do
 	rm -Rf "$WORKDIR"
 done
 
-if [ -z "$(reprepro listfilter reform "\$Source (== box64)")" ]; then
-	rm -Rf "$WORKDIR"
-	mkdir --mode=0777 "$WORKDIR"
-	(
-		cd "$WORKDIR"
-		git clone https://salsa.debian.org/debian/box64.git
-		cd box64
-		git checkout pristine-tar
-		git checkout upstream
-		git checkout master
-		pristine-tar checkout ../box64_0.2.2+dfsg1.orig.tar.xz
-		ret=0
-		sbuild --host="$HOST_ARCH" --arch-all --arch-any $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED" || ret=$?
-		if [ "$ret" -ne 0 ]; then
-			# cross building failed -- try building
-			# "natively" with qemu-user
-			sbuild --build="$HOST_ARCH" --host="$HOST_ARCH" --arch-all --arch-any $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
-		fi
-		reprepro include "$OURSUITE" ../box64_0.2.2+dfsg1-1_arm64.changes
-		cd ..
-	)
-	rm -Rf "$WORKDIR"
-fi
+# if [ -z "$(reprepro listfilter reform "\$Source (== box64)")" ]; then
+# 	rm -Rf "$WORKDIR"
+# 	mkdir --mode=0777 "$WORKDIR"
+# 	(
+# 		cd "$WORKDIR"
+# 		git clone https://salsa.debian.org/debian/box64.git
+# 		cd box64
+# 		git checkout pristine-tar
+# 		git checkout upstream
+# 		git checkout master
+# 		pristine-tar checkout ../box64_0.2.2+dfsg1.orig.tar.xz
+# 		ret=0
+# 		sbuild --host="$HOST_ARCH" --arch-all --arch-any $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED" || ret=$?
+# 		if [ "$ret" -ne 0 ]; then
+# 			# cross building failed -- try building
+# 			# "natively" with qemu-user
+# 			sbuild --build="$HOST_ARCH" --host="$HOST_ARCH" --arch-all --arch-any $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
+# 		fi
+# 		reprepro include "$OURSUITE" ../box64_0.2.2+dfsg1-1_arm64.changes
+# 		cd ..
+# 	)
+# 	rm -Rf "$WORKDIR"
+# fi
 
 if [ -z "$(reprepro listfilter reform "\$Source (== livi)")" ]; then
 	rm -Rf "$WORKDIR"
@@ -261,19 +261,19 @@ if [ -z "$(reprepro listfilter reform "Package (== reform-tools)")" ]; then
 	rm -Rf "$WORKDIR"
 fi
 
-if [ -z "$(reprepro listfilter reform "\$Source (== reform-handbook)")" ]; then
-	rm -Rf "$WORKDIR"
-	mkdir --mode=0777 "$WORKDIR"
-	(
-		cd "$WORKDIR"
-		git clone https://source.mnt.re/reform/reform-handbook.git
-		cd reform-handbook
-		sbuild --arch-all --arch-any $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
-		reprepro include "$OURSUITE" ../reform-handbook_*_amd64.changes
-		cd ..
-	)
-	rm -Rf "$WORKDIR"
-fi
+# if [ -z "$(reprepro listfilter reform "\$Source (== reform-handbook)")" ]; then
+# 	rm -Rf "$WORKDIR"
+# 	mkdir --mode=0777 "$WORKDIR"
+# 	(
+# 		cd "$WORKDIR"
+# 		git clone https://source.mnt.re/reform/reform-handbook.git
+# 		cd reform-handbook
+# 		sbuild --arch-all --arch-any $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
+# 		reprepro include "$OURSUITE" ../reform-handbook_*_amd64.changes
+# 		cd ..
+# 	)
+# 	rm -Rf "$WORKDIR"
+# fi
 
 if [ -z "$(reprepro listfilter reform "\$Source (== linux)")" ]; then
 	env --chdir=linux \
