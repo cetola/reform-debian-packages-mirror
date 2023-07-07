@@ -1,29 +1,95 @@
 image: debian:bookworm-slim
 
-build:
-  artifacts:
-    when: always
-    paths:
-      - output.log
-      - repo
-  script: |
+# The source.mnt.re CI re-uses /ramdisk/builds/reform/reform-debian-packages
+# for all pipeline runs. This means that we can retain artifacts across jobs
+# and even across pipeline runs. We need to exempt some locations from getting
+# cleaned so that we can retain state across multiple jobs of the same
+# pipeline. To prevent the build products from one pipeline influencing the
+# other, the "setup" job removes them at the start.
+variables:
+  GIT_CLEAN_FLAGS: -ffdx -e changes -e chdist -e repo -e unstable-amd64.tar -e unstable-arm64.tar
+
+stages:
+  - setup
+  - build
+  - reprepro
+
+.setup:
+  before_script: |
     set -x
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
-    apt-get --no-install-recommends -y install -oDebug::pkgProblemResolver=true -oDebug::pkgDepCache::Marker=1 -oDebug::pkgDepCache::AutoInstall=1 fakechroot fakeroot devscripts mmdebstrap/bookworm reprepro sbuild schroot debhelper debian-keyring quilt pristine-tar rsync git python3-debian faketime python3-jinja2
+    apt-get --no-install-recommends -y install devscripts reprepro sbuild debhelper debian-keyring quilt pristine-tar rsync git python3-debian faketime python3-jinja2 uidmap
     if [ ! -e /proc/sys/fs/binfmt_misc/status ]; then
       mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
     fi
     apt-get --no-install-recommends -y install arch-test binfmt-support qemu-user-static
     arch-test arm64
-    test -d /srv/chroot/unstable-sbuild && test "$(stat -c %Y /srv/chroot/unstable-sbuild)" -lt "$(date --date "14 days ago" +%s)" && rm -rf /srv/chroot/unstable-sbuild /etc/schroot/chroot.d/unstable-amd64-sbuild-*
-    test -d /srv/chroot/unstable-arm64-sbuild && test "$(stat -c %Y /srv/chroot/unstable-arm64-sbuild)" -lt "$(date --date "14 days ago" +%s)" && rm -rf /srv/chroot/unstable-arm64-sbuild /etc/schroot/chroot.d/unstable-arm64-sbuild-*
-    #test -d /srv/chroot/testing-sbuild && test "$(stat -c %Y /srv/chroot/testing-sbuild)" -lt "$(date --date "14 days ago" +%s)" && rm -rf /srv/chroot/testing-sbuild /etc/schroot/chroot.d/testing-amd64-sbuild-*
-    test -d /srv/chroot/unstable-sbuild || sbuild-createchroot --debootstrap=mmdebstrap unstable /srv/chroot/unstable-sbuild http://deb.debian.org/debian
-    test -d /srv/chroot/unstable-arm64-sbuild || sbuild-createchroot --debootstrap=mmdebstrap --arch=arm64 unstable /srv/chroot/unstable-arm64-sbuild http://deb.debian.org/debian
-    #test -d /srv/chroot/testing-sbuild || sbuild-createchroot --debootstrap=mmdebstrap testing /srv/chroot/testing-sbuild http://deb.debian.org/debian
-    if ! id build 2>/dev/null; then
-        adduser --gecos build --disabled-password build
-        adduser build sbuild
-    fi
+    adduser --gecos build --disabled-password build
+    runuser -u build -- sh -c 'echo "\$chroot_mode = \"unshare\";" > ~/.sbuildrc'
+    runuser -u build -- sh -c 'mkdir -p ~/.cache/sbuild'
+    runuser -u build -- sh -c 'cp unstable-amd64.tar unstable-arm64.tar ~/.cache/sbuild'
     chown build -R .
-    runuser -u build -- sh -x ./build.sh 2>&1 | ./filter-output
+
+setup:
+  stage: setup
+  script: |
+    set -x
+    apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
+    apt-get --no-install-recommends -y install reprepro python3 devscripts mmdebstrap uidmap
+    if [ ! -e /proc/sys/fs/binfmt_misc/status ]; then
+      mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
+    fi
+    apt-get --no-install-recommends -y install arch-test binfmt-support qemu-user-static
+    arch-test arm64
+    adduser --gecos build --disabled-password build
+    chown build -R .
+    rm -rvf changes chdist repo unstable-amd64.tar unstable-arm64.tar
+    runuser -u build -- mmdebstrap --architecture=amd64 --mode=unshare unstable unstable-amd64.tar
+    runuser -u build -- mmdebstrap --architecture=arm64 --mode=unshare unstable unstable-arm64.tar
+    runuser -u build -- sh -x ./setup.sh
+
+build_patched:
+  stage: build
+  #when: manual
+  extends: .setup
+  artifacts:
+    when: always
+    paths:
+      - output.log
+  script: |
+    runuser -u build -- sh -x ./build_patched.sh 2>&1 | ./filter-output
+
+build_custom:
+  stage: build
+  #when: manual
+  extends: .setup
+  artifacts:
+    when: always
+    paths:
+      - output.log
+  script: |
+    runuser -u build -- sh -x ./build_custom.sh 2>&1 | ./filter-output
+
+build_linux:
+  stage: build
+  #when: manual
+  extends: .setup
+  artifacts:
+    when: always
+    paths:
+      - output.log
+  script: |
+    runuser -u build -- sh -xc '. ./common.sh; cd linux; . ./build.sh' 2>&1 | ./filter-output
+
+reprepro:
+  stage: reprepro
+  artifacts:
+    when: always
+    paths:
+      - repo
+  script: |
+    set -x
+    apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
+    apt-get --no-install-recommends -y install reprepro python3 devscripts
+    adduser --gecos build --disabled-password build
+    runuser -u build -- sh -x ./reprepro.sh
