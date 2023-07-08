@@ -104,7 +104,7 @@ if [ "$BUILD_ARCH" != "$HOST_ARCH" ]; then
 fi
 
 env --chdir=linux DEB_BUILD_PROFILES="$DEB_BUILD_PROFILES" \
-	sbuild -d "$BASESUITE" --arch-any --arch-all --host="$HOST_ARCH" \
+	sbuild --chroot="$BASESUITE-$BUILD_ARCH" --arch-any --arch-all --host="$HOST_ARCH" \
 		--nolog --no-source-only-changes --no-run-lintian --no-run-autopkgtest
 
-reprepro include "$OURSUITE" "./linux_$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog)_arm64.changes"
+dcmd mv "./linux_$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog)_arm64.changes" "$ROOTDIR/changes"
