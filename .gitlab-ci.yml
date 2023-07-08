@@ -80,6 +80,7 @@ build_linux:
       - output.log
   script: |
     runuser -u build -- sh -xc '. ./common.sh; cd linux; . ./build.sh' 2>&1 | ./filter-output
+    dpkg-deb -c changes/linux-image-*-reform2-arm64_*_arm64.deb | grep kernel/drivers/gpu/drm/imx/cdns/cdns_mhdp_imx.ko
 
 reprepro:
   stage: reprepro

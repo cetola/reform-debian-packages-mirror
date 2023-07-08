@@ -1,4 +1,4 @@
-From 6cb12d31888422948bfef94e163293be1bf838dd Mon Sep 17 00:00:00 2001
+From b252c0bd5a8e78cc1c95aa8053b35e30010e2142 Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Wed, 7 Sep 2022 06:20:37 +0200
 Subject: [PATCH 1/5] nwl-dsi-fixup-mode-only-for-LCDIF-input-not-DCSS

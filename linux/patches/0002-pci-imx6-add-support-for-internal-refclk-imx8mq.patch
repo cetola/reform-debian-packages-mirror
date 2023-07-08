@@ -1,4 +1,4 @@
-From 3474bc736afe440497f7ef0b7151147397107408 Mon Sep 17 00:00:00 2001
+From b7bb8c5fa1c11117c4e18f6defd918b2d8a3736c Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Sat, 22 Oct 2022 17:11:19 +0200
 Subject: [PATCH 2/5] pci-imx6-add-support-for-internal-refclk-imx8mq
