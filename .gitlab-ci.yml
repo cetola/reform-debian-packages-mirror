@@ -8,3 +8,4 @@ build:
     set -ex
     if [ -e demo ]; then echo "demo exists"; else echo "demo doesn't exist"; fi
     touch demo
+    sleep 2
