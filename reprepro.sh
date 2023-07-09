@@ -10,8 +10,8 @@ for c in changes/*.changes; do
 done
 
 for p in $(reprepro --list-format '${source}\n' -T deb list "$OURSUITE" | sed 's/^\([^ (]\+\).*/\1/' | sort -u); do
-	case p in
-		linux|box64|livi|reform-tools|reform-handbook) continue;;
+	case $p in
+		linux|box64|reform-tools|reform-handbook) continue;;
 	esac
 
 	if [ ! -e "patches/$p" ]; then
