@@ -1,14 +1,5 @@
 image: debian:bookworm-slim
 
-# The source.mnt.re CI re-uses /ramdisk/builds/reform/reform-debian-packages
-# for all pipeline runs. This means that we can retain artifacts across jobs
-# and even across pipeline runs. We need to exempt some locations from getting
-# cleaned so that we can retain state across multiple jobs of the same
-# pipeline. To prevent the build products from one pipeline influencing the
-# other, the "setup" job removes them at the start.
-variables:
-  GIT_CLEAN_FLAGS: -ffdx -e changes -e chdist -e repo -e unstable-amd64.tar -e unstable-arm64.tar
-
 stages:
   - setup
   - build
@@ -26,12 +17,18 @@ stages:
     arch-test arm64
     adduser --gecos build --disabled-password build
     runuser -u build -- sh -c 'echo "\$chroot_mode = \"unshare\";" > ~/.sbuildrc'
-    runuser -u build -- sh -c 'mkdir -p ~/.cache/sbuild'
+    runuser -u build -- sh -c 'mkdir -p changes ~/.cache/sbuild'
     runuser -u build -- sh -c 'cp unstable-amd64.tar unstable-arm64.tar ~/.cache/sbuild'
     chown build -R .
 
 setup:
   stage: setup
+  artifacts:
+    paths:
+      - unstable-amd64.tar
+      - unstable-arm64.tar
+      - repo
+      - chdist
   script: |
     set -x
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
@@ -52,10 +49,13 @@ build_patched:
   stage: build
   #when: manual
   extends: .setup
+  dependencies:
+    - setup
   artifacts:
     when: always
     paths:
       - output.log
+      - changes
   script: |
     runuser -u build -- sh -x ./build_patched.sh 2>&1 | ./filter-output
 
@@ -63,10 +63,13 @@ build_custom:
   stage: build
   #when: manual
   extends: .setup
+  dependencies:
+    - setup
   artifacts:
     when: always
     paths:
       - output.log
+      - changes
   script: |
     runuser -u build -- sh -x ./build_custom.sh 2>&1 | ./filter-output
 
@@ -74,16 +77,24 @@ build_linux:
   stage: build
   #when: manual
   extends: .setup
+  dependencies:
+    - setup
   artifacts:
     when: always
     paths:
       - output.log
+      - changes
   script: |
     runuser -u build -- sh -xc '. ./common.sh; cd linux; . ./build.sh' 2>&1 | ./filter-output
     dpkg-deb -c changes/linux-image-*-reform2-arm64_*_arm64.deb | grep kernel/drivers/gpu/drm/imx/cdns/cdns_mhdp_imx.ko
 
 reprepro:
   stage: reprepro
+  dependencies:
+    - setup
+    - build_patched
+    - build_custom
+    - build_linux
   artifacts:
     when: always
     paths:
