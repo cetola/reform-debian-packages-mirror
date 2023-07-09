@@ -1,3 +1,12 @@
+From 02e8c29cac92595796138bf756006635e404b507 Mon Sep 17 00:00:00 2001
+From: "Lukas F. Hartmann" <lukas@mntre.com>
+Date: Sun, 9 Jul 2023 22:19:22 +0200
+Subject: [PATCH 1/2] imx8mp-2ghz-clk
+
+---
+ drivers/clk/imx/clk-pll14xx.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
 diff --git a/drivers/clk/imx/clk-pll14xx.c b/drivers/clk/imx/clk-pll14xx.c
 index 7150c59bbfc9..8a98c4a7138d 100644
 --- a/drivers/clk/imx/clk-pll14xx.c
@@ -20,3 +29,6 @@ index 7150c59bbfc9..8a98c4a7138d 100644
  	} else {
  		kdiv = 0;
  	}
+-- 
+2.40.0
+

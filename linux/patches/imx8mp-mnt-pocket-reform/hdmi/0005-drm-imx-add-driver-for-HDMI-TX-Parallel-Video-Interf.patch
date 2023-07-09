@@ -1,7 +1,8 @@
-From b3d9e9dfedb64ed82e797a87259e6f7598f5b4d5 Mon Sep 17 00:00:00 2001
+From 7a0a27bc5419b48b20b7a18b555bd33ae20a5c52 Mon Sep 17 00:00:00 2001
 From: Lucas Stach <l.stach@pengutronix.de>
 Date: Mon, 4 Apr 2022 19:18:30 +0200
-Subject: drm/imx: add driver for HDMI TX Parallel Video Interface
+Subject: [PATCH 05/11] drm/imx: add driver for HDMI TX Parallel Video
+ Interface
 
 This IP block is found in the HDMI subsystem of the i.MX8MP SoC. It has a
 full timing generator and can switch between different video sources. On
@@ -13,11 +14,12 @@ Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
 Tested-by: Marek Vasut <marex@denx.de>
 ---
  drivers/gpu/drm/bridge/imx/Kconfig           |   7 +
- drivers/gpu/drm/bridge/imx/Makefile          |   1 +
- drivers/gpu/drm/bridge/imx/imx8mp-hdmi-pvi.c | 201 +++++++++++++++++++++++++++
- 3 files changed, 209 insertions(+)
+ drivers/gpu/drm/bridge/imx/imx8mp-hdmi-pvi.c | 201 +++++++++++++++++++
+ 2 files changed, 208 insertions(+)
  create mode 100644 drivers/gpu/drm/bridge/imx/imx8mp-hdmi-pvi.c
 
+diff --git a/drivers/gpu/drm/bridge/imx/Kconfig b/drivers/gpu/drm/bridge/imx/Kconfig
+index 608f47f41bcd..91cea696f04e 100644
 --- a/drivers/gpu/drm/bridge/imx/Kconfig
 +++ b/drivers/gpu/drm/bridge/imx/Kconfig
 @@ -44,4 +44,11 @@ config DRM_IMX8QXP_PIXEL_LINK_TO_DPI
@@ -32,6 +34,9 @@ Tested-by: Marek Vasut <marex@denx.de>
 +	  Video Interface found on the i.MX8MP SoC.
 +
  endif # ARCH_MXC || COMPILE_TEST
+diff --git a/drivers/gpu/drm/bridge/imx/imx8mp-hdmi-pvi.c b/drivers/gpu/drm/bridge/imx/imx8mp-hdmi-pvi.c
+new file mode 100644
+index 000000000000..962779dc539e
 --- /dev/null
 +++ b/drivers/gpu/drm/bridge/imx/imx8mp-hdmi-pvi.c
 @@ -0,0 +1,201 @@
@@ -236,3 +241,6 @@ Tested-by: Marek Vasut <marex@denx.de>
 +
 +MODULE_DESCRIPTION("i.MX8MP HDMI TX Parallel Video Interface bridge driver");
 +MODULE_LICENSE("GPL");
+-- 
+2.40.0
+

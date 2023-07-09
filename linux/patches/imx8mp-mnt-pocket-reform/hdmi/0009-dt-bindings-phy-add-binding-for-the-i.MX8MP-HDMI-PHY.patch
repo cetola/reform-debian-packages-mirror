@@ -1,14 +1,14 @@
-From 1a91b774ca4a7bb9e54d45a705cc3cd538c1b1ee Mon Sep 17 00:00:00 2001
+From 73c43eb4b3bff11a47a6829aad3173c8007c18a2 Mon Sep 17 00:00:00 2001
 From: Lucas Stach <l.stach@pengutronix.de>
 Date: Tue, 5 Apr 2022 20:54:27 +0200
-Subject: dt-bindings: phy: add binding for the i.MX8MP HDMI PHY
+Subject: [PATCH 09/11] dt-bindings: phy: add binding for the i.MX8MP HDMI PHY
 
 Add a DT binding for the HDMI PHY found on the i.MX8MP SoC.
 
 Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
 Tested-by: Marek Vasut <marex@denx.de>
 ---
- .../bindings/phy/fsl,imx8mp-hdmi-phy.yaml          | 62 ++++++++++++++++++++++
+ .../bindings/phy/fsl,imx8mp-hdmi-phy.yaml     | 62 +++++++++++++++++++
  1 file changed, 62 insertions(+)
  create mode 100644 Documentation/devicetree/bindings/phy/fsl,imx8mp-hdmi-phy.yaml
 
@@ -81,5 +81,5 @@ index 000000000000..bc21c073e92a
 +        #phy-cells = <0>;
 +    };
 -- 
-cgit v1.2.1
+2.40.0
 

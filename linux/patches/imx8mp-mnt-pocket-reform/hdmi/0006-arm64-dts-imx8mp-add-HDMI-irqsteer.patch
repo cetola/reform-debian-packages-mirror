@@ -1,7 +1,7 @@
-From 0162ad6f7f2e9a889971248d987fe0fedf76b6cd Mon Sep 17 00:00:00 2001
+From 613178332bc0953c9593fab7f2526c86ae6d8d35 Mon Sep 17 00:00:00 2001
 From: Lucas Stach <l.stach@pengutronix.de>
 Date: Wed, 30 Mar 2022 18:41:09 +0200
-Subject: arm64: dts: imx8mp: add HDMI irqsteer
+Subject: [PATCH 06/11] arm64: dts: imx8mp: add HDMI irqsteer
 
 The HDMI irqsteer is a secondary interrupt controller within the HDMI
 subsystem that maps all HDMI peripheral IRQs into a single upstream
@@ -12,9 +12,11 @@ Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
  arch/arm64/boot/dts/freescale/imx8mp.dtsi | 13 +++++++++++++
  1 file changed, 13 insertions(+)
 
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp.dtsi b/arch/arm64/boot/dts/freescale/imx8mp.dtsi
+index 807ef8a2294d..8420177f58fd 100644
 --- a/arch/arm64/boot/dts/freescale/imx8mp.dtsi
 +++ b/arch/arm64/boot/dts/freescale/imx8mp.dtsi
-@@ -1105,6 +1105,19 @@
+@@ -1097,6 +1097,19 @@ eqos: ethernet@30bf0000 {
  				intf_mode = <&gpr 0x4>;
  				status = "disabled";
  			};
@@ -34,3 +36,6 @@ Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
  		};
  
  		noc: interconnect@32700000 {
+-- 
+2.40.0
+

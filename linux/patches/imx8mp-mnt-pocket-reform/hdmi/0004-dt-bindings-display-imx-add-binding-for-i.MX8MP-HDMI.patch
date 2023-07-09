@@ -1,14 +1,15 @@
-From 499c418a092edd0defa0a59172f713c8534d1a91 Mon Sep 17 00:00:00 2001
+From 7b1066c335ef49406b623dde6a70d39d8c58dde8 Mon Sep 17 00:00:00 2001
 From: Lucas Stach <l.stach@pengutronix.de>
 Date: Tue, 5 Apr 2022 21:18:30 +0200
-Subject: dt-bindings: display: imx: add binding for i.MX8MP HDMI PVI
+Subject: [PATCH 04/11] dt-bindings: display: imx: add binding for i.MX8MP HDMI
+ PVI
 
 Add binding for the i.MX8MP HDMI parallel video interface block.
 
 Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
 Tested-by: Marek Vasut <marex@denx.de>
 ---
- .../bindings/display/imx/fsl,imx8mp-hdmi-pvi.yaml  | 83 ++++++++++++++++++++++
+ .../display/imx/fsl,imx8mp-hdmi-pvi.yaml      | 83 +++++++++++++++++++
  1 file changed, 83 insertions(+)
  create mode 100644 Documentation/devicetree/bindings/display/imx/fsl,imx8mp-hdmi-pvi.yaml
 
@@ -102,5 +103,5 @@ index 000000000000..bf25d29c03ab
 +        };
 +    };
 -- 
-cgit v1.2.1
+2.40.0
 

@@ -1,7 +1,8 @@
-From acbeffe19802d3affe7246b6c0d5bfa3a6040a7c Mon Sep 17 00:00:00 2001
+From 6f262cac5afa2366d1ab78b95c23076a18f68d7c Mon Sep 17 00:00:00 2001
 From: Lucas Stach <l.stach@pengutronix.de>
 Date: Tue, 5 Apr 2022 21:09:13 +0200
-Subject: dt-bindings: display: imx: add binding for i.MX8MP HDMI TX
+Subject: [PATCH 07/11] dt-bindings: display: imx: add binding for i.MX8MP HDMI
+ TX
 
 The HDMI TX controller on the i.MX8MP SoC is a Synopsys designware IP
 core with a little bit of SoC integration around it.
@@ -9,7 +10,7 @@ core with a little bit of SoC integration around it.
 Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
 Tested-by: Marek Vasut <marex@denx.de>
 ---
- .../bindings/display/imx/fsl,imx8mp-hdmi.yaml      | 74 ++++++++++++++++++++++
+ .../bindings/display/imx/fsl,imx8mp-hdmi.yaml | 74 +++++++++++++++++++
  1 file changed, 74 insertions(+)
  create mode 100644 Documentation/devicetree/bindings/display/imx/fsl,imx8mp-hdmi.yaml
 
@@ -94,5 +95,5 @@ index 000000000000..14f7cd47209c
 +        reg-io-width = <1>;
 +    };
 -- 
-cgit v1.2.1
+2.40.0
 

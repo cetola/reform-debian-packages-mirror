@@ -1,13 +1,15 @@
-From aff55c8f486448b932339ecafbfe4f4f05ead91c Mon Sep 17 00:00:00 2001
+From 9f11ce621bccb07064ccc9c564fb0cb20612e1cd Mon Sep 17 00:00:00 2001
 From: Troy Kisky <troy.kisky@boundarydevices.com>
 Date: Fri, 1 Dec 2017 18:32:51 -0700
-Subject: [PATCH] sdhci: add no-sd-uhs-sdr104 devicetree property
+Subject: [PATCH 1/3] sdhci: add no-sd-uhs-sdr104 devicetree property
 
 Signed-off-by: Troy Kisky <troy.kisky@boundarydevices.com>
 ---
  drivers/mmc/host/sdhci.c | 18 +++++++++++++-----
  1 file changed, 13 insertions(+), 5 deletions(-)
 
+diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
+index 3241916141d7..fda04ad741fe 100644
 --- a/drivers/mmc/host/sdhci.c
 +++ b/drivers/mmc/host/sdhci.c
 @@ -16,6 +16,7 @@
@@ -18,7 +20,7 @@ Signed-off-by: Troy Kisky <troy.kisky@boundarydevices.com>
  #include <linux/dma-mapping.h>
  #include <linux/slab.h>
  #include <linux/scatterlist.h>
-@@ -4550,12 +4551,19 @@ int sdhci_setup_host(struct sdhci_host *
+@@ -4550,12 +4551,19 @@ int sdhci_setup_host(struct sdhci_host *host)
  
  	/* SDR104 supports also implies SDR50 support */
  	if (host->caps1 & SDHCI_SUPPORT_SDR104) {
@@ -43,3 +45,6 @@ Signed-off-by: Troy Kisky <troy.kisky@boundarydevices.com>
  	} else if (host->caps1 & SDHCI_SUPPORT_SDR50) {
  		mmc->caps |= MMC_CAP_UHS_SDR50;
  	}
+-- 
+2.40.0
+

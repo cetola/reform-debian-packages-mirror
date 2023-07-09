@@ -1,19 +1,21 @@
-From 08f9555312b0f479bd47e42b8149b883ab62ec61 Mon Sep 17 00:00:00 2001
+From d582ee5aaa6ba28ab44a0fadd061d3a288a273b7 Mon Sep 17 00:00:00 2001
 From: Lucas Stach <l.stach@pengutronix.de>
 Date: Thu, 31 Mar 2022 22:53:14 +0200
-Subject: arm64: dts: imx8mp: add HDMI display pipeline
+Subject: [PATCH 01/11] arm64: dts: imx8mp: add HDMI display pipeline
 
 This adds the DT nodes for all the peripherals that make up the
 HDMI display pipeline.
 
 Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
 ---
- arch/arm64/boot/dts/freescale/imx8mp.dtsi | 83 +++++++++++++++++++++++++++++++
+ arch/arm64/boot/dts/freescale/imx8mp.dtsi | 83 +++++++++++++++++++++++
  1 file changed, 83 insertions(+)
 
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp.dtsi b/arch/arm64/boot/dts/freescale/imx8mp.dtsi
+index a237275ee017..807ef8a2294d 100644
 --- a/arch/arm64/boot/dts/freescale/imx8mp.dtsi
 +++ b/arch/arm64/boot/dts/freescale/imx8mp.dtsi
-@@ -1125,6 +1125,89 @@
+@@ -1117,6 +1117,89 @@ opp-1000000000 {
  					opp-hz = /bits/ 64 <1000000000>;
  				};
  			};
@@ -103,3 +105,6 @@ Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
  		};
  
  		aips4: bus@32c00000 {
+-- 
+2.40.0
+

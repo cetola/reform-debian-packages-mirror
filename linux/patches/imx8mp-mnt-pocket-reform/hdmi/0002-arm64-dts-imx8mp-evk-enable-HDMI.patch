@@ -1,19 +1,21 @@
-From 7e80a6e2d0a4709e471ab951a64d323534a6776f Mon Sep 17 00:00:00 2001
+From c658e0a392bd9887ccd4f45179e08adfa9b695b0 Mon Sep 17 00:00:00 2001
 From: Lucas Stach <l.stach@pengutronix.de>
 Date: Mon, 4 Apr 2022 19:45:03 +0200
-Subject: arm64: dts: imx8mp-evk: enable HDMI
+Subject: [PATCH 02/11] arm64: dts: imx8mp-evk: enable HDMI
 
 Enable the DT nodes for HDMI TX and PHY and add the pinctrl for the few
 involved pins that are configurable.
 
 Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
 ---
- arch/arm64/boot/dts/freescale/imx8mp-evk.dts | 27 +++++++++++++++++++++++++++
+ arch/arm64/boot/dts/freescale/imx8mp-evk.dts | 27 ++++++++++++++++++++
  1 file changed, 27 insertions(+)
 
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-evk.dts b/arch/arm64/boot/dts/freescale/imx8mp-evk.dts
+index 7816853162b3..894539673f13 100644
 --- a/arch/arm64/boot/dts/freescale/imx8mp-evk.dts
 +++ b/arch/arm64/boot/dts/freescale/imx8mp-evk.dts
-@@ -245,6 +245,20 @@
+@@ -245,6 +245,20 @@ &flexcan2 {
  	status = "disabled";/* can2 pin conflict with pdm */
  };
  
@@ -34,7 +36,7 @@ Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
  &i2c1 {
  	clock-frequency = <400000>;
  	pinctrl-names = "default";
-@@ -422,6 +436,10 @@
+@@ -422,6 +436,10 @@ &pwm4 {
  	status = "okay";
  };
  
@@ -45,7 +47,7 @@ Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
  &snvs_pwrkey {
  	status = "okay";
  };
-@@ -582,6 +600,15 @@
+@@ -582,6 +600,15 @@ MX8MP_IOMUXC_NAND_READY_B__GPIO3_IO16	0x140
  		>;
  	};
  
@@ -61,3 +63,6 @@ Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
  	pinctrl_i2c1: i2c1grp {
  		fsl,pins = <
  			MX8MP_IOMUXC_I2C1_SCL__I2C1_SCL		0x400001c2
+-- 
+2.40.0
+
