@@ -1,0 +1,36 @@
+From f29f3a1f6ed1a4e7893827c46cfec8322e796965 Mon Sep 17 00:00:00 2001
+From: Neil Armstrong <neil.armstrong@linaro.org>
+Date: Tue, 30 May 2023 09:38:08 +0200
+Subject: [PATCH 09/42] dt-bindings: display: meson-vpu: add third DPI output
+ port
+
+Add third port corresponding to the ENCL DPI encoder used to connect
+to DSI or LVDS transceivers.
+
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+Reviewed-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Neil Armstrong <neil.armstrong@linaro.org>
+---
+ .../devicetree/bindings/display/amlogic,meson-vpu.yaml       | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/display/amlogic,meson-vpu.yaml b/Documentation/devicetree/bindings/display/amlogic,meson-vpu.yaml
+index 6655a93b1874..89650575ac09 100644
+--- a/Documentation/devicetree/bindings/display/amlogic,meson-vpu.yaml
++++ b/Documentation/devicetree/bindings/display/amlogic,meson-vpu.yaml
+@@ -96,6 +96,11 @@ properties:
+     description:
+       A port node pointing to the HDMI-TX port node.
+ 
++  port@2:
++    $ref: /schemas/graph.yaml#/properties/port
++    description:
++      A port node pointing to the DPI port node (e.g. DSI or LVDS transceiver).
++
+   "#address-cells":
+     const: 1
+ 
+-- 
+2.40.0
+

@@ -1,0 +1,30 @@
+From 3898c92e9d3ebb950ed77058e77a2d5d392639d3 Mon Sep 17 00:00:00 2001
+From: Neil Armstrong <neil.armstrong@linaro.org>
+Date: Tue, 30 May 2023 09:38:17 +0200
+Subject: [PATCH 18/42] dt-bindings: arm: amlogic: Document the MNT Reform 2
+ CM4 adapter with a BPI-CM4 Module
+
+The MNT Reform 2 CM4 adapter can be populated with any Raspberry Pi CM4
+compatible module such as a BPI-CM4 Module, document that.
+
+Signed-off-by: Neil Armstrong <neil.armstrong@linaro.org>
+Acked-by: Conor Dooley <conor.dooley@microchip.com>
+---
+ Documentation/devicetree/bindings/arm/amlogic.yaml | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Documentation/devicetree/bindings/arm/amlogic.yaml b/Documentation/devicetree/bindings/arm/amlogic.yaml
+index 4e5ae70db4cb..accee2f975e7 100644
+--- a/Documentation/devicetree/bindings/arm/amlogic.yaml
++++ b/Documentation/devicetree/bindings/arm/amlogic.yaml
+@@ -162,6 +162,7 @@ properties:
+         items:
+           - enum:
+               - bananapi,bpi-cm4io
++              - mntre,reform2-cm4
+           - const: bananapi,bpi-cm4
+           - const: amlogic,a311d
+           - const: amlogic,g12b
+-- 
+2.40.0
+

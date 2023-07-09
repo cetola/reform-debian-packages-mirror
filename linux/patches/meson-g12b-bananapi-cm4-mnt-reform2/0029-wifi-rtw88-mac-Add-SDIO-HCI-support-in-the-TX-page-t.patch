@@ -1,0 +1,45 @@
+From 14e41523cf94d31f9f97e4855e3692a785a24661 Mon Sep 17 00:00:00 2001
+From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Date: Sat, 18 Feb 2023 16:29:41 +0100
+Subject: [PATCH 29/42] wifi: rtw88: mac: Add SDIO HCI support in the TX/page
+ table setup
+
+txdma_queue_mapping() and priority_queue_cfg() can use the first entry
+of each chip's rqpn_table and page_table. Add this mapping so data
+transmission is possible on SDIO based chipsets.
+
+Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Reviewed-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230218152944.48842-3-martin.blumenstingl@googlemail.com
+---
+ drivers/net/wireless/realtek/rtw88/mac.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/net/wireless/realtek/rtw88/mac.c b/drivers/net/wireless/realtek/rtw88/mac.c
+index 8eb721566474..f3a566cf979b 100644
+--- a/drivers/net/wireless/realtek/rtw88/mac.c
++++ b/drivers/net/wireless/realtek/rtw88/mac.c
+@@ -1045,6 +1045,9 @@ static int txdma_queue_mapping(struct rtw_dev *rtwdev)
+ 		else
+ 			return -EINVAL;
+ 		break;
++	case RTW_HCI_TYPE_SDIO:
++		rqpn = &chip->rqpn_table[0];
++		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -1207,6 +1210,9 @@ static int priority_queue_cfg(struct rtw_dev *rtwdev)
+ 		else
+ 			return -EINVAL;
+ 		break;
++	case RTW_HCI_TYPE_SDIO:
++		pg_tbl = &chip->page_table[0];
++		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+-- 
+2.40.0
+
