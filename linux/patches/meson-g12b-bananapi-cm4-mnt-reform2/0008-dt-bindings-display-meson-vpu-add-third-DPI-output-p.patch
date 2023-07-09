@@ -1,7 +1,7 @@
-From f29f3a1f6ed1a4e7893827c46cfec8322e796965 Mon Sep 17 00:00:00 2001
+From a2eefef3d0db2b04dd1d593dcdefda6523113314 Mon Sep 17 00:00:00 2001
 From: Neil Armstrong <neil.armstrong@linaro.org>
 Date: Tue, 30 May 2023 09:38:08 +0200
-Subject: [PATCH 09/42] dt-bindings: display: meson-vpu: add third DPI output
+Subject: [PATCH 08/25] dt-bindings: display: meson-vpu: add third DPI output
  port
 
 Add third port corresponding to the ENCL DPI encoder used to connect
@@ -16,7 +16,7 @@ Signed-off-by: Neil Armstrong <neil.armstrong@linaro.org>
  1 file changed, 5 insertions(+)
 
 diff --git a/Documentation/devicetree/bindings/display/amlogic,meson-vpu.yaml b/Documentation/devicetree/bindings/display/amlogic,meson-vpu.yaml
-index 6655a93b1874..89650575ac09 100644
+index 0c72120acc4f..cb0a90f02321 100644
 --- a/Documentation/devicetree/bindings/display/amlogic,meson-vpu.yaml
 +++ b/Documentation/devicetree/bindings/display/amlogic,meson-vpu.yaml
 @@ -96,6 +96,11 @@ properties:

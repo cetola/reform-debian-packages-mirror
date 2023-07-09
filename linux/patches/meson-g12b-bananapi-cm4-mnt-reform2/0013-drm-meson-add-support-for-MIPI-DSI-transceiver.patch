@@ -1,7 +1,7 @@
-From 71511560cda969fae9cec475ab77b663891fe843 Mon Sep 17 00:00:00 2001
+From e777a5392a0a80a96c4932d8f80ad9421e315617 Mon Sep 17 00:00:00 2001
 From: Neil Armstrong <neil.armstrong@linaro.org>
 Date: Tue, 30 May 2023 09:38:13 +0200
-Subject: [PATCH 14/42] drm/meson: add support for MIPI-DSI transceiver
+Subject: [PATCH 13/25] drm/meson: add support for MIPI-DSI transceiver
 
 The Amlogic G12A/G12B/SM1 SoCs embeds a Synopsys DW-MIPI-DSI transceiver
 (ver 1.21a), with a custom glue managing the IP resets, clock and data

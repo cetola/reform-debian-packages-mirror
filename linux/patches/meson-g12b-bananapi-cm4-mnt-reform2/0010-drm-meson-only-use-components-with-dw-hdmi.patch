@@ -1,7 +1,7 @@
-From 6820ed3924204d5771d69f69a8f2ad8f2263c930 Mon Sep 17 00:00:00 2001
+From 2f012c3a3ec73124afa120e4c721adc3ce4c1986 Mon Sep 17 00:00:00 2001
 From: Neil Armstrong <neil.armstrong@linaro.org>
 Date: Tue, 30 May 2023 09:38:10 +0200
-Subject: [PATCH 11/42] drm/meson: only use components with dw-hdmi
+Subject: [PATCH 10/25] drm/meson: only use components with dw-hdmi
 
 Only DW-HDMI currently needs components since it reuses
 the drm-meson driver context to access HHI registers (sic).
@@ -29,7 +29,7 @@ Tested-by: Nicolas Belin <nbelin@baylibre.com> # on Khadas VIM3 + TS050 Panel
  1 file changed, 16 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/gpu/drm/meson/meson_drv.c b/drivers/gpu/drm/meson/meson_drv.c
-index 6a9f49426be3..2cd783cbe70a 100644
+index a30d61f1c817..5bd7b7775561 100644
 --- a/drivers/gpu/drm/meson/meson_drv.c
 +++ b/drivers/gpu/drm/meson/meson_drv.c
 @@ -451,10 +451,17 @@ static void meson_drv_shutdown(struct platform_device *pdev)

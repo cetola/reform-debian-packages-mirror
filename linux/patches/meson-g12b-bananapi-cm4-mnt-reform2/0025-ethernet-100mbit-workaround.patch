@@ -1,7 +1,7 @@
-From 8bab13525a45a1e34709a2ebc0cb10ea623e6a75 Mon Sep 17 00:00:00 2001
+From e6b3b35286e043a9416b73836dabcfe810b7e06a Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Sun, 9 Jul 2023 23:02:52 +0200
-Subject: [PATCH 26/42] ethernet-100mbit-workaround
+Subject: [PATCH 25/25] ethernet-100mbit-workaround
 
 ---
  .../dts/amlogic/meson-g12b-bananapi-cm4.dtsi  | 27 +++++++++++++++----

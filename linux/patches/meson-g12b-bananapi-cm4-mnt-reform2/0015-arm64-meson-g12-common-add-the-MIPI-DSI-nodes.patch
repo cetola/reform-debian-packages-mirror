@@ -1,7 +1,7 @@
-From 6f9c0e9d7d34ba1453a43ec4abb929086f4d4fdc Mon Sep 17 00:00:00 2001
+From 75a14e15b9ebcdfeb739935bc1f8e1f3500e1cb2 Mon Sep 17 00:00:00 2001
 From: Neil Armstrong <neil.armstrong@linaro.org>
 Date: Tue, 30 May 2023 09:38:15 +0200
-Subject: [PATCH 16/42] arm64: meson: g12-common: add the MIPI DSI nodes
+Subject: [PATCH 15/25] arm64: meson: g12-common: add the MIPI DSI nodes
 
 Add the MIPI DSI Analog & Digital PHY nodes and the DSI control
 nodes with proper port endpoint to the VPU.
@@ -12,7 +12,7 @@ Signed-off-by: Neil Armstrong <neil.armstrong@linaro.org>
  1 file changed, 70 insertions(+)
 
 diff --git a/arch/arm64/boot/dts/amlogic/meson-g12-common.dtsi b/arch/arm64/boot/dts/amlogic/meson-g12-common.dtsi
-index feb27a0ccfb4..e3e72d14566b 100644
+index 0c49655cc90c..e2d890e72940 100644
 --- a/arch/arm64/boot/dts/amlogic/meson-g12-common.dtsi
 +++ b/arch/arm64/boot/dts/amlogic/meson-g12-common.dtsi
 @@ -1662,9 +1662,28 @@ pwrc: power-controller {
@@ -44,7 +44,7 @@ index feb27a0ccfb4..e3e72d14566b 100644
  			usb3_pcie_phy: phy@46000 {
  				compatible = "amlogic,g12a-usb3-pcie-phy";
  				reg = <0x0 0x46000 0x0 0x2000>;
-@@ -2149,6 +2168,15 @@ hdmi_tx_out: endpoint {
+@@ -2151,6 +2170,15 @@ hdmi_tx_out: endpoint {
  					remote-endpoint = <&hdmi_tx_in>;
  				};
  			};
@@ -60,7 +60,7 @@ index feb27a0ccfb4..e3e72d14566b 100644
  		};
  
  		gic: interrupt-controller@ffc01000 {
-@@ -2186,6 +2214,48 @@ gpio_intc: interrupt-controller@f080 {
+@@ -2188,6 +2216,48 @@ gpio_intc: interrupt-controller@f080 {
  				amlogic,channel-interrupts = <64 65 66 67 68 69 70 71>;
  			};
  

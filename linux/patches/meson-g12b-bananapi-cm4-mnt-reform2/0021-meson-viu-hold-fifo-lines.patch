@@ -1,7 +1,7 @@
-From 33bbb1dbb7bad0dc84f43918f7467f7d3e119192 Mon Sep 17 00:00:00 2001
+From 3b239c4b7900c1b084b01fa559803702fc48be01 Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Sun, 9 Jul 2023 23:02:49 +0200
-Subject: [PATCH 22/42] meson-viu-hold-fifo-lines
+Subject: [PATCH 21/25] meson-viu-hold-fifo-lines
 
 ---
  drivers/gpu/drm/meson/meson_viu.c | 2 +-

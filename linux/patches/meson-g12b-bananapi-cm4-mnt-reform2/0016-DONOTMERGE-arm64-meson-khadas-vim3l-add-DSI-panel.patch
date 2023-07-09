@@ -1,7 +1,7 @@
-From 03aa5e6414623c134d863f4f15019d5cf32a41f0 Mon Sep 17 00:00:00 2001
+From 970376c6c46262d2c9634c30b6c58a8511a4d088 Mon Sep 17 00:00:00 2001
 From: Neil Armstrong <neil.armstrong@linaro.org>
 Date: Tue, 30 May 2023 09:38:16 +0200
-Subject: [PATCH 17/42] DONOTMERGE: arm64: meson: khadas-vim3l: add DSI panel
+Subject: [PATCH 16/25] DONOTMERGE: arm64: meson: khadas-vim3l: add DSI panel
 
 This add nodes to support the Khadas TS050 panel on the
 Khadas VIM3 & VIM3L boards.

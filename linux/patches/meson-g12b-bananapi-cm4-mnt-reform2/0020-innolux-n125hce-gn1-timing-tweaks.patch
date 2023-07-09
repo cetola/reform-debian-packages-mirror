@@ -1,14 +1,14 @@
-From 9e00845c1fd666a8b227cade8ec9129b7c499f0e Mon Sep 17 00:00:00 2001
+From 533514d4b0c5be1cc15a4498c17cdc7f2f9c91fc Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Sun, 9 Jul 2023 23:02:48 +0200
-Subject: [PATCH 21/42] innolux-n125hce-gn1-timing-tweaks
+Subject: [PATCH 20/25] innolux-n125hce-gn1-timing-tweaks
 
 ---
  drivers/gpu/drm/panel/panel-edp.c | 32 +++++++++++++++++++++++++++++++
  1 file changed, 32 insertions(+)
 
 diff --git a/drivers/gpu/drm/panel/panel-edp.c b/drivers/gpu/drm/panel/panel-edp.c
-index 01bfe0783304..18317632264b 100644
+index e23ddab2126e..42c2cc2c2172 100644
 --- a/drivers/gpu/drm/panel/panel-edp.c
 +++ b/drivers/gpu/drm/panel/panel-edp.c
 @@ -1346,6 +1346,35 @@ static const struct panel_desc innolux_n125hce_gn1 = {

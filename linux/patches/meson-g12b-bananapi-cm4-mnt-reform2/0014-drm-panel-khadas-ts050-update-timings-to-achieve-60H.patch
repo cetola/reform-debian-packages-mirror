@@ -1,7 +1,7 @@
-From 1a76b6e9572095a6f27d444849653e00567b4d79 Mon Sep 17 00:00:00 2001
+From a45868022ef5de40452f9b03bafc6da51610f950 Mon Sep 17 00:00:00 2001
 From: Neil Armstrong <neil.armstrong@linaro.org>
 Date: Tue, 30 May 2023 09:38:14 +0200
-Subject: [PATCH 15/42] drm/panel: khadas-ts050: update timings to achieve 60Hz
+Subject: [PATCH 14/25] drm/panel: khadas-ts050: update timings to achieve 60Hz
  refresh rate
 
 This updates the panel timings to achieve a clean 60Hz refresh rate.

@@ -1,29 +1,16 @@
-From 2258533c5af2c9745e42e1fbf82fe8d6754de397 Mon Sep 17 00:00:00 2001
+From 3020a57c10fe6b0f7e1cc1856bee072c449d3690 Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Sun, 9 Jul 2023 23:02:50 +0200
-Subject: [PATCH 23/42] meson-venc-sync.patch
+Subject: [PATCH 22/25] meson-venc-sync.patch
 
 ---
- drivers/gpu/drm/meson/meson_venc.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/gpu/drm/meson/meson_venc.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/meson/meson_venc.c b/drivers/gpu/drm/meson/meson_venc.c
-index 10a0b06fd00d..d2220171bfb6 100644
+index dae833069c38..d2220171bfb6 100644
 --- a/drivers/gpu/drm/meson/meson_venc.c
 +++ b/drivers/gpu/drm/meson/meson_venc.c
-@@ -867,10 +867,10 @@ meson_venc_hdmi_supported_mode(const struct drm_display_mode *mode)
- 			    DRM_MODE_FLAG_PVSYNC | DRM_MODE_FLAG_NVSYNC))
- 		return MODE_BAD;
- 
--	if (mode->hdisplay < 640 || mode->hdisplay > 1920)
-+	if (mode->hdisplay < 400 || mode->hdisplay > 1920)
- 		return MODE_BAD_HVALUE;
- 
--	if (mode->vdisplay < 480 || mode->vdisplay > 1200)
-+	if (mode->vdisplay < 480 || mode->vdisplay > 1920)
- 		return MODE_BAD_VVALUE;
- 
- 	return MODE_OK;
 @@ -1710,7 +1710,7 @@ void meson_venc_mipi_dsi_mode_set(struct meson_drm *priv,
  	writel_relaxed(vavon_eline, priv->io_base + _REG(L_OEV1_VE_ADDR));
  

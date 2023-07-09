@@ -1,7 +1,7 @@
-From 5427fb2436823c278defd24e8faaf4f241b4251c Mon Sep 17 00:00:00 2001
+From e69fbcea6cffdfbe01f550311543f16e0148c169 Mon Sep 17 00:00:00 2001
 From: Neil Armstrong <neil.armstrong@linaro.org>
 Date: Tue, 30 May 2023 09:38:07 +0200
-Subject: [PATCH 08/42] dt-bindings: display: add Amlogic MIPI DSI Host
+Subject: [PATCH 07/25] dt-bindings: display: add Amlogic MIPI DSI Host
  Controller bindings
 
 The Amlogic G12A, G12B & SM1 SoCs embeds a Synopsys DW-MIPI-DSI

@@ -1,7 +1,7 @@
-From 0ae3ed570892f8f1f2f73a81bce3f747f1721ca2 Mon Sep 17 00:00:00 2001
+From 53b32db65d978ee244a167ab04ed0bb6a31a6a62 Mon Sep 17 00:00:00 2001
 From: Neil Armstrong <neil.armstrong@linaro.org>
 Date: Tue, 30 May 2023 09:38:11 +0200
-Subject: [PATCH 12/42] drm/meson: venc: add ENCL encoder setup for MIPI-DSI
+Subject: [PATCH 11/25] drm/meson: venc: add ENCL encoder setup for MIPI-DSI
  output
 
 This adds supports for the ENCL encoder connected to a MIPI-DSI transceiver on the
@@ -96,7 +96,7 @@ index 0f3cafab8860..3d73d00a1f4c 100644
  #define MLVDS_CLK_CTL1_HI 0x1443
  #define MLVDS_CLK_CTL1_LO 0x1444
 diff --git a/drivers/gpu/drm/meson/meson_venc.c b/drivers/gpu/drm/meson/meson_venc.c
-index 3c55ed003359..10a0b06fd00d 100644
+index fcd532db19c1..dae833069c38 100644
 --- a/drivers/gpu/drm/meson/meson_venc.c
 +++ b/drivers/gpu/drm/meson/meson_venc.c
 @@ -6,6 +6,7 @@

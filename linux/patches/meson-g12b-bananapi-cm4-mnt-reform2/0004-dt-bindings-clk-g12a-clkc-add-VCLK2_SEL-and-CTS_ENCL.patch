@@ -1,7 +1,7 @@
-From 14e57088425e566af586359097a0e49e8379da31 Mon Sep 17 00:00:00 2001
+From d52b7c1e723af5990ae8b797e09830217970beb2 Mon Sep 17 00:00:00 2001
 From: Neil Armstrong <neil.armstrong@linaro.org>
 Date: Tue, 30 May 2023 09:38:04 +0200
-Subject: [PATCH 05/42] dt-bindings: clk: g12a-clkc: add VCLK2_SEL and CTS_ENCL
+Subject: [PATCH 04/25] dt-bindings: clk: g12a-clkc: add VCLK2_SEL and CTS_ENCL
  clock ids
 
 Add new CLK ids for the VCLK2_SEL, CTS_ENCL and CTS_ENCL_SEL clocks

@@ -1,14 +1,14 @@
-From 5b9f68e14bc0d134d1cad6fba7d791cc64357ab3 Mon Sep 17 00:00:00 2001
+From 39df5be1747f46d73238bd8122e9c62cbee08fa4 Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Sun, 9 Jul 2023 23:02:51 +0200
-Subject: [PATCH 25/42] sn65dsi86-burst-mode-support
+Subject: [PATCH 24/25] sn65dsi86-burst-mode-support
 
 ---
  drivers/gpu/drm/bridge/ti-sn65dsi86.c | 4 ++++
  1 file changed, 4 insertions(+)
 
 diff --git a/drivers/gpu/drm/bridge/ti-sn65dsi86.c b/drivers/gpu/drm/bridge/ti-sn65dsi86.c
-index 0ae8a52acf5e..5514f612ba86 100644
+index 4676cf2900df..ac00c371e057 100644
 --- a/drivers/gpu/drm/bridge/ti-sn65dsi86.c
 +++ b/drivers/gpu/drm/bridge/ti-sn65dsi86.c
 @@ -687,6 +687,10 @@ static int ti_sn_attach_host(struct ti_sn65dsi86 *pdata)

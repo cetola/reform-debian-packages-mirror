@@ -1,7 +1,7 @@
-From 50ed3fce8d19989990f652a15d815b1c340f91ee Mon Sep 17 00:00:00 2001
+From 86ec895bee02cf35d8df7b4b0368f6aa5876ef50 Mon Sep 17 00:00:00 2001
 From: Neil Armstrong <neil.armstrong@linaro.org>
 Date: Tue, 30 May 2023 09:38:12 +0200
-Subject: [PATCH 13/42] drm/meson: add DSI encoder
+Subject: [PATCH 12/25] drm/meson: add DSI encoder
 
 This adds an encoder bridge designed to drive a MIPI-DSI display
 by using the ENCL encoder through the internal MIPI DSI transceiver
@@ -36,7 +36,7 @@ index 3afa31bdc950..833e18c20603 100644
  obj-$(CONFIG_DRM_MESON) += meson-drm.o
  obj-$(CONFIG_DRM_MESON_DW_HDMI) += meson_dw_hdmi.o
 diff --git a/drivers/gpu/drm/meson/meson_drv.c b/drivers/gpu/drm/meson/meson_drv.c
-index 2cd783cbe70a..951b44451b49 100644
+index 5bd7b7775561..011931987ee2 100644
 --- a/drivers/gpu/drm/meson/meson_drv.c
 +++ b/drivers/gpu/drm/meson/meson_drv.c
 @@ -34,6 +34,7 @@
