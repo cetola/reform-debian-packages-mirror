@@ -18,7 +18,7 @@ stages:
   before_script: |
     set -x
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
-    apt-get --no-install-recommends -y install devscripts reprepro sbuild debhelper debian-keyring quilt pristine-tar rsync git python3-debian faketime python3-jinja2 uidmap
+    apt-get --no-install-recommends -y install devscripts reprepro sbuild debhelper debian-keyring quilt pristine-tar rsync git python3-debian faketime python3-jinja2 uidmap debian-archive-keyring
     if [ ! -e /proc/sys/fs/binfmt_misc/status ]; then
       mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
     fi
