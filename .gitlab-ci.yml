@@ -1,95 +1,10 @@
 image: debian:bookworm-slim
 
-# The source.mnt.re CI re-uses /ramdisk/builds/reform/reform-debian-packages
-# for all pipeline runs. This means that we can retain artifacts across jobs
-# and even across pipeline runs. We need to exempt some locations from getting
-# cleaned so that we can retain state across multiple jobs of the same
-# pipeline. To prevent the build products from one pipeline influencing the
-# other, the "setup" job removes them at the start.
 variables:
-  GIT_CLEAN_FLAGS: -ffdx -e changes -e chdist -e repo -e unstable-amd64.tar -e unstable-arm64.tar
+  GIT_CLEAN_FLAGS: -ffdx -e demo
 
-stages:
-  - setup
-  - build
-  - reprepro
-
-.setup:
-  before_script: |
-    set -x
-    apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
-    apt-get --no-install-recommends -y install devscripts reprepro sbuild debhelper debian-keyring quilt pristine-tar rsync git python3-debian faketime python3-jinja2 uidmap
-    if [ ! -e /proc/sys/fs/binfmt_misc/status ]; then
-      mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
-    fi
-    apt-get --no-install-recommends -y install arch-test binfmt-support qemu-user-static
-    arch-test arm64
-    adduser --gecos build --disabled-password build
-    runuser -u build -- sh -c 'echo "\$chroot_mode = \"unshare\";" > ~/.sbuildrc'
-    runuser -u build -- sh -c 'mkdir -p ~/.cache/sbuild'
-    runuser -u build -- sh -c 'cp unstable-amd64.tar unstable-arm64.tar ~/.cache/sbuild'
-    chown build -R .
-
-setup:
-  stage: setup
+build:
   script: |
-    set -x
-    apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
-    apt-get --no-install-recommends -y install reprepro python3 devscripts mmdebstrap uidmap
-    if [ ! -e /proc/sys/fs/binfmt_misc/status ]; then
-      mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
-    fi
-    apt-get --no-install-recommends -y install arch-test binfmt-support qemu-user-static
-    arch-test arm64
-    adduser --gecos build --disabled-password build
-    chown build -R .
-    rm -rvf changes chdist repo unstable-amd64.tar unstable-arm64.tar
-    runuser -u build -- mmdebstrap --architecture=amd64 --mode=unshare unstable unstable-amd64.tar
-    runuser -u build -- mmdebstrap --architecture=arm64 --mode=unshare unstable unstable-arm64.tar
-    runuser -u build -- sh -x ./setup.sh
-
-build_patched:
-  stage: build
-  #when: manual
-  extends: .setup
-  artifacts:
-    when: always
-    paths:
-      - output.log
-  script: |
-    runuser -u build -- sh -x ./build_patched.sh 2>&1 | ./filter-output
-
-build_custom:
-  stage: build
-  #when: manual
-  extends: .setup
-  artifacts:
-    when: always
-    paths:
-      - output.log
-  script: |
-    runuser -u build -- sh -x ./build_custom.sh 2>&1 | ./filter-output
-
-build_linux:
-  stage: build
-  #when: manual
-  extends: .setup
-  artifacts:
-    when: always
-    paths:
-      - output.log
-  script: |
-    runuser -u build -- sh -xc '. ./common.sh; cd linux; . ./build.sh' 2>&1 | ./filter-output
-
-reprepro:
-  stage: reprepro
-  artifacts:
-    when: always
-    paths:
-      - repo
-  script: |
-    set -x
-    apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
-    apt-get --no-install-recommends -y install reprepro python3 devscripts
-    adduser --gecos build --disabled-password build
-    runuser -u build -- sh -x ./reprepro.sh
+    set -ex
+    if [ -e demo ]; then echo "demo exists"; else echo "demo doesn't exist"; fi
+    touch demo
