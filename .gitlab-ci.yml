@@ -48,7 +48,7 @@ setup:
 
 build_patched:
   stage: build
-  when: manual
+  #when: manual
   extends: .setup
   dependencies:
     - setup
@@ -62,7 +62,7 @@ build_patched:
 
 build_custom:
   stage: build
-  when: manual
+  #when: manual
   extends: .setup
   dependencies:
     - setup
