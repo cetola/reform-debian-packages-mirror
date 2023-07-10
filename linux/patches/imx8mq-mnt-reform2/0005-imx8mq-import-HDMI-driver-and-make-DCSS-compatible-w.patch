@@ -1,6 +1,6 @@
-From 0a3a91495d0caa01524559fc5354d64ad9cc0a3f Mon Sep 17 00:00:00 2001
+From e5d2b36379cb1d33cfda3c51e2a5180a9c5b82f8 Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
-Date: Sat, 22 Oct 2022 17:12:28 +0200
+Date: Sun, 9 Jul 2023 20:36:19 +0200
 Subject: [PATCH 5/5] imx8mq: import HDMI driver and make DCSS compatible with
  both HDMI and LCDIF
 
@@ -15,13 +15,14 @@ Subject: [PATCH 5/5] imx8mq: import HDMI driver and make DCSS compatible with
  .../gpu/drm/bridge/cadence/cdns-mhdp-hdmi.c   |  357 ++++++
  drivers/gpu/drm/bridge/cadence/cdns-mhdp.h    |  209 ++++
  drivers/gpu/drm/imx/Kconfig                   |    1 +
- drivers/gpu/drm/imx/cdn-mhdp-dp-phy.c         |  529 ++++++++
- drivers/gpu/drm/imx/cdn-mhdp-hdmi-phy.c       |  777 ++++++++++++
- drivers/gpu/drm/imx/cdn-mhdp-imxdrv.c         |  211 ++++
- drivers/gpu/drm/imx/cdn-mhdp-phy.h            |  155 +++
- drivers/gpu/drm/imx/cdns-mhdp-imx.h           |   75 ++
+ drivers/gpu/drm/imx/Makefile                  |    1 +
  drivers/gpu/drm/imx/cdns/Kconfig              |    8 +
  drivers/gpu/drm/imx/cdns/Makefile             |    2 +
+ drivers/gpu/drm/imx/cdns/cdn-mhdp-dp-phy.c    |  529 ++++++++
+ drivers/gpu/drm/imx/cdns/cdn-mhdp-hdmi-phy.c  |  777 ++++++++++++
+ drivers/gpu/drm/imx/cdns/cdn-mhdp-imxdrv.c    |  212 ++++
+ drivers/gpu/drm/imx/cdns/cdn-mhdp-phy.h       |  155 +++
+ drivers/gpu/drm/imx/cdns/cdns-mhdp-imx.h      |   75 ++
  drivers/gpu/drm/imx/dcss/dcss-dev.c           |   14 +
  drivers/gpu/drm/imx/dcss/dcss-dev.h           |    1 +
  drivers/gpu/drm/imx/dcss/dcss-drv.c           |   98 +-
@@ -30,7 +31,7 @@ Subject: [PATCH 5/5] imx8mq: import HDMI driver and make DCSS compatible with
  drivers/gpu/drm/imx/dcss/dcss-kms.h           |    4 +-
  include/drm/bridge/cdns-mhdp-cbs.h            |   29 +
  include/drm/bridge/cdns-mhdp-common.h         |  812 +++++++++++++
- 25 files changed, 6415 insertions(+), 37 deletions(-)
+ 26 files changed, 6417 insertions(+), 37 deletions(-)
  create mode 100644 drivers/gpu/drm/bridge/cadence/cdns-dp-core.c
  create mode 100644 drivers/gpu/drm/bridge/cadence/cdns-hdmi-core.c
  create mode 100644 drivers/gpu/drm/bridge/cadence/cdns-mhdp-audio.c
@@ -38,13 +39,13 @@ Subject: [PATCH 5/5] imx8mq: import HDMI driver and make DCSS compatible with
  create mode 100644 drivers/gpu/drm/bridge/cadence/cdns-mhdp-common.c
  create mode 100644 drivers/gpu/drm/bridge/cadence/cdns-mhdp-hdmi.c
  create mode 100644 drivers/gpu/drm/bridge/cadence/cdns-mhdp.h
- create mode 100644 drivers/gpu/drm/imx/cdn-mhdp-dp-phy.c
- create mode 100644 drivers/gpu/drm/imx/cdn-mhdp-hdmi-phy.c
- create mode 100644 drivers/gpu/drm/imx/cdn-mhdp-imxdrv.c
- create mode 100644 drivers/gpu/drm/imx/cdn-mhdp-phy.h
- create mode 100644 drivers/gpu/drm/imx/cdns-mhdp-imx.h
  create mode 100644 drivers/gpu/drm/imx/cdns/Kconfig
  create mode 100644 drivers/gpu/drm/imx/cdns/Makefile
+ create mode 100644 drivers/gpu/drm/imx/cdns/cdn-mhdp-dp-phy.c
+ create mode 100644 drivers/gpu/drm/imx/cdns/cdn-mhdp-hdmi-phy.c
+ create mode 100644 drivers/gpu/drm/imx/cdns/cdn-mhdp-imxdrv.c
+ create mode 100644 drivers/gpu/drm/imx/cdns/cdn-mhdp-phy.h
+ create mode 100644 drivers/gpu/drm/imx/cdns/cdns-mhdp-imx.h
  create mode 100644 include/drm/bridge/cdns-mhdp-cbs.h
  create mode 100644 include/drm/bridge/cdns-mhdp-common.h
 
@@ -3781,19 +3782,50 @@ index 000000000000..94d2b258542c
 +
 +#endif
 diff --git a/drivers/gpu/drm/imx/Kconfig b/drivers/gpu/drm/imx/Kconfig
-index e5749927fd6c..d4af27b65556 100644
+index 03535a15dd8f..6d182ac55049 100644
 --- a/drivers/gpu/drm/imx/Kconfig
 +++ b/drivers/gpu/drm/imx/Kconfig
-@@ -2,3 +2,4 @@
- 
+@@ -3,3 +3,4 @@
  source "drivers/gpu/drm/imx/dcss/Kconfig"
  source "drivers/gpu/drm/imx/ipuv3/Kconfig"
+ source "drivers/gpu/drm/imx/lcdc/Kconfig"
 +source "drivers/gpu/drm/imx/cdns/Kconfig"
-diff --git a/drivers/gpu/drm/imx/cdn-mhdp-dp-phy.c b/drivers/gpu/drm/imx/cdn-mhdp-dp-phy.c
+diff --git a/drivers/gpu/drm/imx/Makefile b/drivers/gpu/drm/imx/Makefile
+index 86f38e7c7422..feaafeb1e250 100644
+--- a/drivers/gpu/drm/imx/Makefile
++++ b/drivers/gpu/drm/imx/Makefile
+@@ -3,3 +3,4 @@
+ obj-$(CONFIG_DRM_IMX_DCSS) += dcss/
+ obj-$(CONFIG_DRM_IMX) += ipuv3/
+ obj-$(CONFIG_DRM_IMX_LCDC) += lcdc/
++obj-$(CONFIG_DRM_IMX_CDNS_MHDP) += cdns/
+diff --git a/drivers/gpu/drm/imx/cdns/Kconfig b/drivers/gpu/drm/imx/cdns/Kconfig
+new file mode 100644
+index 000000000000..5f6affeaaf0a
+--- /dev/null
++++ b/drivers/gpu/drm/imx/cdns/Kconfig
+@@ -0,0 +1,8 @@
++config DRM_IMX_CDNS_MHDP
++        tristate "NXP i.MX MX8 DRM HDMI/DP"
++        select DRM_CDNS_MHDP
++        select DRM_CDNS_DP
++        select DRM_CDNS_HDMI
++        select DRM_CDNS_AUDIO
++        help
++          Choose this if you want to use HDMI on i.MX8.
+diff --git a/drivers/gpu/drm/imx/cdns/Makefile b/drivers/gpu/drm/imx/cdns/Makefile
+new file mode 100644
+index 000000000000..7007f1f8b273
+--- /dev/null
++++ b/drivers/gpu/drm/imx/cdns/Makefile
+@@ -0,0 +1,2 @@
++cdns_mhdp_imx-objs := cdn-mhdp-imxdrv.o cdn-mhdp-dp-phy.o cdn-mhdp-hdmi-phy.o
++obj-$(CONFIG_DRM_IMX_CDNS_MHDP) += cdns_mhdp_imx.o
+diff --git a/drivers/gpu/drm/imx/cdns/cdn-mhdp-dp-phy.c b/drivers/gpu/drm/imx/cdns/cdn-mhdp-dp-phy.c
 new file mode 100644
 index 000000000000..ab155d6ef9f8
 --- /dev/null
-+++ b/drivers/gpu/drm/imx/cdn-mhdp-dp-phy.c
++++ b/drivers/gpu/drm/imx/cdns/cdn-mhdp-dp-phy.c
 @@ -0,0 +1,529 @@
 +/*
 + * Cadence Display Port Interface (DP) PHY driver
@@ -4324,11 +4356,11 @@ index 000000000000..ab155d6ef9f8
 +
 +	return true;
 +}
-diff --git a/drivers/gpu/drm/imx/cdn-mhdp-hdmi-phy.c b/drivers/gpu/drm/imx/cdn-mhdp-hdmi-phy.c
+diff --git a/drivers/gpu/drm/imx/cdns/cdn-mhdp-hdmi-phy.c b/drivers/gpu/drm/imx/cdns/cdn-mhdp-hdmi-phy.c
 new file mode 100644
 index 000000000000..d7b5034f3b67
 --- /dev/null
-+++ b/drivers/gpu/drm/imx/cdn-mhdp-hdmi-phy.c
++++ b/drivers/gpu/drm/imx/cdns/cdn-mhdp-hdmi-phy.c
 @@ -0,0 +1,777 @@
 +/*
 + * Cadence High-Definition Multimedia Interface (HDMI) driver
@@ -5107,12 +5139,12 @@ index 000000000000..d7b5034f3b67
 +
 +	return true;
 +}
-diff --git a/drivers/gpu/drm/imx/cdn-mhdp-imxdrv.c b/drivers/gpu/drm/imx/cdn-mhdp-imxdrv.c
+diff --git a/drivers/gpu/drm/imx/cdns/cdn-mhdp-imxdrv.c b/drivers/gpu/drm/imx/cdns/cdn-mhdp-imxdrv.c
 new file mode 100644
-index 000000000000..daee92cb9ce5
+index 000000000000..22dccd7797c1
 --- /dev/null
-+++ b/drivers/gpu/drm/imx/cdn-mhdp-imxdrv.c
-@@ -0,0 +1,211 @@
++++ b/drivers/gpu/drm/imx/cdns/cdn-mhdp-imxdrv.c
+@@ -0,0 +1,212 @@
 +/*
 + * copyright (c) 2019 nxp semiconductor, inc.
 + *
@@ -5126,10 +5158,11 @@ index 000000000000..daee92cb9ce5
 +#include <drm/drm_of.h>
 +#include <drm/drm_crtc_helper.h>
 +#include <drm/drm_encoder_slave.h>
++#include <drm/drm_atomic_helper.h>
 +
 +#include "cdns-mhdp-imx.h"
 +#include "cdn-mhdp-phy.h"
-+#include "imx-drm.h"
++#include "../ipuv3/imx-drm.h"
 +
 +static void cdns_mhdp_imx_encoder_disable(struct drm_encoder *encoder)
 +{
@@ -5324,11 +5357,11 @@ index 000000000000..daee92cb9ce5
 +MODULE_AUTHOR("Sandor YU <sandor.yu@nxp.com>");
 +MODULE_LICENSE("GPL");
 +MODULE_ALIAS("platform:cdnhdmi-imx");
-diff --git a/drivers/gpu/drm/imx/cdn-mhdp-phy.h b/drivers/gpu/drm/imx/cdn-mhdp-phy.h
+diff --git a/drivers/gpu/drm/imx/cdns/cdn-mhdp-phy.h b/drivers/gpu/drm/imx/cdns/cdn-mhdp-phy.h
 new file mode 100644
 index 000000000000..6ad1f372d0b8
 --- /dev/null
-+++ b/drivers/gpu/drm/imx/cdn-mhdp-phy.h
++++ b/drivers/gpu/drm/imx/cdns/cdn-mhdp-phy.h
 @@ -0,0 +1,155 @@
 +/*
 + * Copyright (C) 2019 NXP Semiconductor, Inc.
@@ -5485,11 +5518,11 @@ index 000000000000..6ad1f372d0b8
 +int cdns_hdmi_phy_set_imx8mq(struct cdns_mhdp_device *hdp);
 +int cdns_hdmi_phy_set_imx8qm(struct cdns_mhdp_device *hdp);
 +#endif /* _CDNS_MHDP_PHY_H */
-diff --git a/drivers/gpu/drm/imx/cdns-mhdp-imx.h b/drivers/gpu/drm/imx/cdns-mhdp-imx.h
+diff --git a/drivers/gpu/drm/imx/cdns/cdns-mhdp-imx.h b/drivers/gpu/drm/imx/cdns/cdns-mhdp-imx.h
 new file mode 100644
 index 000000000000..b95907ddc578
 --- /dev/null
-+++ b/drivers/gpu/drm/imx/cdns-mhdp-imx.h
++++ b/drivers/gpu/drm/imx/cdns/cdns-mhdp-imx.h
 @@ -0,0 +1,75 @@
 +/*
 + * Cadence High-Definition Multimedia Interface (HDMI) driver
@@ -5566,28 +5599,6 @@ index 000000000000..b95907ddc578
 +int cdns_mhdp_power_on_ls1028a(struct cdns_mhdp_device *mhdp);
 +void cdns_mhdp_pclk_rate_ls1028a(struct cdns_mhdp_device *mhdp);
 +#endif /* CDNS_MHDP_IMX_H_ */
-diff --git a/drivers/gpu/drm/imx/cdns/Kconfig b/drivers/gpu/drm/imx/cdns/Kconfig
-new file mode 100644
-index 000000000000..5f6affeaaf0a
---- /dev/null
-+++ b/drivers/gpu/drm/imx/cdns/Kconfig
-@@ -0,0 +1,8 @@
-+config DRM_IMX_CDNS_MHDP
-+        tristate "NXP i.MX MX8 DRM HDMI/DP"
-+        select DRM_CDNS_MHDP
-+        select DRM_CDNS_DP
-+        select DRM_CDNS_HDMI
-+        select DRM_CDNS_AUDIO
-+        help
-+          Choose this if you want to use HDMI on i.MX8.
-diff --git a/drivers/gpu/drm/imx/cdns/Makefile b/drivers/gpu/drm/imx/cdns/Makefile
-new file mode 100644
-index 000000000000..7007f1f8b273
---- /dev/null
-+++ b/drivers/gpu/drm/imx/cdns/Makefile
-@@ -0,0 +1,2 @@
-+cdns_mhdp_imx-objs := cdn-mhdp-imxdrv.o cdn-mhdp-dp-phy.o cdn-mhdp-hdmi-phy.o
-+obj-$(CONFIG_DRM_IMX_CDNS_MHDP) += cdns_mhdp_imx.o
 diff --git a/drivers/gpu/drm/imx/dcss/dcss-dev.c b/drivers/gpu/drm/imx/dcss/dcss-dev.c
 index 5d1779ab65c0..8efa055124c2 100644
 --- a/drivers/gpu/drm/imx/dcss/dcss-dev.c
@@ -5865,7 +5876,7 @@ index 30de00540f63..c7a688b2a3b6 100644
  }
 -
 diff --git a/drivers/gpu/drm/imx/dcss/dcss-kms.c b/drivers/gpu/drm/imx/dcss/dcss-kms.c
-index dab5e664920d..7a909230a7e1 100644
+index 896de946f8df..f04d45480f6d 100644
 --- a/drivers/gpu/drm/imx/dcss/dcss-kms.c
 +++ b/drivers/gpu/drm/imx/dcss/dcss-kms.c
 @@ -13,6 +13,7 @@

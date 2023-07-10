@@ -1,4 +1,4 @@
-From 6cb12d31888422948bfef94e163293be1bf838dd Mon Sep 17 00:00:00 2001
+From e142b3299f5cf105f41b40df86973fa50f9a0fa1 Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Wed, 7 Sep 2022 06:20:37 +0200
 Subject: [PATCH 1/5] nwl-dsi-fixup-mode-only-for-LCDIF-input-not-DCSS
@@ -8,7 +8,7 @@ Subject: [PATCH 1/5] nwl-dsi-fixup-mode-only-for-LCDIF-input-not-DCSS
  1 file changed, 10 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/gpu/drm/bridge/nwl-dsi.c b/drivers/gpu/drm/bridge/nwl-dsi.c
-index 6dc2a4e191d7..13c5ade4367c 100644
+index 4a5f5c4f5dcc..fa7ebaba15ca 100644
 --- a/drivers/gpu/drm/bridge/nwl-dsi.c
 +++ b/drivers/gpu/drm/bridge/nwl-dsi.c
 @@ -822,10 +822,17 @@ static int nwl_dsi_bridge_atomic_check(struct drm_bridge *bridge,
