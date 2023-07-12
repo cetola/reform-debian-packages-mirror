@@ -1,7 +1,7 @@
 From 86ec895bee02cf35d8df7b4b0368f6aa5876ef50 Mon Sep 17 00:00:00 2001
 From: Neil Armstrong <neil.armstrong@linaro.org>
 Date: Tue, 30 May 2023 09:38:12 +0200
-Subject: [PATCH 12/25] drm/meson: add DSI encoder
+Subject: [PATCH 12/26] drm/meson: add DSI encoder
 
 This adds an encoder bridge designed to drive a MIPI-DSI display
 by using the ENCL encoder through the internal MIPI DSI transceiver

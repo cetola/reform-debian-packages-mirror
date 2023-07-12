@@ -1,7 +1,7 @@
 From a2eefef3d0db2b04dd1d593dcdefda6523113314 Mon Sep 17 00:00:00 2001
 From: Neil Armstrong <neil.armstrong@linaro.org>
 Date: Tue, 30 May 2023 09:38:08 +0200
-Subject: [PATCH 08/25] dt-bindings: display: meson-vpu: add third DPI output
+Subject: [PATCH 08/26] dt-bindings: display: meson-vpu: add third DPI output
  port
 
 Add third port corresponding to the ENCL DPI encoder used to connect

@@ -1,7 +1,7 @@
 From aea96895a877985c382670b715610abbde2b7512 Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Sun, 9 Jul 2023 23:02:47 +0200
-Subject: [PATCH 19/25] dw-mipi-dsi-phy-stop-wait-time
+Subject: [PATCH 19/26] dw-mipi-dsi-phy-stop-wait-time
 
 ---
  drivers/gpu/drm/bridge/synopsys/dw-mipi-dsi.c | 6 ++++--

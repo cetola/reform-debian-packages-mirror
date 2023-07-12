@@ -1,7 +1,7 @@
 From 533514d4b0c5be1cc15a4498c17cdc7f2f9c91fc Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Sun, 9 Jul 2023 23:02:48 +0200
-Subject: [PATCH 20/25] innolux-n125hce-gn1-timing-tweaks
+Subject: [PATCH 20/26] innolux-n125hce-gn1-timing-tweaks
 
 ---
  drivers/gpu/drm/panel/panel-edp.c | 32 +++++++++++++++++++++++++++++++

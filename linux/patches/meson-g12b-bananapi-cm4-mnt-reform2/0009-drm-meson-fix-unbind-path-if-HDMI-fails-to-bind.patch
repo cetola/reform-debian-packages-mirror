@@ -1,7 +1,7 @@
 From 4852e2a7d576f71924dc39341003fb22954087b2 Mon Sep 17 00:00:00 2001
 From: Neil Armstrong <neil.armstrong@linaro.org>
 Date: Tue, 30 May 2023 09:38:09 +0200
-Subject: [PATCH 09/25] drm/meson: fix unbind path if HDMI fails to bind
+Subject: [PATCH 09/26] drm/meson: fix unbind path if HDMI fails to bind
 
 If the case the HDMI controller fails to bind, we try to unbind
 all components before calling drm_dev_put() which makes drm_bridge_detach()

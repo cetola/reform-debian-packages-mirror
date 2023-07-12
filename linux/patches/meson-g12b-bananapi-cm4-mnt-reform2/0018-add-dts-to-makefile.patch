@@ -1,7 +1,7 @@
 From e0b8e2e4627f166c01ca4c624c770f2cc1eceed2 Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Sun, 9 Jul 2023 23:02:47 +0200
-Subject: [PATCH 18/25] add-dts-to-makefile
+Subject: [PATCH 18/26] add-dts-to-makefile
 
 ---
  arch/arm64/boot/dts/amlogic/Makefile | 1 +

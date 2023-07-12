@@ -1,7 +1,7 @@
 From 8823f050a11be005ca876b6adda97db77573a108 Mon Sep 17 00:00:00 2001
 From: Neil Armstrong <neil.armstrong@linaro.org>
 Date: Tue, 30 May 2023 09:38:03 +0200
-Subject: [PATCH 03/25] clk: meson: g12a: add CTS_ENCL & CTS_ENCL_SEL clocks
+Subject: [PATCH 03/26] clk: meson: g12a: add CTS_ENCL & CTS_ENCL_SEL clocks
 
 Add new CTS_ENCL & CTS_ENCL_SEL clocks for the G12A compatible
 SoCs, they are used to feed the VPU LCD Pixel encoder used for

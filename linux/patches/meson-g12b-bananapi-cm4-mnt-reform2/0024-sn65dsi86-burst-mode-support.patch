@@ -1,7 +1,7 @@
 From 39df5be1747f46d73238bd8122e9c62cbee08fa4 Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Sun, 9 Jul 2023 23:02:51 +0200
-Subject: [PATCH 24/25] sn65dsi86-burst-mode-support
+Subject: [PATCH 24/26] sn65dsi86-burst-mode-support
 
 ---
  drivers/gpu/drm/bridge/ti-sn65dsi86.c | 4 ++++

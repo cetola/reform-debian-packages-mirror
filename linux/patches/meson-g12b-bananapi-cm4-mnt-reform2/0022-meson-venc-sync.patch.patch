@@ -1,7 +1,7 @@
 From 3020a57c10fe6b0f7e1cc1856bee072c449d3690 Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Sun, 9 Jul 2023 23:02:50 +0200
-Subject: [PATCH 22/25] meson-venc-sync.patch
+Subject: [PATCH 22/26] meson-venc-sync.patch
 
 ---
  drivers/gpu/drm/meson/meson_venc.c | 4 ++--

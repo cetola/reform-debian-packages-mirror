@@ -1,7 +1,7 @@
 From 87011c3aa9e2916e46b1a28a0da90cfc108f7f41 Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Sun, 9 Jul 2023 23:02:51 +0200
-Subject: [PATCH 23/25] meson-dw-mipi-dsi-sync-invert
+Subject: [PATCH 23/26] meson-dw-mipi-dsi-sync-invert
 
 ---
  drivers/gpu/drm/meson/meson_dw_mipi_dsi.c | 4 +++-
