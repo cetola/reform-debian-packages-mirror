@@ -13,4 +13,42 @@ diff -u mesa-23.1.3/debian/rules mesa-23.1.3/debian/rules
  	endif
  
  	ifneq (,$(filter $(DEB_HOST_ARCH), armhf arm64 riscv64))
+diff --git a/debian/control b/debian/control
+index e299f2f94f1..b49446bf64e 100644
+--- a/debian/control
++++ b/debian/control
+@@ -35,10 +35,10 @@ Build-Depends:
+  libxrandr-dev,
+  libxshmfence-dev (>= 1.1),
+  libzstd-dev,
+- python3,
+- python3-mako,
+- python3-ply,
+- python3-setuptools,
++ python3:native,
++ python3-mako:native,
++ python3-ply:native,
++ python3-setuptools:native,
+  flex,
+  bison,
+  libelf-dev [amd64 arm64 armel armhf i386 mips64el mipsel powerpc ppc64 ppc64el riscv64 s390x sparc64 x32],
+diff --git a/debian/control.in b/debian/control.in
+index 4c1fe1cc1ca..d35b0c4692a 100644
+--- a/debian/control.in
++++ b/debian/control.in
+@@ -35,10 +35,10 @@ Build-Depends:
+  libxrandr-dev,
+  libxshmfence-dev (>= 1.1),
+  libzstd-dev,
+- python3,
+- python3-mako,
+- python3-ply,
+- python3-setuptools,
++ python3:native,
++ python3-mako:native,
++ python3-ply:native,
++ python3-setuptools:native,
+  flex,
+  bison,
+  libelf-dev [@LLVM_ARCHS@],
 EOF
