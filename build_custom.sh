@@ -8,32 +8,6 @@ set -u
 
 . ./common.sh
 
-if [ -z "$(reprepro listfilter reform "\$Source (== box64)")" ]; then
-	rm -Rf "$WORKDIR"
-	mkdir --mode=0777 "$WORKDIR"
-	(
-		cd "$WORKDIR"
-		git clone https://salsa.debian.org/debian/box64.git
-		cd box64
-		git checkout pristine-tar
-		git checkout upstream
-		git checkout master
-		pristine-tar checkout ../box64_0.2.2+dfsg1.orig.tar.xz
-		dch --local "+$OURSUITE" "MNT Reform build"
-		dch --force-distribution --distribution="$OURSUITE" --release ""
-		ret=0
-		sbuild --chroot $BASESUITE-$BUILD_ARCH --host="$HOST_ARCH" --arch-all --arch-any $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED" || ret=$?
-		if [ "$ret" -ne 0 ]; then
-			# cross building failed -- try building
-			# "natively" with qemu-user
-			sbuild --chroot $BASESUITE-$HOST_ARCH --build="$HOST_ARCH" --host="$HOST_ARCH" --arch-all --arch-any $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
-		fi
-		dcmd mv -v ../box64_0.2.2+dfsg1-1+reform1_arm64.changes "$ROOTDIR/changes"
-		cd ..
-	)
-	rm -Rf "$WORKDIR"
-fi
-
 # starting with 2.80, blender requires OpenGL 3.2+, so 2.79b is the last one
 # that works on reform with imx8mq
 #
