@@ -12,11 +12,9 @@ Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
  arch/arm64/boot/dts/freescale/imx8mp.dtsi | 13 +++++++++++++
  1 file changed, 13 insertions(+)
 
-diff --git a/arch/arm64/boot/dts/freescale/imx8mp.dtsi b/arch/arm64/boot/dts/freescale/imx8mp.dtsi
-index 807ef8a2294d..8420177f58fd 100644
 --- a/arch/arm64/boot/dts/freescale/imx8mp.dtsi
 +++ b/arch/arm64/boot/dts/freescale/imx8mp.dtsi
-@@ -1097,6 +1097,19 @@ eqos: ethernet@30bf0000 {
+@@ -1354,6 +1354,19 @@
  				intf_mode = <&gpr 0x4>;
  				status = "disabled";
  			};
@@ -35,7 +33,4 @@ index 807ef8a2294d..8420177f58fd 100644
 +			};
  		};
  
- 		noc: interconnect@32700000 {
--- 
-2.40.0
-
+ 		aips5: bus@30c00000 {

@@ -8,6 +8,7 @@ set -u
 
 BASESUITE=unstable
 OURSUITE=reform
+VERSUFFIX=reform
 WORKDIR=$(mktemp --directory --tmpdir="$(pwd)")
 PATCHDIR=$(realpath patches)
 REPREPRO_BASE_DIR=$(realpath repo)
@@ -46,15 +47,6 @@ SRC_LIST_PATCHED="deb [ trusted=yes ] http://127.0.0.1:$HTTP_PORT/ $OURSUITE mai
 BUILD_ARCH=$(dpkg --print-architecture)
 HOST_ARCH=arm64
 
-# the remaining code assumes that the native arch is different from the host arch
-[ "$BUILD_ARCH" != "$HOST_ARCH" ]
-
-DEB_BUILD_PROFILES="nobiarch nocheck noudeb"
-if [ "$BUILD_ARCH" != "$HOST_ARCH" ]; then
-	# FIXME: the cross profile must not be set during native build
-	DEB_BUILD_PROFILES="cross $DEB_BUILD_PROFILES"
-fi
-export DEB_BUILD_PROFILES
 export DEB_BUILD_OPTIONS="noautodbgsym nocheck noudeb"
 
 chdistdata=$(pwd)/chdist

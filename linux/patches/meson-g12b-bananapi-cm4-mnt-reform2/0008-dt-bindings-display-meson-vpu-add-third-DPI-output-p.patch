@@ -15,13 +15,11 @@ Signed-off-by: Neil Armstrong <neil.armstrong@linaro.org>
  .../devicetree/bindings/display/amlogic,meson-vpu.yaml       | 5 +++++
  1 file changed, 5 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/display/amlogic,meson-vpu.yaml b/Documentation/devicetree/bindings/display/amlogic,meson-vpu.yaml
-index 0c72120acc4f..cb0a90f02321 100644
 --- a/Documentation/devicetree/bindings/display/amlogic,meson-vpu.yaml
 +++ b/Documentation/devicetree/bindings/display/amlogic,meson-vpu.yaml
-@@ -96,6 +96,11 @@ properties:
+@@ -101,6 +101,11 @@ properties:
      description:
-       A port node pointing to the HDMI-TX port node.
+       A port node pointing to the DPI port node (e.g. DSI or LVDS transceiver).
  
 +  port@2:
 +    $ref: /schemas/graph.yaml#/properties/port
@@ -31,6 +29,3 @@ index 0c72120acc4f..cb0a90f02321 100644
    "#address-cells":
      const: 1
  
--- 
-2.40.0
-

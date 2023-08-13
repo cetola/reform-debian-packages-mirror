@@ -30,7 +30,7 @@ fi
 
 cat << END > "$chdistdata/base/etc/apt/sources.list"
 deb-src $MIRROR $BASESUITE main
-#deb-src $MIRROR experimental main
+deb-src $MIRROR experimental main
 END
 chdist_base apt-get update
 

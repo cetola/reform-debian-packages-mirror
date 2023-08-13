@@ -47,7 +47,7 @@ faketime=
 if command -v faketime >/dev/null && [ -n "${SOURCE_DATE_EPOCH:+x}" ]; then
 	faketime="faketime @$SOURCE_DATE_EPOCH"
 fi
-env --chdir=linux TZ=UTC $faketime dch --local "+$OURSUITE$datesuffix" "apply mnt reform patch"
+env --chdir=linux TZ=UTC $faketime dch --local "+$VERSUFFIX$datesuffix" "apply mnt reform patch"
 env --chdir=linux TZ=UTC $faketime dch --force-distribution --distribution="$OURSUITE" --release ""
 
 env --chdir=linux patch -p1 < packaging.diff
@@ -108,6 +108,6 @@ fi
 
 env --chdir=linux DEB_BUILD_PROFILES="$DEB_BUILD_PROFILES" \
 	sbuild --chroot="$BASESUITE-$BUILD_ARCH" --arch-any --arch-all --host="$HOST_ARCH" \
-		--nolog --no-source-only-changes --no-run-lintian --no-run-autopkgtest
+		--verbose --no-source-only-changes --no-run-lintian --no-run-autopkgtest
 
 dcmd mv "./linux_$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog)_arm64.changes" "$ROOTDIR/changes"
