@@ -332,6 +332,7 @@ diff -Nru gst-plugins-good1.0-1.22.3/debian/patches/3419.patch gst-plugins-good1
 diff -Nru gst-plugins-good1.0-1.22.3/debian/patches/series gst-plugins-good1.0-1.22.3/debian/patches/series
 --- gst-plugins-good1.0-1.22.3/debian/patches/series	2023-06-12 20:42:30.000000000 +0200
 +++ gst-plugins-good1.0-1.22.3/debian/patches/series	2023-06-18 15:18:19.000000000 +0200
-@@ -0,0 +1 @@
+@@ -1,1 +1,2 @@
+ qt-Unbreak-build-with-qt-egl-enabled-but-viv_fb-missing.patch
 +3419.patch
 EOF
