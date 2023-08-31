@@ -1,0 +1,35 @@
+#!/bin/sh
+set -e
+patch -p1 << 'EOF'
+diff -Nru flash-kernel-3.107/db/all.db flash-kernel-3.107+nmu1/db/all.db
+--- flash-kernel-3.107/db/all.db	2023-04-09 02:51:45.000000000 +0200
++++ flash-kernel-3.107+nmu1/db/all.db	2023-08-31 22:54:26.000000000 +0200
+@@ -1168,6 +1168,13 @@
+ U-Boot-Script-Name: bootscr.sunxi
+ Required-Packages: u-boot-tools
+ 
++Machine: MNT Pocket Reform (i.MX8MP)
++Kernel-Flavors: any
++Boot-Script-Path: /boot/boot.scr
++DTB-Id: freescale/imx8mp-mnt-pocket-reform.dtb
++U-Boot-Script-Name: bootscr.uboot-generic
++Required-Packages: u-boot-tools
++
+ Machine: MNT Reform 2
+ Kernel-Flavors: any
+ Boot-Script-Path: /boot/boot.scr
+@@ -1184,6 +1191,13 @@
+ Boot-Script-Path: /boot/boot.scr
+ U-Boot-Script-Name: bootscr.uboot-generic
+ Required-Packages: u-boot-tools
++
++Machine: MNT Reform 2 with BPI-CM4 Module
++Kernel-Flavors: any
++DTB-Id: amlogic/meson-g12b-bananapi-cm4-mnt-reform2.dtb
++Boot-Script-Path: /boot/boot.scr
++U-Boot-Script-Name: bootscr.uboot-generic
++Required-Packages: u-boot-tools
+ 
+ Machine: MSI Primo81 tablet
+ Kernel-Flavors: armmp armmp-lpae
+EOF
