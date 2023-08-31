@@ -107,6 +107,7 @@ if [ "$BUILD_ARCH" != "$HOST_ARCH" ]; then
 fi
 
 env --chdir=linux DEB_BUILD_PROFILES="$DEB_BUILD_PROFILES" \
+	DEB_BUILD_OPTIONS=hardening=-branch \
 	sbuild --chroot="$BASESUITE-$BUILD_ARCH" --arch-any --arch-all --host="$HOST_ARCH" \
 		--verbose --no-source-only-changes --no-run-lintian --no-run-autopkgtest
 
