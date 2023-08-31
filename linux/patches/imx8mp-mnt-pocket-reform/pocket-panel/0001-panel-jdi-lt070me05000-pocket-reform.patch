@@ -290,33 +290,15 @@ index 8f4f137a2af6..edf6bd4a6611 100644
  }
  
  static const struct drm_panel_funcs jdi_panel_funcs = {
-@@ -403,7 +318,7 @@ static int jdi_panel_add(struct jdi_panel *jdi)
- 		jdi->supplies[i].supply = regulator_names[i];
- 
- 	ret = devm_regulator_bulk_get(dev, ARRAY_SIZE(jdi->supplies),
--				      jdi->supplies);
-+							jdi->supplies);
- 	if (ret < 0) {
- 		dev_err(dev, "failed to init regulator, ret=%d\n", ret);
- 		return ret;
 @@ -430,7 +345,7 @@ static int jdi_panel_add(struct jdi_panel *jdi)
- 		return ret;
- 	}
+ 		return dev_err_probe(dev, PTR_ERR(jdi->dcdc_en_gpio),
+ 				     "cannot get dcdc-en-gpio %d\n", ret);
  
 -	jdi->backlight = drm_panel_create_dsi_backlight(jdi->dsi);
 +	jdi->backlight = drm_panel_create_dsi_backlight(jdi);
- 	if (IS_ERR(jdi->backlight)) {
- 		ret = PTR_ERR(jdi->backlight);
- 		dev_err(dev, "failed to register backlight %d\n", ret);
-@@ -438,7 +353,7 @@ static int jdi_panel_add(struct jdi_panel *jdi)
- 	}
- 
- 	drm_panel_init(&jdi->base, &jdi->dsi->dev, &jdi_panel_funcs,
--		       DRM_MODE_CONNECTOR_DSI);
-+					 DRM_MODE_CONNECTOR_DSI);
- 
- 	drm_panel_add(&jdi->base);
- 
+ 	if (IS_ERR(jdi->backlight))
+ 		return dev_err_probe(dev, PTR_ERR(jdi->backlight),
+ 				     "failed to register backlight %d\n", ret);
 @@ -458,8 +373,7 @@ static int jdi_panel_probe(struct mipi_dsi_device *dsi)
  
  	dsi->lanes = 4;

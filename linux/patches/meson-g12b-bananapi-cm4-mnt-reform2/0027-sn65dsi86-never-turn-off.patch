@@ -1,0 +1,54 @@
+diff --git a/drivers/gpu/drm/bridge/ti-sn65dsi86.c b/drivers/gpu/drm/bridge/ti-sn65dsi86.c
+index 729961aec052..260ed3d64d5b 100644
+--- a/drivers/gpu/drm/bridge/ti-sn65dsi86.c
++++ b/drivers/gpu/drm/bridge/ti-sn65dsi86.c
+@@ -343,6 +343,9 @@ static void ti_sn65dsi86_disable_comms(struct ti_sn65dsi86 *pdata)
+ {
+ 	mutex_lock(&pdata->comms_mutex);
+ 
++	printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
++	return;
++
+ 	pdata->comms_enabled = false;
+ 	clk_disable_unprepare(pdata->refclk);
+ 
+@@ -383,6 +386,9 @@ static int __maybe_unused ti_sn65dsi86_suspend(struct device *dev)
+ 	struct ti_sn65dsi86 *pdata = dev_get_drvdata(dev);
+ 	int ret;
+ 
++	printk(KERN_ALERT "DEBUG: ti_sn65dsi86_suspend skipped.\n");
++	return 0;
++
+ 	if (pdata->refclk)
+ 		ti_sn65dsi86_disable_comms(pdata);
+ 
+@@ -786,6 +792,9 @@ static void ti_sn_bridge_atomic_disable(struct drm_bridge *bridge,
+ {
+ 	struct ti_sn65dsi86 *pdata = bridge_to_ti_sn65dsi86(bridge);
+ 
++	printk(KERN_ALERT "DEBUG: ti_sn_bridge_atomic_disable skipped.\n");
++	return;
++
+ 	/* disable video stream */
+ 	regmap_update_bits(pdata->regmap, SN_ENH_FRAME_REG, VSTREAM_ENABLE, 0);
+ }
+@@ -1151,6 +1160,9 @@ static void ti_sn_bridge_atomic_post_disable(struct drm_bridge *bridge,
+ {
+ 	struct ti_sn65dsi86 *pdata = bridge_to_ti_sn65dsi86(bridge);
+ 
++	printk(KERN_ALERT "DEBUG: ti_sn_bridge_atomic_post_disable skipped.\n");
++	return;
++
+ 	/* semi auto link training mode OFF */
+ 	regmap_write(pdata->regmap, SN_ML_TX_MODE_REG, 0);
+ 	/* Num lanes to 0 as per power sequencing in data sheet */
+@@ -1838,6 +1850,9 @@ static inline void ti_sn_gpio_unregister(void) {}
+ 
+ static void ti_sn65dsi86_runtime_disable(void *data)
+ {
++	printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
++	return;
++
+ 	pm_runtime_dont_use_autosuspend(data);
+ 	pm_runtime_disable(data);
+ }

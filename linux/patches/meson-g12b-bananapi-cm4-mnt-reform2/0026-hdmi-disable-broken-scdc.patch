@@ -1,0 +1,14 @@
+diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+index 603bb3c51027..af38c0acaf63 100644
+--- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
++++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+@@ -1389,6 +1389,9 @@ static bool dw_hdmi_support_scdc(struct dw_hdmi *hdmi,
+ 	if (!hdmi->ddc)
+ 		return false;
+ 
++	// disable, scdc is broken
++	return false;
++
+ 	/* Disable if SCDC is not supported, or if an HF-VSDB block is absent */
+ 	if (!display->hdmi.scdc.supported ||
+ 	    !display->hdmi.scdc.scrambling.supported)
