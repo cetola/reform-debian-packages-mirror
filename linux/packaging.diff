@@ -60,3 +60,18 @@ index 113926e5f..5acb3fa1f 100644
 +[packages]:
 +installer: false
 +docs: false
+diff -Nru linux-6.4.11/debian/rules.real linux-6.4.11/debian/rules.real
+--- linux-6.4.11/debian/rules.real	2023-08-17 09:05:43.000000000 +0200
++++ linux-6.4.11/debian/rules.real	2023-09-01 06:43:41.000000000 +0200
+@@ -43,7 +43,10 @@
+ setup_env += DISTRIBUTION_OFFICIAL_BUILD=1 DISTRIBUTOR="$(DISTRIBUTOR)" DISTRIBUTION_VERSION="$(SOURCEVERSION)" KBUILD_BUILD_TIMESTAMP="$(SOURCE_DATE)" KBUILD_BUILD_VERSION_TIMESTAMP="$(DISTRIBUTOR) $(SOURCEVERSION) ($(SOURCE_DATE_UTC_ISO))" KBUILD_BUILD_USER="$(word 1,$(subst @, ,$(MAINTAINER)))" KBUILD_BUILD_HOST="$(word 2,$(subst @, ,$(MAINTAINER)))"
+ setup_env += KBUILD_VERBOSE=$(if $(filter terse,$(DEB_BUILD_OPTIONS)),0,1)
+ 
+-MAKE_CLEAN = $(setup_env) $(MAKE) KCFLAGS=-fdebug-prefix-map=$(CURDIR)/= KBUILD_HOSTCFLAGS='$(CFLAGS) $(CPPFLAGS)' HOSTCFLAGS='$(CFLAGS) $(CPPFLAGS)' KBUILD_HOSTLDFLAGS='$(LDFLAGS)'
++CFLAGS_FOR_BUILD   ?= $(shell dpkg-architecture --host-arch $(DEB_BUILD_ARCH) --force --command dpkg-buildflags --get CFLAGS)
++CPPFLAGS_FOR_BUILD ?= $(shell dpkg-architecture --host-arch $(DEB_BUILD_ARCH) --force --command dpkg-buildflags --get CPPFLAGS)
++LDFLAGS_FOR_BUILD  ?= $(shell dpkg-architecture --host-arch $(DEB_BUILD_ARCH) --force --command dpkg-buildflags --get LDFLAGS)
++MAKE_CLEAN = $(setup_env) $(MAKE) KCFLAGS=-fdebug-prefix-map=$(CURDIR)/= KBUILD_HOSTCFLAGS='$(CFLAGS_FOR_BUILD) $(CPPFLAGS_FOR_BUILD)' HOSTCFLAGS='$(CFLAGS_FOR_BUILD) $(CPPFLAGS_FOR_BUILD)' KBUILD_HOSTLDFLAGS='$(LDFLAGS_FOR_BUILD)'
+ MAKE_SELF := $(MAKE) -f debian/rules.real $(MAKEOVERRIDES)
+ MAKEOVERRIDES =
+ 
