@@ -71,7 +71,7 @@ diff -Nru linux-6.4.11/debian/rules.real linux-6.4.11/debian/rules.real
 +CFLAGS_FOR_BUILD   ?= $(shell dpkg-architecture --host-arch $(DEB_BUILD_ARCH) --force --command dpkg-buildflags --get CFLAGS)
 +CPPFLAGS_FOR_BUILD ?= $(shell dpkg-architecture --host-arch $(DEB_BUILD_ARCH) --force --command dpkg-buildflags --get CPPFLAGS)
 +LDFLAGS_FOR_BUILD  ?= $(shell dpkg-architecture --host-arch $(DEB_BUILD_ARCH) --force --command dpkg-buildflags --get LDFLAGS)
-+MAKE_CLEAN = $(setup_env) $(MAKE) KCFLAGS=-fdebug-prefix-map=$(CURDIR)/= KBUILD_HOSTCFLAGS='$(CFLAGS_FOR_BUILD) $(CPPFLAGS_FOR_BUILD)' HOSTCFLAGS='$(CFLAGS_FOR_BUILD) $(CPPFLAGS_FOR_BUILD)' KBUILD_HOSTLDFLAGS='$(LDFLAGS_FOR_BUILD)'
++MAKE_CLEAN = $(setup_env) $(MAKE) KCFLAGS=-fdebug-prefix-map=$(CURDIR)/= KBUILD_HOSTCFLAGS='' HOSTCFLAGS='' KBUILD_HOSTLDFLAGS=''
  MAKE_SELF := $(MAKE) -f debian/rules.real $(MAKEOVERRIDES)
  MAKEOVERRIDES =
  
