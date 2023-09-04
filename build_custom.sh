@@ -38,6 +38,25 @@ set -u
 #		./build.sh
 #fi
 
+if [ -z "$(reprepro listfilter reform "Package (== wayfire)")" ]; then
+	rm -Rf "$WORKDIR"
+	mkdir --mode=0777 "$WORKDIR"
+	(
+		cd "$WORKDIR"
+		cp -Rv ../wayfire/debian ./wayfire_0.8
+		cd ../wayfire
+		git clone --recursive --depth 1 https://github.com/WayfireWM/wayfire.git wayfire_0.8
+		# because debian meson.pm disables https://mesonbuild.com/Wrap-dependency-system-manual.html
+		cp -Rv wayfire-debian-wrap-workaround/* wayfire_0.8/subprojects/
+		tar cvfz "$WORKDIR/wayfire_0.8.orig.tar.gz" ./wayfire_0.8
+		cd "$WORKDIR/wayfire_0.8"
+		sbuild --arch-all --arch-any --chroot $BASESUITE-$BUILD_ARCH $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
+		dcmd mv -v ../wayfire_*_amd64.changes "$ROOTDIR/changes"
+		cd ..
+	)
+	rm -Rf "$WORKDIR"
+fi
+
 if [ -z "$(reprepro listfilter reform "Package (== reform-tools)")" ]; then
 	rm -Rf "$WORKDIR"
 	mkdir --mode=0777 "$WORKDIR"
