@@ -47,20 +47,20 @@ if [ -z "$(reprepro listfilter reform "Package (== wayfire)")" ]; then
 		git clone --recursive https://github.com/WayfireWM/wayfire.git wayfire-src
 
 		WFCOMMIT=$(git rev-parse --short HEAD)
-    WFDATE=$(date +%Y-%m-%d)
-    WFVERTAR="0.8~$WFDATE"
+		WFDATE=$(date +%Y-%m-%d)
+		WFVERTAR="0.8~$WFDATE"
 		WFVER="wayfire_$WFVERTAR-git$WFCOMMIT"
 
-    mv wayfire-src "$WFVER"
+		mv wayfire-src "$WFVER"
 		# because debian meson.pm disables https://mesonbuild.com/Wrap-dependency-system-manual.html
 		cp -Rv wayfire-debian-wrap-workaround/* "$WFVER/subprojects/"
 		tar cvfz "$WORKDIR/wayfire_$WFVERTAR.orig.tar.gz" "$WFVER"
 
 		cd "$WORKDIR"
 		cp -Rv ../wayfire/debian "$WFVER"
-    cd "$WFVER"
-    echo "wayfire ($WFVERTAR-git$WFCOMMIT) reform; urgency=medium" > debian/changelog
-    cat debian/changelog.tail >> debian/changelog
+		cd "$WFVER"
+		echo "wayfire ($WFVERTAR-git$WFCOMMIT) reform; urgency=medium" > debian/changelog
+		cat debian/changelog.tail >> debian/changelog
 
 		sbuild --arch-all --arch-any --chroot $BASESUITE-$BUILD_ARCH $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
 		dcmd mv -v ../wayfire_*_amd64.changes "$ROOTDIR/changes"
