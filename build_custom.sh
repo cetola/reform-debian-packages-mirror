@@ -70,9 +70,6 @@ if [ -z "$(reprepro listfilter reform "Package (== wayfire)")" ]; then
 				--extra-repository="$SRC_LIST_PATCHED"
 		cd ..
 
-		ls -lR
-		find . -name "*.deb"
-
 		# build the firedecor plugin
 		cd "$WORKDIR"
 		cd ../firedecor
@@ -98,6 +95,8 @@ if [ -z "$(reprepro listfilter reform "Package (== wayfire)")" ]; then
 				--profiles="cross,$COMMON_BUILD_PROFILES" \
 				$COMMON_SBUILD_OPTS \
 				--extra-package=".."
+		# includes wayfire
+		dcmd mv -v ../*.changes "$ROOTDIR/changes"
 		cd ..
 	)
 	rm -Rf "$WORKDIR"
