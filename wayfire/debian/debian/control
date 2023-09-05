@@ -26,59 +26,20 @@ Build-Depends:
  git,
  pkg-config,
  wayland-protocols,
-Provides: libwf-config1 (= 0.8)
 Standards-Version: 4.6.2
 Rules-Requires-Root: no
 Homepage: https://wayfire.org/
 Vcs-Git: https://salsa.debian.org/debian/wayfire.git
 Vcs-Browser: https://salsa.debian.org/debian/wayfire
 
-Package: libwf-touch-dev
-Architecture: any
-Multi-Arch: same
-Depends:
- ${misc:Depends},
-Description: 3D Wayland compositor (wf-touch library dev files)
- Wayfire is a 3D Wayland compositor, inspired by Compiz and based on
- wlroots. It aims to create a customizable, extendable and lightweight
- environment without sacrificing its appearance.
- .
- This package contains the development files for the embedded
- wf-touch library.
-
-Package: libwf-utils-dev
-Architecture: any
-Multi-Arch: same
-Depends:
- libwf-utils0 (= ${binary:Version}),
- ${misc:Depends},
-Description: 3D Wayland compositor (wf-utils library dev files)
- Wayfire is a 3D Wayland compositor, inspired by Compiz and based on
- wlroots. It aims to create a customizable, extendable and lightweight
- environment without sacrificing its appearance.
- .
- This package contains the development files for the embedded
- wf-utils library.
-
-Package: libwf-utils0
-Architecture: any
-Multi-Arch: same
-Depends:
- ${misc:Depends},
- ${shlibs:Depends},
-Description: 3D Wayland compositor (wf-utils library)
- Wayfire is a 3D Wayland compositor, inspired by Compiz and based on
- wlroots. It aims to create a customizable, extendable and lightweight
- environment without sacrificing its appearance.
- .
- This package contains the shared library files for the embedded
- wf-utils library.
-
 Package: wayfire
 Architecture: any
 Depends:
  ${misc:Depends},
  ${shlibs:Depends},
+Provides:
+ libwf-config1 (= 0.8),
+ libwf-utils0 (= 0.8),
 Description: 3D Wayland compositor
  Wayfire is a 3D Wayland compositor, inspired by Compiz and based on
  wlroots. It aims to create a customizable, extendable and lightweight
@@ -90,7 +51,10 @@ Package: wayfire-dev
 Architecture: any
 Depends:
  ${misc:Depends},
-Provides: libwf-config-dev (= 0.8)
+Provides:
+ libwf-config-dev (= 0.8),
+ libwf-touch-dev (= 0.8),
+ libwf-utils-dev (= 0.8),
 Description: 3D Wayland compositor (development files)
  Wayfire is a 3D Wayland compositor, inspired by Compiz and based on
  wlroots. It aims to create a customizable, extendable and lightweight
