@@ -62,8 +62,12 @@ if [ -z "$(reprepro listfilter reform "Package (== wayfire)")" ]; then
 		echo "wayfire ($WFVERTAR-git$WFCOMMIT) reform; urgency=medium" > debian/changelog
 		cat debian/changelog.tail >> debian/changelog
 
-		sbuild --arch-all --arch-any --chroot $BASESUITE-$BUILD_ARCH $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
-		#dcmd mv -v ../wayfire_*_amd64.changes "$ROOTDIR/changes"
+		sbuild --chroot $BASESUITE-$BUILD_ARCH \
+				--host="$HOST_ARCH" \
+				--no-arch-all --arch-any \
+				--profiles="cross,$COMMON_BUILD_PROFILES" \
+				$COMMON_SBUILD_OPTS \
+				--extra-repository="$SRC_LIST_PATCHED"
 		cd ..
 
 		ls -lR
@@ -88,8 +92,12 @@ if [ -z "$(reprepro listfilter reform "Package (== wayfire)")" ]; then
 		echo "firedecor ($FDVERTAR-git$FDCOMMIT) reform; urgency=medium" > debian/changelog
 		cat debian/changelog.tail >> debian/changelog
 
-		sbuild --arch-all --arch-any --chroot $BASESUITE-$BUILD_ARCH $COMMON_SBUILD_OPTS --extra-package=".."
-		#dcmd mv -v ../firedecor_*_amd64.changes "$ROOTDIR/changes"
+		sbuild --chroot $BASESUITE-$BUILD_ARCH \
+				--host="$HOST_ARCH" \
+				--no-arch-all --arch-any \
+				--profiles="cross,$COMMON_BUILD_PROFILES" \
+				--extra-package=".." \
+				$COMMON_SBUILD_OPTS \
 		cd ..
 	)
 	#rm -Rf "$WORKDIR"
