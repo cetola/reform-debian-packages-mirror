@@ -26,6 +26,7 @@ Build-Depends:
  git,
  pkg-config,
  wayland-protocols,
+Provides: libwf-config1 (= 0.8)
 Standards-Version: 4.6.2
 Rules-Requires-Root: no
 Homepage: https://wayfire.org/
@@ -89,6 +90,7 @@ Package: wayfire-dev
 Architecture: any
 Depends:
  ${misc:Depends},
+Provides: libwf-config-dev (= 0.8)
 Description: 3D Wayland compositor (development files)
  Wayfire is a 3D Wayland compositor, inspired by Compiz and based on
  wlroots. It aims to create a customizable, extendable and lightweight

@@ -1,9 +1,7 @@
 usr/bin/
 usr/lib/*/wayfire/
 usr/lib/*/libwayfire-blur-base.so
-usr/lib/*/libwf-config.so
-usr/lib/*/libwf-config.so.0.8.0
-usr/lib/*/libwf-config.so.1
+usr/lib/*/libwf-config.so.*
 usr/lib/*/pkgconfig/wf-config.pc
 usr/share/wayfire/
 usr/man/wayfire.1
