@@ -76,7 +76,7 @@ build_custom:
 
 build_linux:
   stage: build
-  when: manual
+  #when: manual
   extends: .setup
   dependencies:
     - setup
