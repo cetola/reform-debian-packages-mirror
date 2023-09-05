@@ -25,7 +25,6 @@ Build-Depends:
  meson,
  ninja-build,
  git,
- g++,
  pkg-config,
  wayland-protocols,
  wayfire-dev,

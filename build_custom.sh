@@ -59,7 +59,7 @@ if [ -z "$(reprepro listfilter reform "Package (== wayfire)")" ]; then
 		cd "$WORKDIR"
 		cp -Rv ../wayfire/debian "$WFVER"
 		cd "$WFVER"
-		echo "wayfire ($WFVERTAR-git$WFCOMMIT) reform; urgency=medium" > debian/changelog
+		echo "wayfire ($WFVERTAR-git$WFCOMMIT) $OURSUITE; urgency=medium" > debian/changelog
 		cat debian/changelog.tail >> debian/changelog
 
 		sbuild --chroot $BASESUITE-$BUILD_ARCH \
@@ -89,18 +89,18 @@ if [ -z "$(reprepro listfilter reform "Package (== wayfire)")" ]; then
 		cd "$WORKDIR"
 		cp -Rv ../firedecor/debian "$FDVER"
 		cd "$FDVER"
-		echo "firedecor ($FDVERTAR-git$FDCOMMIT) reform; urgency=medium" > debian/changelog
+		echo "firedecor ($FDVERTAR-git$FDCOMMIT) $OURSUITE; urgency=medium" > debian/changelog
 		cat debian/changelog.tail >> debian/changelog
 
 		sbuild --chroot $BASESUITE-$BUILD_ARCH \
 				--host="$HOST_ARCH" \
 				--no-arch-all --arch-any \
 				--profiles="cross,$COMMON_BUILD_PROFILES" \
-				--extra-package=".." \
 				$COMMON_SBUILD_OPTS \
+				--extra-package=".."
 		cd ..
 	)
-	#rm -Rf "$WORKDIR"
+	rm -Rf "$WORKDIR"
 fi
 
 # if [ -z "$(reprepro listfilter reform "Package (== reform-tools)")" ]; then
