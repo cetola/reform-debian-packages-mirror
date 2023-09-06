@@ -38,6 +38,70 @@ set -u
 #		./build.sh
 #fi
 
+if [ -z "$(reprepro listfilter reform "Package (== wayfire)")" ]; then
+	rm -Rf "$WORKDIR"
+	mkdir --mode=0777 "$WORKDIR"
+	(
+		cd "$WORKDIR"
+		cd ../wayfire
+		git clone --recursive https://github.com/WayfireWM/wayfire.git wayfire-src
+
+		WFCOMMIT=$(git rev-parse --short HEAD)
+		WFDATE=$(date +%Y-%m-%d)
+		WFVERTAR="0.8~$WFDATE"
+		WFVER="wayfire_$WFVERTAR-git$WFCOMMIT"
+
+		mv wayfire-src "$WFVER"
+		# because debian meson.pm disables https://mesonbuild.com/Wrap-dependency-system-manual.html
+		cp -Rv wayfire-debian-wrap-workaround/* "$WFVER/subprojects/"
+		tar cvfz "$WORKDIR/wayfire_$WFVERTAR.orig.tar.gz" "$WFVER"
+
+		cd "$WORKDIR"
+		cp -Rv ../wayfire/debian "$WFVER"
+		cd "$WFVER"
+		echo "wayfire ($WFVERTAR-git$WFCOMMIT) $OURSUITE; urgency=medium" > debian/changelog
+		cat debian/changelog.tail >> debian/changelog
+
+		sbuild --chroot $BASESUITE-$BUILD_ARCH \
+				--host="$HOST_ARCH" \
+				--no-arch-all --arch-any \
+				--profiles="cross,$COMMON_BUILD_PROFILES" \
+				$COMMON_SBUILD_OPTS \
+				--extra-repository="$SRC_LIST_PATCHED"
+		cd ..
+
+		# build the firedecor plugin
+		cd "$WORKDIR"
+		cd ../firedecor
+		git clone --recursive https://github.com/mntmn/Firedecor.git firedecor-src
+
+		FDCOMMIT=$(git rev-parse --short HEAD)
+		FDDATE=$(date +%Y-%m-%d)
+		FDVERTAR="0.1~$FDDATE"
+		FDVER="firedecor_$FDVERTAR-git$FDCOMMIT"
+
+		mv firedecor-src "$FDVER"
+		tar cvfz "$WORKDIR/firedecor_$FDVERTAR.orig.tar.gz" "$FDVER"
+
+		cd "$WORKDIR"
+		cp -Rv ../firedecor/debian "$FDVER"
+		cd "$FDVER"
+		echo "firedecor ($FDVERTAR-git$FDCOMMIT) $OURSUITE; urgency=medium" > debian/changelog
+		cat debian/changelog.tail >> debian/changelog
+
+		sbuild --chroot $BASESUITE-$BUILD_ARCH \
+				--host="$HOST_ARCH" \
+				--no-arch-all --arch-any \
+				--profiles="cross,$COMMON_BUILD_PROFILES" \
+				$COMMON_SBUILD_OPTS \
+				--extra-package=".."
+		# includes wayfire
+		dcmd mv -v ../*.changes "$ROOTDIR/changes"
+		cd ..
+	)
+	rm -Rf "$WORKDIR"
+fi
+
 if [ -z "$(reprepro listfilter reform "Package (== reform-tools)")" ]; then
 	rm -Rf "$WORKDIR"
 	mkdir --mode=0777 "$WORKDIR"
@@ -45,6 +109,7 @@ if [ -z "$(reprepro listfilter reform "Package (== reform-tools)")" ]; then
 		cd "$WORKDIR"
 		git clone https://source.mnt.re/reform/reform-tools.git
 		cd reform-tools
+		git checkout tools-202309 # FIXME remove before merge
 		sbuild --arch-all --arch-any --chroot $BASESUITE-$BUILD_ARCH $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
 		dcmd mv -v ../reform-tools_*_amd64.changes "$ROOTDIR/changes"
 		cd ..

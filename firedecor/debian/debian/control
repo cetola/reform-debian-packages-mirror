@@ -1,0 +1,46 @@
+Source: firedecor
+Section: x11
+Priority: optional
+Maintainer: Lukas F. Hartmann <lukas@mntre.com>
+Build-Depends:
+ debhelper-compat (= 13),
+ doctest-dev <!nocheck>,
+ libboost-dev,
+ libcairo2-dev,
+ libdrm-dev,
+ libevdev-dev,
+ libfreetype-dev,
+ libgl-dev,
+ libglm-dev,
+ libinput-dev,
+ libjpeg-dev,
+ libpango1.0-dev,
+ libpixman-1-dev,
+ libpng-dev,
+ librsvg2-dev,
+ libwayland-dev,
+ libwlroots-dev (>= 0.16),
+ libxkbcommon-dev,
+ libxml2-dev,
+ meson,
+ ninja-build,
+ git,
+ pkg-config,
+ wayland-protocols,
+ wayfire-dev,
+ wayfire
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
+Homepage: https://wayfire.org/
+Vcs-Git: https://salsa.debian.org/debian/wayfire.git
+Vcs-Browser: https://salsa.debian.org/debian/wayfire
+
+Package: firedecor
+Architecture: any
+Depends:
+ ${misc:Depends},
+ ${shlibs:Depends},
+Description: MNT Reform specific window decoration for Wayfire
+ Updated, bugfixed and simplified fork of Firedecor.
+ .
+ This package contains the core files.

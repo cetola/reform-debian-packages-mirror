@@ -1,0 +1,63 @@
+Source: wayfire
+Section: x11
+Priority: optional
+Maintainer: Lukas F. Hartmann <lukas@mntre.com>
+Build-Depends:
+ debhelper-compat (= 13),
+ doctest-dev <!nocheck>,
+ libcairo2-dev,
+ libdrm-dev,
+ libevdev-dev,
+ libfreetype-dev,
+ libgl-dev,
+ libglm-dev,
+ libinput-dev,
+ libjpeg-dev,
+ libpango1.0-dev,
+ libpixman-1-dev,
+ libpng-dev,
+ libwayland-dev,
+ libwf-config-dev,
+ libwlroots-dev (>= 0.16),
+ libxkbcommon-dev,
+ libxml2-dev,
+ meson,
+ ninja-build,
+ git,
+ pkg-config,
+ wayland-protocols,
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
+Homepage: https://wayfire.org/
+Vcs-Git: https://salsa.debian.org/debian/wayfire.git
+Vcs-Browser: https://salsa.debian.org/debian/wayfire
+
+Package: wayfire
+Architecture: any
+Depends:
+ ${misc:Depends},
+ ${shlibs:Depends},
+Provides:
+ libwf-config1 (= 0.8),
+ libwf-utils0 (= 0.8),
+Description: 3D Wayland compositor
+ Wayfire is a 3D Wayland compositor, inspired by Compiz and based on
+ wlroots. It aims to create a customizable, extendable and lightweight
+ environment without sacrificing its appearance.
+ .
+ This package contains the core files.
+
+Package: wayfire-dev
+Architecture: any
+Depends:
+ ${misc:Depends},
+Provides:
+ libwf-config-dev (= 0.8),
+ libwf-touch-dev (= 0.8),
+ libwf-utils-dev (= 0.8),
+Description: 3D Wayland compositor (development files)
+ Wayfire is a 3D Wayland compositor, inspired by Compiz and based on
+ wlroots. It aims to create a customizable, extendable and lightweight
+ environment without sacrificing its appearance.
+ .
+ This package contains the development files.

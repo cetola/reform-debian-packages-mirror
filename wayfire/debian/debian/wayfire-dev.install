@@ -1,0 +1,7 @@
+usr/include/wayfire
+usr/lib/*/pkgconfig/wayfire.pc
+usr/lib/*/libwf-config.so
+usr/lib/*/libwf-utils.so
+usr/lib/*/libwftouch.a
+usr/lib/*/pkgconfig/wf-config.pc
+usr/lib/*/pkgconfig/wf-utils.pc

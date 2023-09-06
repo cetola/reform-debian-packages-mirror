@@ -1,0 +1,3 @@
+debian/firedecor/usr/lib/*/wayfire/libfiredecor.so
+debian/firedecor/usr/share/firedecor/
+debian/firedecor/usr/share/wayfire/metadata/firedecor.xml
