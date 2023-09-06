@@ -9,7 +9,7 @@ stages:
   before_script: |
     set -x
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
-    apt-get --no-install-recommends -y install devscripts reprepro sbuild debhelper debian-keyring quilt pristine-tar rsync git python3-debian faketime python3-jinja2 uidmap debian-archive-keyring
+    apt-get --no-install-recommends -y install devscripts reprepro sbuild debhelper debian-keyring quilt pristine-tar rsync git python3-debian faketime python3-jinja2 uidmap debian-archive-keyring curl
     if [ ! -e /proc/sys/fs/binfmt_misc/status ]; then
       mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
     fi
@@ -58,6 +58,28 @@ build_patched:
       - output.log
       - changes
   script: |
+    # if we are on gitlab CI and if the current branch is NOT main, then
+    # fill the repo with cached results from the last successful run in main
+    for p in patches/*; do
+      p=${p#patches/}
+      [ -e "patches/$p" ] || continue
+      [ -x "patches/$p" ] || continue
+      if [ -n "${CI_COMMIT_REF_NAME+x}" ] && [ "${CI_COMMIT_REF_NAME:-}" != main ]; then
+        for variant in cross native; do
+          if [ "$(curl --silent --output /dev/null --write-out "%{http_code}" --location "$CI_PROJECT_URL/-/jobs/artifacts/main/raw/changes/${p}_${variant}.changes?job=build_patched")" != "200" ]; then
+            echo "${p}_${variant}.changes is not available" >&2
+            continue
+          fi
+          curl --silent --location "$CI_PROJECT_URL/-/jobs/artifacts/main/raw/changes/${p}_${variant}.changes?job=build_patched" > "changes/${p}_${variant}.changes"
+          env --chdir=changes dcmd "${p}_${variant}.changes" | while read f; do
+            echo "downloading $f" >&2
+            curl --silent --location "$CI_PROJECT_URL/-/jobs/artifacts/main/raw/changes/${f}?job=build_patched" > "changes/${f}"
+          done
+          echo "including ${p}_${variant}.changes" >&2
+          reprepro --basedir ./repo include "reform" "changes/${p}_${variant}.changes"
+        done
+      fi
+    done
     runuser -u build -- sh -x ./build_patched.sh 2>&1 | ./filter-output
 
 build_custom:

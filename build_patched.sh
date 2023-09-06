@@ -21,20 +21,6 @@ for p in patches/*; do
 		continue
 	fi
 
-	# if we are on gitlab CI and if the current branch is NOT main, then
-	# fill the repo with cached results from the last run
-	CIURL="https://source.mnt.re/reform/reform-debian-packages/-"
-	if [ -n "${CI_COMMIT_REF_NAME+x}" ] && [ "${CI_COMMIT_REF_NAME:-}" != main ]; then
-		for variant in cross native; do
-			curl "$CIURL/jobs/artifacts/main/raw/changes/${p}_${variant}.changes?job=build_patched" > "$ROOTDIR/changes/${p}_${variant}.changes"
-			dcmd "$ROOTDIR/changes/${p}_${variant}.changes" | while read f; do
-				curl "$CIURL/jobs/artifacts/main/raw/changes/${f}?job=build_patched" > "$ROOTDIR/changes/${f}"
-			done
-			echo "including ${p}_${variant}.changes"
-			reprepro include "$OURSUITE" "$ROOTDIR/changes/${p}_${variant}.changes"
-		done
-	fi
-
 	# shellcheck disable=SC2016
 	our_version=$(reprepro --list-format '${version}_${source}\n' -T deb listfilter "$OURSUITE" "\$Source (== $p)" | sed 's/.*_.*(\(.*\))$/\1/;s/_.*//' | uniq)
 	their_version=$(chdist_base apt-get source --only-source -t "$BASESUITE" --no-act "$p" | sed "s/^Selected version '\\([^']*\\)' ($BASESUITE) for .*/\\1/;t;d")
