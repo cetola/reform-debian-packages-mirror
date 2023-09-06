@@ -110,4 +110,5 @@ env --chdir=linux DEB_BUILD_PROFILES="$DEB_BUILD_PROFILES" \
 	sbuild --chroot="$BASESUITE-$BUILD_ARCH" --arch-any --arch-all --host="$HOST_ARCH" \
 		--verbose --no-source-only-changes --no-run-lintian --no-run-autopkgtest
 
-dcmd mv "./linux_$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog)_arm64.changes" "$ROOTDIR/changes"
+mv "./linux_$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog)_arm64.changes" "./linux.changes"
+dcmd mv "./linux.changes" "$ROOTDIR/changes"
