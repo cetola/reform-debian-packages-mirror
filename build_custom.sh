@@ -109,7 +109,6 @@ if [ -z "$(reprepro listfilter reform "Package (== reform-tools)")" ]; then
 		cd "$WORKDIR"
 		git clone https://source.mnt.re/reform/reform-tools.git
 		cd reform-tools
-		git checkout tools-202309 # FIXME remove before merge
 		sbuild --arch-all --arch-any --chroot $BASESUITE-$BUILD_ARCH $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
 		dcmd mv -v ../reform-tools_*_amd64.changes "$ROOTDIR/changes"
 		cd ..
