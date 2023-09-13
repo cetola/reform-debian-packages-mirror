@@ -1,13 +1,14 @@
 #!/bin/sh
 set -e
 patch -p1 << 'EOF'
-diff -Nru flash-kernel-3.107/db/all.db flash-kernel-3.107+nmu1/db/all.db
---- flash-kernel-3.107/db/all.db	2023-04-09 02:51:45.000000000 +0200
-+++ flash-kernel-3.107+nmu1/db/all.db	2023-08-31 22:54:26.000000000 +0200
-@@ -1168,6 +1168,13 @@
+diff --git a/db/all.db b/db/all.db
+index 1bacc51..765fe45 100644
+--- a/db/all.db
++++ b/db/all.db
+@@ -1168,6 +1168,13 @@ DTB-Id: sun7i-a20-mk808c.dtb
  U-Boot-Script-Name: bootscr.sunxi
  Required-Packages: u-boot-tools
- 
+
 +Machine: MNT Pocket Reform (i.MX8MP)
 +Kernel-Flavors: any
 +Boot-Script-Path: /boot/boot.scr
@@ -18,18 +19,25 @@ diff -Nru flash-kernel-3.107/db/all.db flash-kernel-3.107+nmu1/db/all.db
  Machine: MNT Reform 2
  Kernel-Flavors: any
  Boot-Script-Path: /boot/boot.scr
-@@ -1184,6 +1191,13 @@
- Boot-Script-Path: /boot/boot.scr
+@@ -1185,6 +1192,20 @@ Boot-Script-Path: /boot/boot.scr
  U-Boot-Script-Name: bootscr.uboot-generic
  Required-Packages: u-boot-tools
-+
+
 +Machine: MNT Reform 2 with BPI-CM4 Module
 +Kernel-Flavors: any
 +DTB-Id: amlogic/meson-g12b-bananapi-cm4-mnt-reform2.dtb
 +Boot-Script-Path: /boot/boot.scr
 +U-Boot-Script-Name: bootscr.uboot-generic
 +Required-Packages: u-boot-tools
- 
++
++Machine: MNT Reform 2 with LS1028A Module
++Kernel-Flavors: any
++DTB-Id: freescale/fsl-ls1028a-mnt-reform2.dtb
++Boot-Script-Path: /boot/boot.scr
++U-Boot-Script-Name: bootscr.uboot-generic
++Required-Packages: u-boot-tools
++
  Machine: MSI Primo81 tablet
  Kernel-Flavors: armmp armmp-lpae
+ Boot-Script-Path: /boot/boot.scr
 EOF
