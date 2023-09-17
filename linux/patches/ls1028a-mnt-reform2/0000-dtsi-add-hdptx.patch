@@ -1,16 +1,25 @@
+From 393cdd0244e3cfde6ed160d8a29a30773d128a79 Mon Sep 17 00:00:00 2001
+From: "Lukas F. Hartmann" <lukas@mntre.com>
+Date: Sun, 17 Sep 2023 17:39:32 +0200
+Subject: [PATCH] dtsi-add-hdptx
+
+---
+ .../arm64/boot/dts/freescale/fsl-ls1028a.dtsi | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
 diff --git a/arch/arm64/boot/dts/freescale/fsl-ls1028a.dtsi b/arch/arm64/boot/dts/freescale/fsl-ls1028a.dtsi
-index d5cdd77e5..853e95d80 100644
+index 9cbb31191..3fb33c8ad 100644
 --- a/arch/arm64/boot/dts/freescale/fsl-ls1028a.dtsi
 +++ b/arch/arm64/boot/dts/freescale/fsl-ls1028a.dtsi
-@@ -854,7 +854,26 @@ malidp0: display@f080000 {
-
+@@ -857,7 +857,26 @@ malidp0: display@f080000 {
+ 
  			port {
  				dpi0_out: endpoint {
 +					remote-endpoint = <&dp1_out>;
 +				};
 +			};
 +		};
-
+ 
 +		hdptx0: display@f200000 {
 +			compatible = "cdn,ls1028a-dp";
 +			reg = <0x0 0xf200000 0x0 0xfffff>;
@@ -29,3 +38,6 @@ index d5cdd77e5..853e95d80 100644
  				};
  			};
  		};
+-- 
+2.40.0
+

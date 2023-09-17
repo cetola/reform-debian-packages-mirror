@@ -1,17 +1,17 @@
-From 39df5be1747f46d73238bd8122e9c62cbee08fa4 Mon Sep 17 00:00:00 2001
+From 6d6b45ed6cdf1ed5c2efcd05019cea4a1df0a962 Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Sun, 9 Jul 2023 23:02:51 +0200
-Subject: [PATCH 24/25] sn65dsi86-burst-mode-support
+Subject: [PATCH 16/21] sn65dsi86-burst-mode-support
 
 ---
  drivers/gpu/drm/bridge/ti-sn65dsi86.c | 4 ++++
  1 file changed, 4 insertions(+)
 
 diff --git a/drivers/gpu/drm/bridge/ti-sn65dsi86.c b/drivers/gpu/drm/bridge/ti-sn65dsi86.c
-index 4676cf2900df..ac00c371e057 100644
+index f448b903e..305859922 100644
 --- a/drivers/gpu/drm/bridge/ti-sn65dsi86.c
 +++ b/drivers/gpu/drm/bridge/ti-sn65dsi86.c
-@@ -687,6 +687,10 @@ static int ti_sn_attach_host(struct ti_sn65dsi86 *pdata)
+@@ -715,6 +715,10 @@ static int ti_sn_attach_host(struct ti_sn65dsi86 *pdata)
  	dsi->lanes = 4;
  	dsi->format = MIPI_DSI_FMT_RGB888;
  	dsi->mode_flags = MIPI_DSI_MODE_VIDEO;

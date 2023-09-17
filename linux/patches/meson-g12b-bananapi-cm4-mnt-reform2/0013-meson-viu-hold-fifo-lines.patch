@@ -1,14 +1,14 @@
-From 3b239c4b7900c1b084b01fa559803702fc48be01 Mon Sep 17 00:00:00 2001
+From f45675995ec2fab90adec43426039dd6ffda94a7 Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Sun, 9 Jul 2023 23:02:49 +0200
-Subject: [PATCH 21/25] meson-viu-hold-fifo-lines
+Subject: [PATCH 13/21] meson-viu-hold-fifo-lines
 
 ---
  drivers/gpu/drm/meson/meson_viu.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/meson/meson_viu.c b/drivers/gpu/drm/meson/meson_viu.c
-index cd399b0b7181..119d00f23f8c 100644
+index cd399b0b7..119d00f23 100644
 --- a/drivers/gpu/drm/meson/meson_viu.c
 +++ b/drivers/gpu/drm/meson/meson_viu.c
 @@ -441,7 +441,7 @@ void meson_viu_init(struct meson_drm *priv)

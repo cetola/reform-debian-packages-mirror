@@ -1,7 +1,7 @@
-From 75a14e15b9ebcdfeb739935bc1f8e1f3500e1cb2 Mon Sep 17 00:00:00 2001
+From a7bba6cdf1be1afe243b4a24a3037e01080d05f7 Mon Sep 17 00:00:00 2001
 From: Neil Armstrong <neil.armstrong@linaro.org>
 Date: Tue, 30 May 2023 09:38:15 +0200
-Subject: [PATCH 15/25] arm64: meson: g12-common: add the MIPI DSI nodes
+Subject: [PATCH 08/21] arm64: meson: g12-common: add the MIPI DSI nodes
 
 Add the MIPI DSI Analog & Digital PHY nodes and the DSI control
 nodes with proper port endpoint to the VPU.
@@ -12,7 +12,7 @@ Signed-off-by: Neil Armstrong <neil.armstrong@linaro.org>
  1 file changed, 70 insertions(+)
 
 diff --git a/arch/arm64/boot/dts/amlogic/meson-g12-common.dtsi b/arch/arm64/boot/dts/amlogic/meson-g12-common.dtsi
-index 0c49655cc90c..e2d890e72940 100644
+index 0c49655cc..e2d890e72 100644
 --- a/arch/arm64/boot/dts/amlogic/meson-g12-common.dtsi
 +++ b/arch/arm64/boot/dts/amlogic/meson-g12-common.dtsi
 @@ -1662,9 +1662,28 @@ pwrc: power-controller {

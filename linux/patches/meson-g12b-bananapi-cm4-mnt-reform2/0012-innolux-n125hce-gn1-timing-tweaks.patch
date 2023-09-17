@@ -1,17 +1,17 @@
-From 533514d4b0c5be1cc15a4498c17cdc7f2f9c91fc Mon Sep 17 00:00:00 2001
+From 6a51b0b4e1bae07da42ab82c41628c5ca1997c6f Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Sun, 9 Jul 2023 23:02:48 +0200
-Subject: [PATCH 20/25] innolux-n125hce-gn1-timing-tweaks
+Subject: [PATCH 12/21] innolux-n125hce-gn1-timing-tweaks
 
 ---
  drivers/gpu/drm/panel/panel-edp.c | 32 +++++++++++++++++++++++++++++++
  1 file changed, 32 insertions(+)
 
 diff --git a/drivers/gpu/drm/panel/panel-edp.c b/drivers/gpu/drm/panel/panel-edp.c
-index e23ddab2126e..42c2cc2c2172 100644
+index fbd114b4f..51749e599 100644
 --- a/drivers/gpu/drm/panel/panel-edp.c
 +++ b/drivers/gpu/drm/panel/panel-edp.c
-@@ -1346,6 +1346,35 @@ static const struct panel_desc innolux_n125hce_gn1 = {
+@@ -1344,6 +1344,35 @@ static const struct panel_desc innolux_n125hce_gn1 = {
  	},
  };
  
@@ -47,7 +47,7 @@ index e23ddab2126e..42c2cc2c2172 100644
  static const struct drm_display_mode innolux_p120zdg_bf1_mode = {
  	.clock = 206016,
  	.hdisplay = 2160,
-@@ -1766,6 +1795,9 @@ static const struct of_device_id platform_of_match[] = {
+@@ -1764,6 +1793,9 @@ static const struct of_device_id platform_of_match[] = {
  	}, {
  		.compatible = "innolux,n125hce-gn1",
  		.data = &innolux_n125hce_gn1,

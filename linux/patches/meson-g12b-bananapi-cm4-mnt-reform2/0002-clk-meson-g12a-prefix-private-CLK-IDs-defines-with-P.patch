@@ -1,7 +1,7 @@
-From c7291dc06c2f0bc9c975892dda72f069760555b2 Mon Sep 17 00:00:00 2001
+From 3cb6bb3608cc9ac3690152958e6fdc22faefe582 Mon Sep 17 00:00:00 2001
 From: Neil Armstrong <neil.armstrong@linaro.org>
 Date: Tue, 30 May 2023 09:38:02 +0200
-Subject: [PATCH 02/25] clk: meson: g12a: prefix private CLK IDs defines with
+Subject: [PATCH 02/21] clk: meson: g12a: prefix private CLK IDs defines with
  PRIV
 
 Exposing should not be done in a single commit anymore due to
@@ -22,7 +22,7 @@ Signed-off-by: Neil Armstrong <neil.armstrong@linaro.org>
  2 files changed, 444 insertions(+), 444 deletions(-)
 
 diff --git a/drivers/clk/meson/g12a.c b/drivers/clk/meson/g12a.c
-index 310accf94830..d2e481ae2429 100644
+index 310accf94..d2e481ae2 100644
 --- a/drivers/clk/meson/g12a.c
 +++ b/drivers/clk/meson/g12a.c
 @@ -4255,8 +4255,8 @@ static struct clk_hw_onecell_data g12a_hw_onecell_data = {
@@ -897,7 +897,7 @@ index 310accf94830..d2e481ae2429 100644
  	/* Setup clock notifier for cpu_clk mux */
  	notifier_clk = devm_clk_hw_get_clk(dev, &g12b_cpu_clk.hw,
 diff --git a/drivers/clk/meson/g12a.h b/drivers/clk/meson/g12a.h
-index a97613df38b3..a57f4a9717db 100644
+index a97613df3..a57f4a971 100644
 --- a/drivers/clk/meson/g12a.h
 +++ b/drivers/clk/meson/g12a.h
 @@ -135,136 +135,136 @@

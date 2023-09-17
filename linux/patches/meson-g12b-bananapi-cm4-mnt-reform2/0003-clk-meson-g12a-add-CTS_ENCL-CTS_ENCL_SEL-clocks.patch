@@ -1,7 +1,7 @@
-From 8823f050a11be005ca876b6adda97db77573a108 Mon Sep 17 00:00:00 2001
+From 6c106ee45dc88cb6c2050de3736b1b9878263caa Mon Sep 17 00:00:00 2001
 From: Neil Armstrong <neil.armstrong@linaro.org>
 Date: Tue, 30 May 2023 09:38:03 +0200
-Subject: [PATCH 03/25] clk: meson: g12a: add CTS_ENCL & CTS_ENCL_SEL clocks
+Subject: [PATCH 03/21] clk: meson: g12a: add CTS_ENCL & CTS_ENCL_SEL clocks
 
 Add new CTS_ENCL & CTS_ENCL_SEL clocks for the G12A compatible
 SoCs, they are used to feed the VPU LCD Pixel encoder used for
@@ -14,7 +14,7 @@ Signed-off-by: Neil Armstrong <neil.armstrong@linaro.org>
  2 files changed, 43 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/clk/meson/g12a.c b/drivers/clk/meson/g12a.c
-index d2e481ae2429..a132aad2aac9 100644
+index d2e481ae2..a132aad2a 100644
 --- a/drivers/clk/meson/g12a.c
 +++ b/drivers/clk/meson/g12a.c
 @@ -3547,6 +3547,22 @@ static struct clk_regmap g12a_cts_encp_sel = {
@@ -116,7 +116,7 @@ index d2e481ae2429..a132aad2aac9 100644
  	&g12a_hdmi_tx,
  	&g12a_hdmi_sel,
 diff --git a/drivers/clk/meson/g12a.h b/drivers/clk/meson/g12a.h
-index a57f4a9717db..9a3091fcaa41 100644
+index a57f4a971..9a3091fca 100644
 --- a/drivers/clk/meson/g12a.h
 +++ b/drivers/clk/meson/g12a.h
 @@ -265,8 +265,10 @@

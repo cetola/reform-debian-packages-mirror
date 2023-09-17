@@ -1,14 +1,14 @@
-From 87011c3aa9e2916e46b1a28a0da90cfc108f7f41 Mon Sep 17 00:00:00 2001
+From 55cc68c56db6bb4b27bb7e52d63d37172dbfb51b Mon Sep 17 00:00:00 2001
 From: "Lukas F. Hartmann" <lukas@mntre.com>
 Date: Sun, 9 Jul 2023 23:02:51 +0200
-Subject: [PATCH 23/25] meson-dw-mipi-dsi-sync-invert
+Subject: [PATCH 15/21] meson-dw-mipi-dsi-sync-invert
 
 ---
  drivers/gpu/drm/meson/meson_dw_mipi_dsi.c | 4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/meson/meson_dw_mipi_dsi.c b/drivers/gpu/drm/meson/meson_dw_mipi_dsi.c
-index dd505ac37976..948638ff96f2 100644
+index 57447abf1..a3612f5db 100644
 --- a/drivers/gpu/drm/meson/meson_dw_mipi_dsi.c
 +++ b/drivers/gpu/drm/meson/meson_dw_mipi_dsi.c
 @@ -121,7 +121,9 @@ static int dw_mipi_dsi_phy_init(void *priv_data)

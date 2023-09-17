@@ -1,7 +1,7 @@
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From 25b84eeff0c5013366821e82654313d591609c57 Mon Sep 17 00:00:00 2001
 From: Stefan Agner <stefan@agner.ch>
 Date: Wed, 15 Sep 2021 05:00:45 +0000
-Subject: HACK: of: partial revert of fdt.c changes
+Subject: [PATCH 21/21] HACK: of: partial revert of fdt.c changes
 
 This resolves reports similar to the below which are present in dmesg
 since Linux 5.10; which are also causing crashes in some distros:
@@ -14,7 +14,7 @@ Signed-off-by: Christian Hewitt <christianshewitt@gmail.com>
  1 file changed, 9 deletions(-)
 
 diff --git a/drivers/of/fdt.c b/drivers/of/fdt.c
-index bf502ba8da95..0789f61be489 100644
+index bf502ba8d..0789f61be 100644
 --- a/drivers/of/fdt.c
 +++ b/drivers/of/fdt.c
 @@ -480,15 +480,6 @@ static int __init early_init_dt_reserve_memory(phys_addr_t base,
@@ -34,5 +34,5 @@ index bf502ba8da95..0789f61be489 100644
  	}
  	return memblock_reserve(base, size);
 -- 
-Armbian
+2.40.0
 

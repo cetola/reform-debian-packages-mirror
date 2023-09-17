@@ -1,7 +1,8 @@
-From 04edce285a3f96cebe2b70dbabe4524e04eb655e Mon Sep 17 00:00:00 2001
+From 66849f4a78fa5e96fd152d22cd51cefef5da7036 Mon Sep 17 00:00:00 2001
 From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
 Date: Sun, 9 Jul 2023 21:36:29 +0200
-Subject: [PATCH] wifi: rtw88: sdio: Honor the host max_req_size in the RX path
+Subject: [PATCH 19/21] wifi: rtw88: sdio: Honor the host max_req_size in the
+ RX path
 
 Lukas reports skb_over_panic errors on his Banana Pi BPI-CM4 which comes
 with an Amlogic A311D (G12B) SoC and a RTL8822CS SDIO wifi/Bluetooth
@@ -48,7 +49,7 @@ Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
  1 file changed, 23 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/net/wireless/realtek/rtw88/sdio.c b/drivers/net/wireless/realtek/rtw88/sdio.c
-index 2c1fb2dabd40..0a711effc4eb 100644
+index 2c1fb2dab..0a711effc 100644
 --- a/drivers/net/wireless/realtek/rtw88/sdio.c
 +++ b/drivers/net/wireless/realtek/rtw88/sdio.c
 @@ -500,19 +500,35 @@ static u32 rtw_sdio_get_tx_addr(struct rtw_dev *rtwdev, size_t size,
@@ -95,5 +96,5 @@ index 2c1fb2dabd40..0a711effc4eb 100644
  	if (bus_claim)
  		sdio_release_host(rtwsdio->sdio_func);
 -- 
-2.41.0
+2.40.0
 

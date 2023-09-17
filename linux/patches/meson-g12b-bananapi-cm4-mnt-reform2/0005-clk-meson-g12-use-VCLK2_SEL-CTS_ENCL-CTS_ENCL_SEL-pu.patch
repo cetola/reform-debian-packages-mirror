@@ -1,7 +1,7 @@
-From 7e736ffe4ca0f0922e8e2d6d040215306c9eedc8 Mon Sep 17 00:00:00 2001
+From 21cac1a286ac4312f5c638be687c5d1d754ed3f0 Mon Sep 17 00:00:00 2001
 From: Neil Armstrong <neil.armstrong@linaro.org>
 Date: Tue, 30 May 2023 09:38:05 +0200
-Subject: [PATCH 05/25] clk: meson: g12: use VCLK2_SEL, CTS_ENCL & CTS_ENCL_SEL
+Subject: [PATCH 05/21] clk: meson: g12: use VCLK2_SEL, CTS_ENCL & CTS_ENCL_SEL
  public CLK IDs
 
 Now those CLK IDs were added to the public bindings header, switch
@@ -14,7 +14,7 @@ Signed-off-by: Neil Armstrong <neil.armstrong@linaro.org>
  2 files changed, 9 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/clk/meson/g12a.c b/drivers/clk/meson/g12a.c
-index a132aad2aac9..461ebd79497c 100644
+index a132aad2a..461ebd794 100644
 --- a/drivers/clk/meson/g12a.c
 +++ b/drivers/clk/meson/g12a.c
 @@ -4411,7 +4411,7 @@ static struct clk_hw_onecell_data g12a_hw_onecell_data = {
@@ -90,7 +90,7 @@ index a132aad2aac9..461ebd79497c 100644
  		[CLKID_HDMI_TX]			= &g12a_hdmi_tx.hw,
  		[CLKID_PRIV_HDMI_SEL]		= &g12a_hdmi_sel.hw,
 diff --git a/drivers/clk/meson/g12a.h b/drivers/clk/meson/g12a.h
-index 9a3091fcaa41..8275413f2beb 100644
+index 9a3091fca..8275413f2 100644
 --- a/drivers/clk/meson/g12a.h
 +++ b/drivers/clk/meson/g12a.h
 @@ -168,7 +168,6 @@
