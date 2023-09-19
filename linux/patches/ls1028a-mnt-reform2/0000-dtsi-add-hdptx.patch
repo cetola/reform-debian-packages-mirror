@@ -11,15 +11,15 @@ diff --git a/arch/arm64/boot/dts/freescale/fsl-ls1028a.dtsi b/arch/arm64/boot/dt
 index 9cbb31191..3fb33c8ad 100644
 --- a/arch/arm64/boot/dts/freescale/fsl-ls1028a.dtsi
 +++ b/arch/arm64/boot/dts/freescale/fsl-ls1028a.dtsi
-@@ -857,7 +857,26 @@ malidp0: display@f080000 {
- 
+@@ -857,8 +857,27 @@ malidp0: display@f080000 {
+
  			port {
  				dpi0_out: endpoint {
 +					remote-endpoint = <&dp1_out>;
 +				};
 +			};
 +		};
- 
+
 +		hdptx0: display@f200000 {
 +			compatible = "cdn,ls1028a-dp";
 +			reg = <0x0 0xf200000 0x0 0xfffff>;
@@ -31,6 +31,7 @@ index 9cbb31191..3fb33c8ad 100644
 +			              "cclk", "clk_vif", "clk_pxl";
 +			lane-mapping = <0x4e>;
 +			edp_num_lanes = <0x2>;
++			firmware-name = "ls1028a-mhdpfw.bin";
 +
 +			port {
 +				dp1_out: endpoint {
@@ -38,6 +39,5 @@ index 9cbb31191..3fb33c8ad 100644
  				};
  			};
  		};
--- 
+--
 2.40.0
-
