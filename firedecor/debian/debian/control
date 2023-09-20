@@ -18,6 +18,7 @@ Build-Depends:
  libpixman-1-dev,
  libpng-dev,
  librsvg2-dev,
+ libsharpyuv-dev,
  libwayland-dev,
  libwlroots-dev (>= 0.16),
  libxkbcommon-dev,
