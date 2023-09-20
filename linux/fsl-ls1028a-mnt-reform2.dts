@@ -74,6 +74,13 @@
 			"LINPUT2", "Line In Jack",
 			"RINPUT2", "Line In Jack";
 	};
+
+	backlight: backlight {
+		compatible = "pwm-backlight";
+		pwms = <&pwm0 1 10000 0>;
+		brightness-levels = <0 8 16 32 64 128 160 200 255>;
+		default-brightness-level = <8>;
+	};
 };
 
 &dpclk {
