@@ -1,0 +1,30 @@
+diff --git a/arch/arm64/boot/dts/amlogic/meson-g12-common.dtsi b/arch/arm64/boot/dts/amlogic/meson-g12-common.dtsi
+index 0c49655cc90c..ec4c9fe286ad 100644
+--- a/arch/arm64/boot/dts/amlogic/meson-g12-common.dtsi
++++ b/arch/arm64/boot/dts/amlogic/meson-g12-common.dtsi
+@@ -936,17 +936,22 @@ mux {
+ 					};
+ 
+ 					sdio_pins: sdio {
+-						mux {
++						mux-0 {
+ 							groups = "sdio_d0",
+ 								 "sdio_d1",
+ 								 "sdio_d2",
+ 								 "sdio_d3",
+-								 "sdio_clk",
+ 								 "sdio_cmd";
+ 							function = "sdio";
+-							bias-disable;
++							bias-pull-up;
+ 							drive-strength-microamp = <4000>;
+ 						};
++
++						mux-1 {
++							groups = "sdio_clk";
++							function = "sdio";
++							bias-disable;
++						};
+ 					};
+ 
+ 					sdio_clk_gate_pins: sdio_clk_gate {
