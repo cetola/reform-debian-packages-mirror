@@ -11,6 +11,8 @@
 /dts-v1/;
 #include "fsl-ls1028a.dtsi"
 
+#include <dt-bindings/gpio/gpio.h>
+
 / {
 	model = "MNT Reform 2 with LS1028A Module";
 	compatible = "fsl,ls1028a-rdb", "fsl,ls1028a";
@@ -80,6 +82,7 @@
 		pwms = <&pwm0 1 10000 0>;
 		brightness-levels = <0 8 16 32 64 128 160 200 255>;
 		default-brightness-level = <8>;
+		enable-gpios = <&gpio1 24 GPIO_ACTIVE_HIGH>;
 	};
 };
 
@@ -180,5 +183,6 @@ XSPI1_A_DATA6 = GPIO2_DAT30
 };
 
 &usb1 {
+	dr_mode = "host";
 	status = "okay";
 };
