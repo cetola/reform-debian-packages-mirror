@@ -109,6 +109,10 @@ if [ "$BUILD_ARCH" != "$HOST_ARCH" ]; then
 	DEB_BUILD_PROFILES="cross $DEB_BUILD_PROFILES"
 fi
 
+# fails to cross-build since python3.11 3.11.6-1 with:
+# cc1: error: ‘-fcf-protection=full’ is not supported for this target
+DEB_BUILD_PROFILES="pkg.linux.nopython $DEB_BUILD_PROFILES"
+
 env --chdir=linux DEB_BUILD_PROFILES="$DEB_BUILD_PROFILES" \
 	sbuild --chroot="$BASESUITE-$BUILD_ARCH" --arch-any --arch-all --host="$HOST_ARCH" \
 		--verbose --no-source-only-changes --no-run-lintian --no-run-autopkgtest
