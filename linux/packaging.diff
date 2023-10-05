@@ -60,3 +60,16 @@ index 113926e5f..5acb3fa1f 100644
 +[packages]:
 +installer: false
 +docs: false
+--- a/debian/rules.real	2023-06-12 08:25:16.000000000 +0200
++++ b/debian/rules.real	2023-06-14 16:09:09.000000000 +0200
+@@ -632,6 +632,10 @@
+ 	dh_md5sums
+ 	dh_builddeb -- $(BUILDDEB_ARGS)
+ 
++ifneq ($(DEB_BUILD_ARCH),$(DEB_HOST_ARCH))
++binary_perf build_perf: export _PYTHON_SYSCONFIGDATA_NAME=_sysconfigdata__$(DEB_HOST_MULTIARCH)
++endif
++
+ build_perf: $(STAMPS_DIR)/build-tools-headers
+ 	$(call make-tools,tools/perf)
+ 
