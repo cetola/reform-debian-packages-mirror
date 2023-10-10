@@ -46,7 +46,10 @@ if [ -z "$(reprepro listfilter reform "Package (== wayfire)")" ]; then
 		cd ../wayfire
 		git clone --recursive https://github.com/WayfireWM/wayfire.git wayfire-src
 
-		WFCOMMIT=$(git rev-parse --short HEAD)
+		git -C wayfire-src reset --hard 04d964eeeafde3fcdb6f15a4142301a8882df41e
+		git -C wayfire-src clean -df
+
+		WFCOMMIT=$(git -C wayfire-src rev-parse --short HEAD)
 		WFDATE=$(date +%Y-%m-%d)
 		WFVERTAR="0.8~$WFDATE"
 		WFVER="wayfire_$WFVERTAR-git$WFCOMMIT"
