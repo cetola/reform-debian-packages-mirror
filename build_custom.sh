@@ -78,7 +78,7 @@ if [ -z "$(reprepro listfilter reform "Package (== wayfire)")" ]; then
 		cd ../firedecor
 		git clone --recursive https://github.com/mntmn/Firedecor.git firedecor-src
 
-		FDCOMMIT=$(git rev-parse --short HEAD)
+		FDCOMMIT=$(git -C firedecor-src rev-parse --short HEAD)
 		FDDATE=$(date +%Y-%m-%d)
 		FDVERTAR="0.1~$FDDATE"
 		FDVER="firedecor_$FDVERTAR-git$FDCOMMIT"
