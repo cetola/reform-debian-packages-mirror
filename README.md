@@ -2,6 +2,20 @@
 
 The build sources for custom Debian packages which end up at https://mntre.com/reform-debian
 
+You need to have the following packages installed to run all of this:
+
+curl debhelper debian-archive-keyring debian-keyring devscripts faketime git
+mmdebstrap pristine-tar python3 python3-debian python3-jinja2 quilt reprepro
+rsync sbuild uidmap
+
+You need to have sbuild set up to build packages (including linux). If you have
+never set up sbuild before, the easiest way is to set it up to use unshare
+mode like this (assuming you run this on the Reform):
+
+    echo '$chroot_mode = "unshare";' > ~/.sbuildrc
+    mkdir -p ~/.cache/sbuild
+    mmdebstrap --variant=buildd unstable ~/.cache/sbuild/unstable-arm64.tar
+
 We currently are building the following packages:
 
 ## ffmpeg
@@ -44,5 +58,4 @@ Scripts for running the reform.
 
 To just rebuild the kernel and not the rest, you can run this:
 
-    chdist --data-dir=./chdist apt-get base update
-    env --chdir=./linux DEBEMAIL='robot <reform@reform.repo>' BUILD_ARCH=arm64 HOST_ARCH=arm64 BASESUITE=unstable OURSUITE=reform VERSUFFIX=reform ./build.sh
+    sh -xc '. ./setup.sh; cd linux; . ./build.sh'
