@@ -6,9 +6,9 @@
 set -e
 set -u
 
-BASESUITE=unstable
-OURSUITE=reform
-VERSUFFIX=reform
+: "${BASESUITE:=unstable}"
+: "${OURSUITE:=reform}"
+: "${VERSUFFIX:=reform}"
 WORKDIR=$(mktemp --directory --tmpdir="$(pwd)")
 PATCHDIR=$(realpath patches)
 REPREPRO_BASE_DIR=$(realpath repo)
