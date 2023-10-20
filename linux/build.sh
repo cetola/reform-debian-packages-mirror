@@ -121,4 +121,4 @@ env --chdir=linux DEB_BUILD_PROFILES="$DEB_BUILD_PROFILES" \
 		--verbose --no-source-only-changes --no-run-lintian --no-run-autopkgtest
 
 mv "./linux_$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog)_arm64.changes" "./linux.changes"
-dcmd mv "./linux.changes" "$ROOTDIR/changes"
+dcmd cp "./linux.changes" "$ROOTDIR/changes"
