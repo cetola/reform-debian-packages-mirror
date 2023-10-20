@@ -37,7 +37,7 @@ cleanup() {
 	fi
 }
 
-trap cleanup EXIT
+trap cleanup EXIT HUP INT TERM
 
 python3 -m http.server --bind 127.0.0.1 --directory "$REPREPRO_BASE_DIR" "$HTTP_PORT" &
 HTTPD_PID=$!
