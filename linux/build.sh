@@ -81,10 +81,17 @@ cat config >> linux/debian/config/arm64/config
 env --chdir=linux debian/rules source
 env --chdir=linux ../kernel-team/utils/kconfigeditor2/process.py .
 
-mkdir linux/debian/patches/reform
-cp -a patches/* linux/debian/patches/reform
+KVER=$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog | sed 's/\([0-9]\+\.[0-9]\+\).*/\1/')
 
-find patches/ -type f -name "*.patch" | sort | sed 's/^patches\//reform\//' >> linux/debian/patches/series
+if [ ! -e "patches${KVER}" ]; then
+	echo "no patches for linux $KVER prepared yet" >&2
+	exit 1
+fi
+
+mkdir linux/debian/patches/reform
+cp -a "patches${KVER}"/* linux/debian/patches/reform
+
+find "patches${KVER}/" -type f -name "*.patch" | sort | sed 's/^patches'"$KVER"'\//reform\//' >> linux/debian/patches/series
 
 env --chdir=linux QUILT_PATCHES=debian/patches quilt push -a
 env --chdir=linux QUILT_PATCHES=debian/patches quilt new reform/dts.patch
