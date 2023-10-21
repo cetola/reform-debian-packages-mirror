@@ -53,8 +53,8 @@ env --chdir=linux TZ=UTC $faketime dch --force-distribution --distribution="$OUR
 env --chdir=linux patch -p1 < packaging.diff
 
 # use sed to change abiname to avoid the patch not working on any abi bump
-sed --in-place --expression 's/^abiname: \([0-9]\+\|trunk\)$/abiname: \1-reform2/' linux/debian/config/defines
-grep --quiet '^abiname: [0-9]\+-reform2$' linux/debian/config/defines
+sed --in-place --expression 's/^abiname: \([0-9]\+\|trunk\|[0-9]\+\.deb[0-9.]\+\)$/abiname: \1-reform2/' linux/debian/config/defines
+grep --quiet '^abiname: [0-9a-z.]\+-reform2$' linux/debian/config/defines
 
 export DEBIAN_KERNEL_DISABLE_DEBUG=1
 export DEBIAN_KERNEL_DISABLE_INSTALLER=1
