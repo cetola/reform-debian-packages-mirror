@@ -112,7 +112,7 @@ if [ -z "$(reprepro listfilter "$OURSUITE" "Package (== reform-tools)")" ]; then
 		cd "$WORKDIR"
 		git clone https://source.mnt.re/reform/reform-tools.git
 		cd reform-tools
-		sbuild --arch-all --arch-any --chroot $BASESUITE-$BUILD_ARCH $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
+		sbuild -d "$OURSUITE" --arch-all --arch-any --chroot $BASESUITE-$BUILD_ARCH $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
 		dcmd mv -v ../reform-tools_*"_${BUILD_ARCH}.changes" "$ROOTDIR/changes"
 		cd ..
 	)
@@ -126,7 +126,7 @@ if [ -z "$(reprepro listfilter "$OURSUITE"  "\$Source (== reform-handbook)")" ];
 		cd "$WORKDIR"
 		git clone https://source.mnt.re/reform/reform-handbook.git
 		cd reform-handbook
-		sbuild --arch-all --arch-any --chroot $BASESUITE-$BUILD_ARCH $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
+		sbuild -d "$OURSUITE" --arch-all --arch-any --chroot $BASESUITE-$BUILD_ARCH $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
 		dcmd mv -v ../reform-handbook_*"_${BUILD_ARCH}.changes" "$ROOTDIR/changes"
 		cd ..
 	)
