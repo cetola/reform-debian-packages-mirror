@@ -105,7 +105,11 @@ if [ -z "$(reprepro listfilter reform "Package (== wayfire)")" ]; then
 	rm -Rf "$WORKDIR"
 fi
 
-if [ -z "$(reprepro listfilter "$OURSUITE" "Package (== reform-tools)")" ]; then
+# simplified version of $our_version from build_patched.sh because the binary
+# version is always equal to the source version here
+our_version=$(reprepro --list-format '${version}\n' -T deb listfilter "$OURSUITE" "\$Source (== reform-tools)" | uniq)
+their_version=$(curl --silent https://source.mnt.re/reform/reform-tools/-/raw/main/debian/changelog | dpkg-parsechangelog --show-field Version --file -)
+if [ -z "$our_version" ] || dpkg --compare-versions "$our_version" lt "$their_version"; then
 	rm -Rf "$WORKDIR"
 	mkdir --mode=0777 "$WORKDIR"
 	(
@@ -119,7 +123,9 @@ if [ -z "$(reprepro listfilter "$OURSUITE" "Package (== reform-tools)")" ]; then
 	rm -Rf "$WORKDIR"
 fi
 
-if [ -z "$(reprepro listfilter "$OURSUITE"  "\$Source (== reform-handbook)")" ]; then
+our_version=$(reprepro --list-format '${version}\n' -T deb listfilter "$OURSUITE" "\$Source (== reform-handbook)" | uniq)
+their_version=$(curl --silent https://source.mnt.re/reform/reform-handbook/-/raw/master/debian/changelog | dpkg-parsechangelog --show-field Version --file -)
+if [ -z "$our_version" ] || dpkg --compare-versions "$our_version" lt "$their_version"; then
 	rm -Rf "$WORKDIR"
 	mkdir --mode=0777 "$WORKDIR"
 	(
