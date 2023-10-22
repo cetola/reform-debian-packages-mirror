@@ -413,12 +413,12 @@ diff -Nru gst-plugins-bad1.0-1.22.0/debian/patches/gst-plugins-bad-dashdemux-sid
 +       stream->downloading_index = FALSE;
 +     }
 +   }
-diff -Nru gst-plugins-bad1.0-1.22.0/debian/patches/series gst-plugins-bad1.0-1.22.0/debian/patches/series
---- gst-plugins-bad1.0-1.22.0/debian/patches/series	2023-01-28 20:23:11.000000000 +0100
-+++ gst-plugins-bad1.0-1.22.0/debian/patches/series	2023-01-29 14:46:04.000000000 +0100
-@@ -1,2 +1,4 @@
- 02_opencv-data-path.patch
- Skip-failing-tests.patch
-+gst-plugins-bad-dashdemux-sidx-range-download.patch
-+3419.patch
+EOF
+
+# don't use patch so that it does not break every time when
+# debian/patches/series gets changed
+mkdir -p debian/patches
+cat >> debian/patches/series << 'EOF'
+gst-plugins-bad-dashdemux-sidx-range-download.patch
+3419.patch
 EOF

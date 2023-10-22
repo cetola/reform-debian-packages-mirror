@@ -329,9 +329,11 @@ diff -Nru gst-plugins-good1.0-1.22.3/debian/patches/3419.patch gst-plugins-good1
 +-- 
 +GitLab
 +
-diff -Nru gst-plugins-good1.0-1.22.3/debian/patches/series gst-plugins-good1.0-1.22.3/debian/patches/series
---- gst-plugins-good1.0-1.22.3/debian/patches/series	2023-06-12 20:42:30.000000000 +0200
-+++ gst-plugins-good1.0-1.22.3/debian/patches/series	2023-06-18 15:18:19.000000000 +0200
-+@@ -0,0 +1 @@
-+3419.patch
+EOF
+
+# don't use patch so that it does not break every time when
+# debian/patches/series gets changed
+mkdir -p debian/patches
+cat >> debian/patches/series << 'EOF'
+3419.patch
 EOF
