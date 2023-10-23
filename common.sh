@@ -6,9 +6,9 @@
 set -e
 set -u
 
-BASESUITE=unstable
-OURSUITE=reform
-VERSUFFIX=reform
+: "${BASESUITE:=unstable}"
+: "${OURSUITE:=reform}"
+: "${VERSUFFIX:=reform}"
 WORKDIR=$(mktemp --directory --tmpdir="$(pwd)")
 PATCHDIR=$(realpath patches)
 REPREPRO_BASE_DIR=$(realpath repo)
@@ -37,7 +37,7 @@ cleanup() {
 	fi
 }
 
-trap cleanup EXIT
+trap cleanup EXIT HUP INT TERM
 
 python3 -m http.server --bind 127.0.0.1 --directory "$REPREPRO_BASE_DIR" "$HTTP_PORT" &
 HTTPD_PID=$!

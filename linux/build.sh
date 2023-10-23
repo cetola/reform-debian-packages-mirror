@@ -53,8 +53,8 @@ env --chdir=linux TZ=UTC $faketime dch --force-distribution --distribution="$OUR
 env --chdir=linux patch -p1 < packaging.diff
 
 # use sed to change abiname to avoid the patch not working on any abi bump
-sed --in-place --expression 's/^abiname: \([0-9]\+\|trunk\)$/abiname: \1-reform2/' linux/debian/config/defines
-grep --quiet '^abiname: [0-9]\+-reform2$' linux/debian/config/defines
+sed --in-place --expression 's/^abiname: \([0-9]\+\|trunk\|[0-9]\+\.deb[0-9.]\+\)$/abiname: \1-reform2/' linux/debian/config/defines
+grep --quiet '^abiname: [0-9a-z.]\+-reform2$' linux/debian/config/defines
 
 export DEBIAN_KERNEL_DISABLE_DEBUG=1
 export DEBIAN_KERNEL_DISABLE_INSTALLER=1
@@ -81,10 +81,17 @@ cat config >> linux/debian/config/arm64/config
 env --chdir=linux debian/rules source
 env --chdir=linux ../kernel-team/utils/kconfigeditor2/process.py .
 
-mkdir linux/debian/patches/reform
-cp -a patches/* linux/debian/patches/reform
+KVER=$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog | sed 's/\([0-9]\+\.[0-9]\+\).*/\1/')
 
-find patches/ -type f -name "*.patch" | sort | sed 's/^patches\//reform\//' >> linux/debian/patches/series
+if [ ! -e "patches${KVER}" ]; then
+	echo "no patches for linux $KVER prepared yet" >&2
+	exit 1
+fi
+
+mkdir linux/debian/patches/reform
+cp -a "patches${KVER}"/* linux/debian/patches/reform
+
+find "patches${KVER}/" -type f -name "*.patch" | sort | sed 's/^patches'"$KVER"'\//reform\//' >> linux/debian/patches/series
 
 env --chdir=linux QUILT_PATCHES=debian/patches quilt push -a
 env --chdir=linux QUILT_PATCHES=debian/patches quilt new reform/dts.patch
@@ -94,14 +101,17 @@ env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/fre
 cp imx8mq-mnt-reform2.dts linux/arch/arm64/boot/dts/freescale/imx8mq-mnt-reform2.dts
 env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/freescale/imx8mq-mnt-reform2-hdmi.dts
 cp imx8mq-mnt-reform2-hdmi.dts linux/arch/arm64/boot/dts/freescale/imx8mq-mnt-reform2-hdmi.dts
-env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/freescale/imx8mp-mnt-pocket-reform.dts
-cp imx8mp-mnt-pocket-reform.dts linux/arch/arm64/boot/dts/freescale/imx8mp-mnt-pocket-reform.dts
 env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/freescale/Makefile
 sed -i '/fsl-ls1028a-rdb.dtb/a dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-ls1028a-mnt-reform2.dtb' linux/arch/arm64/boot/dts/freescale/Makefile
-sed -i '/imx8mq-mnt-reform2.dtb/a dtb-$(CONFIG_ARCH_MXC) += imx8mp-mnt-pocket-reform.dtb' linux/arch/arm64/boot/dts/freescale/Makefile
 sed -i '/imx8mq-mnt-reform2.dtb/a dtb-$(CONFIG_ARCH_MXC) += imx8mq-mnt-reform2-hdmi.dtb' linux/arch/arm64/boot/dts/freescale/Makefile
-env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/amlogic/meson-g12b-bananapi-cm4-mnt-reform2.dts
-cp meson-g12b-bananapi-cm4-mnt-reform2.dts linux/arch/arm64/boot/dts/amlogic/meson-g12b-bananapi-cm4-mnt-reform2.dts
+# pocket reform and a311d only work with 6.5 or later
+if dpkg --compare-versions "$KVER" ge "6.5"; then
+	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/freescale/imx8mp-mnt-pocket-reform.dts
+	cp imx8mp-mnt-pocket-reform.dts linux/arch/arm64/boot/dts/freescale/imx8mp-mnt-pocket-reform.dts
+	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/amlogic/meson-g12b-bananapi-cm4-mnt-reform2.dts
+	cp meson-g12b-bananapi-cm4-mnt-reform2.dts linux/arch/arm64/boot/dts/amlogic/meson-g12b-bananapi-cm4-mnt-reform2.dts
+	sed -i '/imx8mq-mnt-reform2.dtb/a dtb-$(CONFIG_ARCH_MXC) += imx8mp-mnt-pocket-reform.dtb' linux/arch/arm64/boot/dts/freescale/Makefile
+fi
 env --chdir=linux QUILT_PATCHES=debian/patches quilt refresh
 
 DEB_BUILD_PROFILES="nodoc pkg.linux.nokerneldbg pkg.linux.nokerneldbginfo"
@@ -114,4 +124,4 @@ env --chdir=linux DEB_BUILD_PROFILES="$DEB_BUILD_PROFILES" \
 		--verbose --no-source-only-changes --no-run-lintian --no-run-autopkgtest
 
 mv "./linux_$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog)_arm64.changes" "./linux.changes"
-dcmd mv "./linux.changes" "$ROOTDIR/changes"
+dcmd cp "./linux.changes" "$ROOTDIR/changes"

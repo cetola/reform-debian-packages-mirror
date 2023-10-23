@@ -1,5 +1,13 @@
 image: debian:bookworm-slim
 
+variables:
+  BASESUITE:
+    description: Debian suite to fetch packages from
+    value: unstable
+  OURSUITE:
+    description: Suite name of the repository we create
+    value: reform
+
 stages:
   - setup
   - build
@@ -18,16 +26,20 @@ stages:
     adduser --gecos build --disabled-password build
     runuser -u build -- sh -c 'echo "\$chroot_mode = \"unshare\";" > ~/.sbuildrc'
     runuser -u build -- sh -c 'mkdir -p changes ~/.cache/sbuild'
-    runuser -u build -- sh -c 'cp unstable-amd64.tar unstable-arm64.tar ~/.cache/sbuild'
-    runuser -u build -- sh -c 'ln -s unstable-amd64.tar ~/.cache/sbuild/experimental-amd64.tar'
+    if [ "$BASESUITE" = "experimental" ]; then
+      runuser -u build -- sh -c 'ln -s unstable-amd64.tar ~/.cache/sbuild/experimental-amd64.tar'
+      BASESUITE=unstable
+    fi
+    runuser -u build -- sh -c "cp chroot-amd64.tar ~/.cache/sbuild/$BASESUITE-amd64.tar"
+    runuser -u build -- sh -c "cp chroot-arm64.tar ~/.cache/sbuild/$BASESUITE-arm64.tar"
     chown build -R .
 
 setup:
   stage: setup
   artifacts:
     paths:
-      - unstable-amd64.tar
-      - unstable-arm64.tar
+      - chroot-amd64.tar
+      - chroot-arm64.tar
       - repo
       - chdist
   script: |
@@ -41,9 +53,12 @@ setup:
     arch-test arm64
     adduser --gecos build --disabled-password build
     chown build -R .
-    rm -rvf changes chdist repo unstable-amd64.tar unstable-arm64.tar
-    runuser -u build -- mmdebstrap --architecture=amd64 --mode=unshare unstable unstable-amd64.tar
-    runuser -u build -- mmdebstrap --architecture=arm64 --mode=unshare unstable unstable-arm64.tar
+    rm -rvf changes chdist repo chroot-amd64.tar chroot-arm64.tar
+    if [ "$BASESUITE" = "experimental" ]; then
+      BASESUITE=unstable
+    fi
+    runuser -u build -- mmdebstrap --architecture=amd64 --mode=unshare $BASESUITE chroot-amd64.tar
+    runuser -u build -- mmdebstrap --architecture=arm64 --mode=unshare $BASESUITE chroot-arm64.tar
     runuser -u build -- sh -x ./setup.sh
 
 build_patched:
@@ -109,7 +124,7 @@ build_linux:
       - changes
       - linux/linux_*_arm64-*.build
   script: |
-    runuser -u build -- sh -xc '. ./common.sh; cd linux; export BASESUITE=unstable; . ./build.sh' 2>&1 | ./filter-output
+    runuser -u build -- sh -xc '. ./common.sh; cd linux; . ./build.sh' 2>&1 | ./filter-output
     dpkg-deb -c changes/linux-image-*-reform2-arm64_*_arm64.deb | grep kernel/drivers/gpu/drm/imx/cdns/cdns_mhdp_imx.ko
 
 reprepro:

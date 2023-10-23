@@ -105,29 +105,35 @@ if [ -z "$(reprepro listfilter reform "Package (== wayfire)")" ]; then
 	rm -Rf "$WORKDIR"
 fi
 
-if [ -z "$(reprepro listfilter reform "Package (== reform-tools)")" ]; then
+# simplified version of $our_version from build_patched.sh because the binary
+# version is always equal to the source version here
+our_version=$(reprepro --list-format '${version}\n' -T deb listfilter "$OURSUITE" "\$Source (== reform-tools)" | uniq)
+their_version=$(curl --silent https://source.mnt.re/reform/reform-tools/-/raw/main/debian/changelog | dpkg-parsechangelog --show-field Version --file -)
+if [ -z "$our_version" ] || dpkg --compare-versions "$our_version" lt "$their_version"; then
 	rm -Rf "$WORKDIR"
 	mkdir --mode=0777 "$WORKDIR"
 	(
 		cd "$WORKDIR"
 		git clone https://source.mnt.re/reform/reform-tools.git
 		cd reform-tools
-		sbuild --arch-all --arch-any --chroot $BASESUITE-$BUILD_ARCH $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
-		dcmd mv -v ../reform-tools_*_amd64.changes "$ROOTDIR/changes"
+		sbuild -d "$OURSUITE" --arch-all --arch-any --chroot $BASESUITE-$BUILD_ARCH $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
+		dcmd mv -v ../reform-tools_*"_${BUILD_ARCH}.changes" "$ROOTDIR/changes"
 		cd ..
 	)
 	rm -Rf "$WORKDIR"
 fi
 
-if [ -z "$(reprepro listfilter reform "\$Source (== reform-handbook)")" ]; then
+our_version=$(reprepro --list-format '${version}\n' -T deb listfilter "$OURSUITE" "\$Source (== reform-handbook)" | uniq)
+their_version=$(curl --silent https://source.mnt.re/reform/reform-handbook/-/raw/master/debian/changelog | dpkg-parsechangelog --show-field Version --file -)
+if [ -z "$our_version" ] || dpkg --compare-versions "$our_version" lt "$their_version"; then
 	rm -Rf "$WORKDIR"
 	mkdir --mode=0777 "$WORKDIR"
 	(
 		cd "$WORKDIR"
 		git clone https://source.mnt.re/reform/reform-handbook.git
 		cd reform-handbook
-		sbuild --arch-all --arch-any --chroot $BASESUITE-$BUILD_ARCH $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
-		dcmd mv -v ../reform-handbook_*_amd64.changes "$ROOTDIR/changes"
+		sbuild -d "$OURSUITE" --arch-all --arch-any --chroot $BASESUITE-$BUILD_ARCH $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
+		dcmd mv -v ../reform-handbook_*"_${BUILD_ARCH}.changes" "$ROOTDIR/changes"
 		cd ..
 	)
 	rm -Rf "$WORKDIR"
