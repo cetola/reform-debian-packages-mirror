@@ -21,6 +21,9 @@ for p in patches/*; do
 		continue
 	fi
 
+	# We print '${version}_${source}\n' and then do sed filtering to get
+	# to the version of the source package and discard the (possibly
+	# differing) version of the binary packages it builds using sed.
 	# shellcheck disable=SC2016
 	our_version=$(reprepro --list-format '${version}_${source}\n' -T deb listfilter "$OURSUITE" "\$Source (== $p)" | sed 's/.*_.*(\(.*\))$/\1/;s/_.*//' | uniq)
 	their_version=$(chdist_base apt-get source --only-source -t "$BASESUITE" --no-act "$p" | sed "s/^Selected version '\\([^']*\\)' ($BASESUITE) for .*/\\1/;t;d")
