@@ -1,9 +1,0 @@
-usr/bin/
-usr/lib/*/wayfire/
-usr/lib/*/libwayfire-blur-base.so
-usr/lib/*/libwf-config.so.*
-usr/lib/*/libwf-utils.so.*
-usr/share/wayfire/
-usr/man/wayfire.1
-usr/share/man/man1/wayfire.1
-usr/share/wayland-sessions/
