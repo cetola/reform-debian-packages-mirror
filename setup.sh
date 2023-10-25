@@ -13,6 +13,7 @@ if ! test -d "$REPREPRO_BASE_DIR"; then
 	cat > "$REPREPRO_BASE_DIR/conf/distributions" <<EOF
 Codename: $OURSUITE
 Label: $OURSUITE
+Suite: $OURSUITE
 Architectures: $HOST_ARCH $(test "$BUILD_ARCH" = "$HOST_ARCH" || echo "$BUILD_ARCH")
 Components: main
 UDebComponents: main
