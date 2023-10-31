@@ -12,7 +12,7 @@ if ! test -d "$REPREPRO_BASE_DIR"; then
 	mkdir -p "$REPREPRO_BASE_DIR/conf"
 	cat > "$REPREPRO_BASE_DIR/conf/distributions" <<EOF
 Codename: $OURSUITE
-Label: $OURSUITE
+Label: $OURLABEL
 Suite: $OURSUITE
 Architectures: $HOST_ARCH $(test "$BUILD_ARCH" = "$HOST_ARCH" || echo "$BUILD_ARCH")
 Components: main

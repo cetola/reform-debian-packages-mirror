@@ -8,6 +8,7 @@ set -u
 
 : "${BASESUITE:=unstable}"
 : "${OURSUITE:=reform}"
+: "${OURLABEL:=reform}"
 : "${VERSUFFIX:=reform}"
 WORKDIR=$(mktemp --directory --tmpdir="$(pwd)")
 PATCHDIR=$(realpath patches)
