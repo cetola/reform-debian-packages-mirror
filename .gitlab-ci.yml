@@ -24,7 +24,7 @@ stages:
     apt-get --no-install-recommends -y install arch-test binfmt-support qemu-user-static
     arch-test arm64
     adduser --gecos build --disabled-password build
-    runuser -u build -- sh -c 'echo "\$chroot_mode = \"unshare\";" > ~/.sbuildrc'
+    runuser -u build -- sh -c 'echo "\$chroot_mode = \"unshare\";1;" > ~/.sbuildrc'
     runuser -u build -- sh -c 'mkdir -p changes ~/.cache/sbuild'
     if [ "$BASESUITE" = "experimental" ]; then
       runuser -u build -- sh -c 'ln -s unstable-amd64.tar ~/.cache/sbuild/experimental-amd64.tar'
