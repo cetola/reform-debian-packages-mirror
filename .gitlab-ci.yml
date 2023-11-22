@@ -57,8 +57,8 @@ setup:
     if [ "$BASESUITE" = "experimental" ]; then
       BASESUITE=unstable
     fi
-    runuser -u build -- mmdebstrap --architecture=amd64 --mode=unshare $BASESUITE chroot-amd64.tar
-    runuser -u build -- mmdebstrap --architecture=arm64 --mode=unshare $BASESUITE chroot-arm64.tar
+    runuser -u build -- mmdebstrap --architecture=amd64 --variant=buildd --mode=unshare $BASESUITE chroot-amd64.tar
+    runuser -u build -- mmdebstrap --architecture=arm64 --variant=buildd --mode=unshare $BASESUITE chroot-arm64.tar
     runuser -u build -- sh -x ./setup.sh
 
 build_patched:
