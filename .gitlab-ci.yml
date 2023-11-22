@@ -7,6 +7,9 @@ variables:
   OURSUITE:
     description: Suite name of the repository we create
     value: reform
+  REFORM_TOOLS_BRANCH:
+    description: The git branch name from which reform-tools should be built
+    value: main
 
 stages:
   - setup

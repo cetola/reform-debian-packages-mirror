@@ -19,6 +19,9 @@ if [ -z "$our_version" ] || dpkg --compare-versions "$our_version" lt "$their_ve
 		cd "$WORKDIR"
 		git clone https://source.mnt.re/reform/reform-tools.git
 		cd reform-tools
+		if [ -n "${REFORM_TOOLS_BRANCH:-}" ]; then
+			git switch "$REFORM_TOOLS_BRANCH"
+		fi
 		sbuild -d "$OURSUITE" --arch-all --arch-any --chroot $BASESUITE-$BUILD_ARCH $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
 		dcmd mv -v ../reform-tools_*"_${BUILD_ARCH}.changes" "$ROOTDIR/changes"
 		cd ..
