@@ -89,7 +89,7 @@ for p in patches/*; do
 				--extra-repository="$SRC_LIST_PATCHED"
 			mv -v ../*.changes "../${p}_native.changes"
 			dcmd mv -v ../*.changes "$ROOTDIR/changes/"
-			mv -v ../*_$HOST_ARCH-*.build "$ROOTDIR/buildlogs"
+			mv -v ../*_$BUILD_ARCH-*.build "$ROOTDIR/buildlogs"
 		fi
 		cd ..
 	)
