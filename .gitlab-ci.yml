@@ -75,6 +75,7 @@ build_patched:
     paths:
       - output.log
       - changes
+      - buildlogs
   script: |
     # if we are on gitlab CI and if the current branch is NOT main, then
     # fill the repo with cached results from the last successful run in main
@@ -111,6 +112,7 @@ build_custom:
     paths:
       - output.log
       - changes
+      - buildlogs
   script: |
     runuser -u build -- sh -x ./build_custom.sh 2>&1 | ./filter-output
 

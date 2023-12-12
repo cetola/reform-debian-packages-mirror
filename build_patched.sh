@@ -73,6 +73,7 @@ for p in patches/*; do
 			fi
 			mv -v ../*.changes "../${p}_cross.changes"
 			dcmd mv -v ../*.changes "$ROOTDIR/changes/"
+			mv -v ../*_$HOST_ARCH-*.build "$ROOTDIR/buildlogs"
 		fi
 		# natively build arch:all packages and build-arch packages
 		# just building arch:all packages is not enough in case later
@@ -88,6 +89,7 @@ for p in patches/*; do
 				--extra-repository="$SRC_LIST_PATCHED"
 			mv -v ../*.changes "../${p}_native.changes"
 			dcmd mv -v ../*.changes "$ROOTDIR/changes/"
+			mv -v ../*_$HOST_ARCH-*.build "$ROOTDIR/buildlogs"
 		fi
 		cd ..
 	)

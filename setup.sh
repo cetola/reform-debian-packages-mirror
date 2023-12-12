@@ -35,4 +35,4 @@ deb-src $MIRROR experimental main
 END
 chdist_base apt-get update
 
-mkdir -p changes
+mkdir -p changes buildlogs
