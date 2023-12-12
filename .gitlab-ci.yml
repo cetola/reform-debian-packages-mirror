@@ -28,7 +28,7 @@ stages:
     arch-test arm64
     adduser --gecos build --disabled-password build
     runuser -u build -- sh -c 'echo "\$chroot_mode = \"unshare\";1;" > ~/.sbuildrc'
-    runuser -u build -- sh -c 'mkdir -p changes ~/.cache/sbuild'
+    runuser -u build -- sh -c 'mkdir -p changes buildlogs ~/.cache/sbuild'
     if [ "$BASESUITE" = "experimental" ]; then
       runuser -u build -- sh -c 'ln -s unstable-amd64.tar ~/.cache/sbuild/experimental-amd64.tar'
       BASESUITE=unstable
@@ -56,7 +56,7 @@ setup:
     arch-test arm64
     adduser --gecos build --disabled-password build
     chown build -R .
-    rm -rvf changes chdist repo chroot-amd64.tar chroot-arm64.tar
+    rm -rvf changes buildlogs chdist repo chroot-amd64.tar chroot-arm64.tar
     if [ "$BASESUITE" = "experimental" ]; then
       BASESUITE=unstable
     fi
