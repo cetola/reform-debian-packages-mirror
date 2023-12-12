@@ -115,6 +115,9 @@ build_custom:
       - buildlogs
   script: |
     runuser -u build -- sh -x ./build_custom.sh 2>&1 | ./filter-output
+    echo "BASESUITE: $BASESUITE"
+    echo "OURSUITE: $OURSUITE"
+    echo "REFORM_TOOLS_BRANCH: $REFORM_TOOLS_BRANCH"
 
 build_linux:
   stage: build
@@ -149,3 +152,6 @@ reprepro:
     apt-get --no-install-recommends -y install reprepro python3 devscripts
     adduser --gecos build --disabled-password build
     runuser -u build -- sh -x ./reprepro.sh
+    echo "BASESUITE: $BASESUITE"
+    echo "OURSUITE: $OURSUITE"
+    echo "REFORM_TOOLS_BRANCH: $REFORM_TOOLS_BRANCH"
