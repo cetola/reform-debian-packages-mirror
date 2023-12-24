@@ -95,7 +95,7 @@ build_patched:
             curl --silent --location "$CI_PROJECT_URL/-/jobs/artifacts/main/raw/changes/${f}?job=build_patched" > "changes/${f}"
           done
           echo "including ${p}_${variant}.changes" >&2
-          reprepro --basedir ./repo include "reform" "changes/${p}_${variant}.changes"
+          runuser -u build -- reprepro --basedir ./repo include "reform" "changes/${p}_${variant}.changes"
         done
       fi
     done
