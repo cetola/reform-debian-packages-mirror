@@ -52,9 +52,42 @@ env --chdir=linux TZ=UTC $faketime dch --force-distribution --distribution="$OUR
 
 env --chdir=linux patch -p1 < packaging.diff
 
-# use sed to change abiname to avoid the patch not working on any abi bump
-sed --in-place --expression 's/^abiname: \([0-9]\+\|trunk\|[0-9]\+\.deb[0-9.]\+\)$/abiname: \1-reform2/' linux/debian/config/defines
-grep --quiet '^abiname: [0-9a-z.]\+-reform2$' linux/debian/config/defines
+cat << END >> linux/debian/config/defines
+
+[packages]
+installer: false
+docs: false
+END
+
+KVER=$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog | sed 's/\([0-9]\+\.[0-9]\+\).*/\1/')
+
+# the abiname field was dropped in 6.6 with commit 3282bf29846a0c47a8e01c60c038d29ad17c573d
+if dpkg --compare-versions "$KVER" ge "6.6"; then
+	# apply https://salsa.debian.org/kernel-team/linux/-/merge_requests/957
+	cat << END | env --chdir=linux patch -p1
+--- a/debian/bin/gencontrol.py
++++ b/debian/bin/gencontrol.py
+@@ -640,6 +640,9 @@ linux-signed-{vars['arch']} (@signedtemplate_sourceversion@) {dist}; urgency={ur
+         else:
+             self.abiname = f'{version.linux_upstream_full}'
+
++        if 'abisuffix' in self.config.get(('abi',), {}):
++            self.abiname += self.config['abi', ]['abisuffix']
++
+         self.vars = {
+             'upstreamversion': self.version.linux_upstream,
+             'version': self.version.linux_version,
+END
+	cat << END >> linux/debian/config/defines
+
+[abi]
+abisuffix: -reform2
+END
+else
+	# use sed to change abiname to avoid the patch not working on any abi bump
+	sed --in-place --expression 's/^abiname: \([0-9]\+\|trunk\|[0-9]\+\.deb[0-9.]\+\)$/abiname: \1-reform2/' linux/debian/config/defines
+	grep --quiet '^abiname: [0-9a-z.]\+-reform2$' linux/debian/config/defines
+fi
 
 export DEBIAN_KERNEL_DISABLE_DEBUG=1
 export DEBIAN_KERNEL_DISABLE_INSTALLER=1
@@ -80,8 +113,6 @@ fi
 cat config >> linux/debian/config/arm64/config
 env --chdir=linux debian/rules source
 env --chdir=linux ../kernel-team/utils/kconfigeditor2/process.py .
-
-KVER=$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog | sed 's/\([0-9]\+\.[0-9]\+\).*/\1/')
 
 if [ ! -e "patches${KVER}" ]; then
 	echo "no patches for linux $KVER prepared yet" >&2
