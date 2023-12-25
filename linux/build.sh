@@ -52,11 +52,22 @@ env --chdir=linux TZ=UTC $faketime dch --force-distribution --distribution="$OUR
 
 env --chdir=linux patch -p1 < packaging.diff
 
-cat << END >> linux/debian/config/defines
-
+mkdir -p linux/debian/config.local/arm64/none
+cat << END >> linux/debian/config.local/defines
 [packages]
 installer: false
 docs: false
+END
+cat << END >> linux/debian/config.local/arm64/defines
+[base]
+featuresets: none
+
+[build]
+signed-code: false
+END
+cat << END >> linux/debian/config.local/arm64/none/defines
+[base]
+flavours: arm64
 END
 
 KVER=$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog | sed 's/\([0-9]\+\.[0-9]\+\).*/\1/')
@@ -78,7 +89,7 @@ if dpkg --compare-versions "$KVER" ge "6.6"; then
              'upstreamversion': self.version.linux_upstream,
              'version': self.version.linux_version,
 END
-	cat << END >> linux/debian/config/defines
+	cat << END >> linux/debian/config.local/defines
 
 [abi]
 abisuffix: -reform2
@@ -102,7 +113,7 @@ if $USE_GIT; then
 fi
 
 # this command fails intentionally, so we let it always succeed
-make -C linux -f debian/rules debian/control || :
+make -C linux -f debian/rules debian/control-real && exit 1 || :
 
 # running the last command creates pyc files that we don't want
 rm -r ./linux/debian/lib/python/debian_linux/__pycache__

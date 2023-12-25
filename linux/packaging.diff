@@ -29,32 +29,3 @@ index 02d457dd3..e49c2f585 100755
  
      def _setup_makeflags(self, names, makeflags, data):
          for src, dst, optional in names:
-diff --git a/debian/config/arm64/defines b/debian/config/arm64/defines
-index e64418af6..486876d23 100644
---- a/debian/config/arm64/defines
-+++ b/debian/config/arm64/defines
-@@ -3,11 +3,10 @@ cross-compile-compat: arm-linux-gnueabihf-
- kernel-arch: arm64
- featuresets:
-  none
-- rt
- 
- [build]
- image-file: arch/arm64/boot/Image
--signed-code: true
-+signed-code: false
- vdso: true
- 
- [image]
-diff --git a/debian/config/arm64/none/defines b/debian/config/arm64/none/defines
-index b754cf65e..93d1fe516 100644
---- a/debian/config/arm64/none/defines
-+++ b/debian/config/arm64/none/defines
-@@ -1,7 +1,6 @@
- [base]
- flavours:
-  arm64
-- cloud-arm64
- default-flavour: arm64
- quick-flavour: cloud-arm64
- 
