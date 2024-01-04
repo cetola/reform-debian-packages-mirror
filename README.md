@@ -66,3 +66,8 @@ Scripts for running the reform.
 To just rebuild the kernel and not the rest, you can run this:
 
     sh -xc '. ./setup.sh; cd linux; . ./build.sh'
+
+You can also build the kernel of a specific suite by setting `BASESUITE` to the
+suite name like `experimental` in this example:
+
+    sh -xc 'BASESUITE=experimental; . ./setup.sh; cd linux; . ./build.sh'
