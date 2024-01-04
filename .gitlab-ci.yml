@@ -48,6 +48,22 @@ setup:
       - chdist
   script: |
     set -x
+    # do not allow custom builds on the main branch as those would taint the
+    # repository at https://mntre.com/reform-debian-repo/
+    if [ "$CI_SERVER_HOST" = "source.mnt.re" ] && [ "x$CI_COMMIT_BRANCH" = xmain -o "x$CI_COMMIT_REF_NAME" = xmain ]; then
+      if [ "$BASESUITE" != "unstable" ]; then
+        echo "refusing to run pipeline on the main branch with BASESUITE not set to 'unstable'" >&2
+        exit 1
+      fi
+      if [ "$OURSUITE" != "reform" ]; then
+        echo "refusing to run pipeline on the main branch with OURSUITE not set to 'reform'" >&2
+        exit 1
+      fi
+      if [ "$REFORM_TOOLS_BRANCH" != "main" ]; then
+        echo "refusing to run pipeline on the main branch with REFORM_TOOLS_BRANCH not set to 'main'" >&2
+        exit 1
+      fi
+    fi
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
     apt-get --no-install-recommends -y install reprepro python3 devscripts mmdebstrap uidmap
     if [ ! -e /proc/sys/fs/binfmt_misc/status ]; then
@@ -154,12 +170,15 @@ reprepro:
     when: always
     paths:
       - repo
+      - variables.sh
   script: |
     set -x
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
     apt-get --no-install-recommends -y install reprepro python3 devscripts
     adduser --comment build --disabled-password build
     runuser -u build -- sh -x ./reprepro.sh
-    echo "BASESUITE: $BASESUITE"
-    echo "OURSUITE: $OURSUITE"
-    echo "REFORM_TOOLS_BRANCH: $REFORM_TOOLS_BRANCH"
+    {
+      echo "BASESUITE=\"$BASESUITE\"";
+      echo "OURSUITE=\"$OURSUITE\"";
+      echo "REFORM_TOOLS_BRANCH=\"$REFORM_TOOLS_BRANCH\"";
+    } | tee variables.sh
