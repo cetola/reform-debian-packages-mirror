@@ -8,7 +8,7 @@ set -u
 
 . ./common.sh
 
-for p in patches/*; do
+for p in patches/meson patches/imath patches/*; do
 	p=${p#patches/}
 
 	if [ ! -e "patches/$p" ]; then
@@ -72,6 +72,7 @@ for p in patches/*; do
 					--extra-repository="$SRC_LIST_PATCHED"
 			fi
 			mv -v ../*.changes "../${p}_cross.changes"
+			reprepro include "$OURSUITE" "../${p}_cross.changes"
 			dcmd mv -v ../*.changes "$ROOTDIR/changes/"
 			mv -v ../*_$HOST_ARCH-*.build "$ROOTDIR/buildlogs"
 		fi
@@ -88,6 +89,7 @@ for p in patches/*; do
 				$COMMON_SBUILD_OPTS \
 				--extra-repository="$SRC_LIST_PATCHED"
 			mv -v ../*.changes "../${p}_native.changes"
+			reprepro include "$OURSUITE" "../${p}_native.changes"
 			dcmd mv -v ../*.changes "$ROOTDIR/changes/"
 			mv -v ../*_$BUILD_ARCH-*.build "$ROOTDIR/buildlogs"
 		fi

@@ -34,7 +34,7 @@ stages:
       BASESUITE=unstable
     fi
     runuser -u build -- sh -c "cp chroot-amd64.tar ~/.cache/sbuild/$BASESUITE-amd64.tar"
-    runuser -u build -- sh -c "cp chroot-arm64.tar ~/.cache/sbuild/$BASESUITE-arm64.tar"
+    #runuser -u build -- sh -c "cp chroot-arm64.tar ~/.cache/sbuild/$BASESUITE-arm64.tar"
     chown build -R .
 
 setup:
@@ -42,7 +42,7 @@ setup:
   artifacts:
     paths:
       - chroot-amd64.tar
-      - chroot-arm64.tar
+      #- chroot-arm64.tar
       - repo
       - chdist
   script: |
@@ -60,8 +60,16 @@ setup:
     if [ "$BASESUITE" = "experimental" ]; then
       BASESUITE=unstable
     fi
-    runuser -u build -- mmdebstrap --architecture=amd64 --variant=buildd --mode=unshare $BASESUITE chroot-amd64.tar
-    runuser -u build -- mmdebstrap --architecture=arm64 --variant=buildd --mode=unshare $BASESUITE chroot-arm64.tar
+    #  --chrooted-customize-hook='dpkg --add-architecture arm64' \
+    #  --chrooted-customize-hook='apt-get update' \
+    #  --chrooted-customize-hook='set -ex; for a in amd64 arm64; do for p in gobject-introspection-bin libgirepository-1.0-dev gir1.2-freedesktop-dev gir1.2-girepository-2.0 gir1.2-girepository-2.0-dev gir1.2-glib-2.0-dev gir1.2-glib-2.0 gir1.2-freedesktop libgirepository-1.0-1 gobject-introspection libgirepository1.0-dev; do wget http://deb.debian.org/debian/pool/main/g/gobject-introspection/${p}_1.78.1-9_${a}.deb; done; done' \
+    #  --chrooted-customize-hook='rm /libgirepository1.0-dev_1.78.1-9_amd64.deb /gobject-introspection-bin_1.78.1-9_arm64.deb' \
+    #  --chrooted-customize-hook='apt-get install --yes /*.deb' \
+    #  --chrooted-customize-hook='rm /*.deb' \
+    runuser -u build -- mmdebstrap --architecture=amd64 --variant=buildd --include=wget,crossbuild-essential-arm64 --mode=unshare \
+      --chrooted-customize-hook='rm /usr/bin/ischroot && ln -s /bin/true /usr/bin/ischroot' \
+      $BASESUITE chroot-amd64.tar
+    #runuser -u build -- mmdebstrap --architecture=arm64 --variant=buildd --mode=unshare $BASESUITE chroot-arm64.tar
     runuser -u build -- sh -x ./setup.sh
 
 build_patched:
@@ -77,28 +85,6 @@ build_patched:
       - changes
       - buildlogs
   script: |
-    # if we are on gitlab CI and if the current branch is NOT main, then
-    # fill the repo with cached results from the last successful run in main
-    for p in patches/*; do
-      p=${p#patches/}
-      [ -e "patches/$p" ] || continue
-      [ -x "patches/$p" ] || continue
-      if [ -n "${CI_COMMIT_REF_NAME+x}" ] && [ "${CI_COMMIT_REF_NAME:-}" != main ]; then
-        for variant in cross native; do
-          if [ "$(curl --silent --output /dev/null --write-out "%{http_code}" --location "$CI_PROJECT_URL/-/jobs/artifacts/main/raw/changes/${p}_${variant}.changes?job=build_patched")" != "200" ]; then
-            echo "${p}_${variant}.changes is not available" >&2
-            continue
-          fi
-          curl --silent --location "$CI_PROJECT_URL/-/jobs/artifacts/main/raw/changes/${p}_${variant}.changes?job=build_patched" > "changes/${p}_${variant}.changes"
-          env --chdir=changes dcmd "${p}_${variant}.changes" | while read f; do
-            echo "downloading $f" >&2
-            curl --silent --location "$CI_PROJECT_URL/-/jobs/artifacts/main/raw/changes/${f}?job=build_patched" > "changes/${f}"
-          done
-          echo "including ${p}_${variant}.changes" >&2
-          runuser -u build -- reprepro --basedir ./repo include "reform" "changes/${p}_${variant}.changes"
-        done
-      fi
-    done
     runuser -u build -- sh -x ./build_patched.sh 2>&1 | ./filter-output
 
 build_custom:

@@ -48,7 +48,7 @@ SRC_LIST_PATCHED="deb [ trusted=yes ] http://127.0.0.1:$HTTP_PORT/ $OURSUITE mai
 BUILD_ARCH=$(dpkg --print-architecture)
 HOST_ARCH=arm64
 
-export DEB_BUILD_OPTIONS="noautodbgsym nocheck noudeb"
+export DEB_BUILD_OPTIONS="noautodbgsym nocheck noudeb parallel=16"
 
 chdistdata=$(pwd)/chdist
 chdist_base() {
@@ -59,6 +59,6 @@ chdist_base() {
 }
 
 COMMON_SBUILD_OPTS="--verbose --no-clean-source --no-source-only-changes --no-run-lintian --no-run-autopkgtest --no-apt-upgrade --no-apt-distupgrade"
-COMMON_BUILD_PROFILES="nobiarch,nocheck,noudeb"
+COMMON_BUILD_PROFILES="nodoc,nobiarch,nocheck,noudeb"
 
 ROOTDIR="$(pwd)"
