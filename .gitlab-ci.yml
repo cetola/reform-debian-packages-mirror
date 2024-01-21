@@ -60,8 +60,12 @@ setup:
     if [ "$BASESUITE" = "experimental" ]; then
       BASESUITE=unstable
     fi
-    runuser -u build -- mmdebstrap --architecture=amd64 --variant=buildd --mode=unshare $BASESUITE chroot-amd64.tar
-    runuser -u build -- mmdebstrap --architecture=arm64 --variant=buildd --mode=unshare $BASESUITE chroot-arm64.tar
+    runuser -u build -- mmdebstrap --architecture=amd64 --variant=buildd --mode=unshare \
+      --chrooted-customize-hook='rm /usr/bin/ischroot && ln -s /bin/true /usr/bin/ischroot' $(#1056385) \
+      $BASESUITE chroot-amd64.tar
+    runuser -u build -- mmdebstrap --architecture=arm64 --variant=buildd --mode=unshare \
+      --chrooted-customize-hook='rm /usr/bin/ischroot && ln -s /bin/true /usr/bin/ischroot' $(#1056385) \
+      $BASESUITE chroot-arm64.tar
     runuser -u build -- sh -x ./setup.sh
 
 build_patched:
