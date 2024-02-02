@@ -47,33 +47,70 @@ faketime=
 if command -v faketime >/dev/null && [ -n "${SOURCE_DATE_EPOCH:+x}" ]; then
 	faketime="faketime @$SOURCE_DATE_EPOCH"
 fi
-env --chdir=linux TZ=UTC $faketime dch --local "+$VERSUFFIX$datesuffix" "apply mnt reform patch"
+
+DEB_VERSION="$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog)"
+DEB_VERSION_UPSTREAM="$(echo "$DEB_VERSION" | sed -e 's/-[^-]*$//')"
+KVER=$(echo "$DEB_VERSION" | sed 's/\([0-9]\+\.[0-9]\+\).*/\1/')
+if dpkg --compare-versions "$KVER" ge "6.7"; then
+	oldversion="$(dpkg-parsechangelog --show-field=Version --file linux/debian/changelog)"
+	newversion="$(echo "$oldversion" | sed 's/\([0-9.]\+\)\(.*\)/\1-reform2\2/')"
+	env --chdir=linux TZ=UTC $faketime dch --newversion "$newversion+$VERSUFFIX$datesuffix" "apply mnt reform patch"
+	mv "linux_$DEB_VERSION_UPSTREAM.orig.tar.xz" "linux_$DEB_VERSION_UPSTREAM-reform2.orig.tar.xz"
+else
+	env --chdir=linux TZ=UTC $faketime dch --local "+$VERSUFFIX$datesuffix" "apply mnt reform patch"
+fi
 env --chdir=linux TZ=UTC $faketime dch --force-distribution --distribution="$OURSUITE" --release ""
 
 env --chdir=linux patch -p1 < packaging.diff
 
-mkdir -p linux/debian/config.local/arm64/none
-cat << END >> linux/debian/config.local/defines
+# new toml config format since 6.7
+if dpkg --compare-versions "$KVER" ge "6.7"; then
+	mkdir -p linux/debian/config.local/arm64
+	cat << END >> linux/debian/config.local/arm64/defines.toml
+[[flavour]]
+name = 'arm64'
+[flavour.defs]
+is_default = true
+[flavour.packages]
+installer = false
+docs = false
+
+[[featureset]]
+name = 'none'
+
+[[featureset.flavour]]
+name = 'arm64'
+
+[build]
+enable_signed = false
+END
+else
+	mkdir -p linux/debian/config.local/arm64/none
+	cat << END >> linux/debian/config.local/defines
 [packages]
 installer: false
 docs: false
 END
-cat << END >> linux/debian/config.local/arm64/defines
+	cat << END >> linux/debian/config.local/arm64/defines
 [base]
 featuresets: none
 
 [build]
 signed-code: false
 END
-cat << END >> linux/debian/config.local/arm64/none/defines
+	cat << END >> linux/debian/config.local/arm64/none/defines
 [base]
 flavours: arm64
 END
+fi
 
 KVER=$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog | sed 's/\([0-9]\+\.[0-9]\+\).*/\1/')
 
 # the abiname field was dropped in 6.6 with commit 3282bf29846a0c47a8e01c60c038d29ad17c573d
-if dpkg --compare-versions "$KVER" ge "6.6"; then
+# since 6.7 there is the new toml config format
+if dpkg --compare-versions "$KVER" ge "6.7"; then
+	: # nothing to do
+elif test "$KVER" = 6.6; then
 	# apply https://salsa.debian.org/kernel-team/linux/-/merge_requests/957
 	cat << END | env --chdir=linux patch -p1
 --- a/debian/bin/gencontrol.py
