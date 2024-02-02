@@ -31,10 +31,11 @@ stages:
     runuser -u build -- sh -c 'mkdir -p changes buildlogs ~/.cache/sbuild'
     if [ "$BASESUITE" = "experimental" ]; then
       runuser -u build -- sh -c 'ln -s unstable-amd64.tar ~/.cache/sbuild/experimental-amd64.tar'
-      BASESUITE=unstable
     fi
-    runuser -u build -- sh -c "cp chroot-amd64.tar ~/.cache/sbuild/$BASESUITE-amd64.tar"
-    runuser -u build -- sh -c "cp chroot-arm64.tar ~/.cache/sbuild/$BASESUITE-arm64.tar"
+    for arch in amd64 arm64; do
+      # running in a runuser sub-shell to properly expand ~
+      runuser -u build -- sh -c "cp chroot-${arch}.tar ~/.cache/sbuild/$([ "$BASESUITE" = "experimental" ] && echo unstable || echo "$BASESUITE")-$arch.tar"
+    done
     chown build -R .
 
 setup:
@@ -57,15 +58,12 @@ setup:
     adduser --comment build --disabled-password build
     chown build -R .
     rm -rvf changes buildlogs chdist repo chroot-amd64.tar chroot-arm64.tar
-    if [ "$BASESUITE" = "experimental" ]; then
-      BASESUITE=unstable
-    fi
     runuser -u build -- mmdebstrap --architecture=amd64 --variant=buildd --mode=unshare \
       --chrooted-customize-hook='rm /usr/bin/ischroot && ln -s /bin/true /usr/bin/ischroot' ${IFS# DebianBug:1056385} \
-      $BASESUITE chroot-amd64.tar
+      "$([ "$BASESUITE" = "experimental" ] && echo unstable || echo "$BASESUITE")" chroot-amd64.tar
     runuser -u build -- mmdebstrap --architecture=arm64 --variant=buildd --mode=unshare \
       --chrooted-customize-hook='rm /usr/bin/ischroot && ln -s /bin/true /usr/bin/ischroot' ${IFS# DebianBug:1056385} \
-      $BASESUITE chroot-arm64.tar
+      "$([ "$BASESUITE" = "experimental" ] && echo unstable || echo "$BASESUITE")" chroot-arm64.tar
     runuser -u build -- sh -x ./setup.sh
 
 build_patched:
@@ -103,6 +101,9 @@ build_patched:
         done
       fi
     done
+    if [ "$BASESUITE" = "experimental" ]; then
+      BASESUITE=unstable
+    fi
     runuser -u build -- sh -x ./build_patched.sh 2>&1 | ./filter-output
 
 build_custom:
@@ -138,6 +139,9 @@ build_linux:
   script: |
     runuser -u build -- sh -xc '. ./common.sh; cd linux; . ./build.sh' 2>&1 | ./filter-output
     dpkg-deb -c changes/linux-image-*-reform2-arm64_*_arm64.deb | grep 'kernel/drivers/gpu/drm/imx\(/cdns\)\?/cdns_mhdp_imx.ko'
+    echo "BASESUITE: $BASESUITE"
+    echo "OURSUITE: $OURSUITE"
+    echo "REFORM_TOOLS_BRANCH: $REFORM_TOOLS_BRANCH"
 
 reprepro:
   stage: reprepro
