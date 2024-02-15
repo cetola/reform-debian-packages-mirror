@@ -26,7 +26,7 @@ stages:
     fi
     apt-get --no-install-recommends -y install arch-test binfmt-support qemu-user-static
     arch-test arm64
-    adduser --gecos build --disabled-password build
+    adduser --comment build --disabled-password build
     runuser -u build -- sh -c 'echo "\$chroot_mode = \"unshare\";1;" > ~/.sbuildrc'
     runuser -u build -- sh -c 'mkdir -p changes buildlogs ~/.cache/sbuild'
     if [ "$BASESUITE" = "experimental" ]; then
@@ -54,7 +54,7 @@ setup:
     fi
     apt-get --no-install-recommends -y install arch-test binfmt-support qemu-user-static
     arch-test arm64
-    adduser --gecos build --disabled-password build
+    adduser --comment build --disabled-password build
     chown build -R .
     rm -rvf changes buildlogs chdist repo chroot-amd64.tar chroot-arm64.tar
     if [ "$BASESUITE" = "experimental" ]; then
@@ -154,7 +154,7 @@ reprepro:
     set -x
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
     apt-get --no-install-recommends -y install reprepro python3 devscripts
-    adduser --gecos build --disabled-password build
+    adduser --comment build --disabled-password build
     runuser -u build -- sh -x ./reprepro.sh
     echo "BASESUITE: $BASESUITE"
     echo "OURSUITE: $OURSUITE"
