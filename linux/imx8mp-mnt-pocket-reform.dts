@@ -382,7 +382,7 @@
 };
 
 / {
-	model = "MNT Pocket Reform (i.MX8MP)";
+	model = "MNT Pocket Reform with i.MX8MP Module";
 	compatible = "mntre,pocket-reform", "boundary,imx8mp-nitrogen8mp-som", "fsl,imx8mp";
 	chassis-type = "laptop";
 
