@@ -9,7 +9,7 @@ index 1bacc51..765fe45 100644
  U-Boot-Script-Name: bootscr.sunxi
  Required-Packages: u-boot-tools
 
-+Machine: MNT Pocket Reform (i.MX8MP)
++Machine: MNT Pocket Reform with i.MX8MP Module
 +Kernel-Flavors: any
 +Boot-Script-Path: /boot/boot.scr
 +DTB-Id: freescale/imx8mp-mnt-pocket-reform.dtb
