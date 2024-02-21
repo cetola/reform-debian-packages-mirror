@@ -52,13 +52,13 @@ for p in patches/*; do
 		dch --force-distribution --distribution="$OURSUITE" --release ""
 		"$PATCHDIR/$p"
 		# cross build foreign arch:any packages
-		if [ "$BUILD_ARCH" != "$HOST_ARCH" ] && [ -n "$(env DEB_HOST_ARCH=$HOST_ARCH DEB_BUILD_PROFILES="cross $(echo $COMMON_BUILD_PROFILES | tr ',' ' ')" dh_listpackages -a)" ]; then
+		if [ "$BUILD_ARCH" != "$HOST_ARCH" ] && [ -n "$(env DEB_HOST_ARCH=$HOST_ARCH DEB_BUILD_PROFILES="cross nodoc $(echo $COMMON_BUILD_PROFILES | tr ',' ' ')" dh_listpackages -a)" ]; then
 			rm -f ../*.changes
 			ret=0
 			sbuild --chroot $BASESUITE-$BUILD_ARCH \
 				--host="$HOST_ARCH" \
 				--no-arch-all --arch-any \
-				--profiles="cross,$COMMON_BUILD_PROFILES" \
+				--profiles="cross,nodoc,$COMMON_BUILD_PROFILES" \
 				$COMMON_SBUILD_OPTS \
 				--extra-repository="$SRC_LIST_PATCHED" || ret=$?
 			if [ "$ret" -ne 0 ]; then
