@@ -1,6 +1,20 @@
 #!/bin/sh
 set -e
 patch -p1 << 'EOF'
+diff -Nru gst-plugins-bad1.0-1.22.9/debian/rules gst-plugins-bad1.0-1.22.9/debian/rules
+--- gst-plugins-bad1.0-1.22.9/debian/rules	2024-02-03 14:17:19.000000000 +0100
++++ gst-plugins-bad1.0-1.22.9/debian/rules	2024-02-21 08:05:00.000000000 +0100
+@@ -59,6 +59,10 @@
+ conf_flags += -Dresindvd=disabled -Dnvcodec=disabled
+ endif
+
++ifneq ($(DEB_HOST_ARCH),$(DEB_BUILD_ARCH))
++conf_flags += --cross-file=$(DEB_HOST_GNU_TYPE)-gobject-introspection.ini
++endif
++
+ %:
+ 	dh $@
+ 
 diff -Nru gst-plugins-bad1.0-1.22.0/debian/patches/3419.patch gst-plugins-bad1.0-1.22.0/debian/patches/3419.patch
 --- gst-plugins-bad1.0-1.22.0/debian/patches/3419.patch	1970-01-01 01:00:00.000000000 +0100
 +++ gst-plugins-bad1.0-1.22.0/debian/patches/3419.patch	2023-01-29 14:46:04.000000000 +0100
