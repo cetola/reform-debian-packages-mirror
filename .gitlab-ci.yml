@@ -32,7 +32,8 @@ stages:
     if [ "$BASESUITE" = "experimental" ]; then
       runuser -u build -- sh -c 'ln -s unstable-amd64.tar ~/.cache/sbuild/experimental-amd64.tar'
     fi
-    for arch in amd64 arm64; do
+    #for arch in amd64 arm64; do
+    for arch in amd64; do
       # running in a runuser sub-shell to properly expand ~
       runuser -u build -- sh -c "cp chroot-${arch}.tar ~/.cache/sbuild/$([ "$BASESUITE" = "experimental" ] && echo unstable || echo "$BASESUITE")-$arch.tar"
     done
@@ -43,7 +44,7 @@ setup:
   artifacts:
     paths:
       - chroot-amd64.tar
-      - chroot-arm64.tar
+      #- chroot-arm64.tar
       - repo
       - chdist
   script: |
@@ -61,9 +62,9 @@ setup:
     runuser -u build -- mmdebstrap --architecture=amd64 --variant=buildd --mode=unshare \
       --chrooted-customize-hook='rm /usr/bin/ischroot && ln -s /bin/true /usr/bin/ischroot' ${IFS# DebianBug:1056385} \
       "$([ "$BASESUITE" = "experimental" ] && echo unstable || echo "$BASESUITE")" chroot-amd64.tar
-    runuser -u build -- mmdebstrap --architecture=arm64 --variant=buildd --mode=unshare \
-      --chrooted-customize-hook='rm /usr/bin/ischroot && ln -s /bin/true /usr/bin/ischroot' ${IFS# DebianBug:1056385} \
-      "$([ "$BASESUITE" = "experimental" ] && echo unstable || echo "$BASESUITE")" chroot-arm64.tar
+    #runuser -u build -- mmdebstrap --architecture=arm64 --variant=buildd --mode=unshare \
+    #  --chrooted-customize-hook='rm /usr/bin/ischroot && ln -s /bin/true /usr/bin/ischroot' ${IFS# DebianBug:1056385} \
+    #  "$([ "$BASESUITE" = "experimental" ] && echo unstable || echo "$BASESUITE")" chroot-arm64.tar
     runuser -u build -- sh -x ./setup.sh
 
 build_patched:
@@ -79,28 +80,28 @@ build_patched:
       - changes
       - buildlogs
   script: |
-    # if we are on gitlab CI and if the current branch is NOT main, then
-    # fill the repo with cached results from the last successful run in main
-    for p in patches/*; do
-      p=${p#patches/}
-      [ -e "patches/$p" ] || continue
-      [ -x "patches/$p" ] || continue
-      if [ -n "${CI_COMMIT_REF_NAME+x}" ] && [ "${CI_COMMIT_REF_NAME:-}" != main ]; then
-        for variant in cross native; do
-          if [ "$(curl --silent --output /dev/null --write-out "%{http_code}" --location "$CI_PROJECT_URL/-/jobs/artifacts/main/raw/changes/${p}_${variant}.changes?job=build_patched")" != "200" ]; then
-            echo "${p}_${variant}.changes is not available" >&2
-            continue
-          fi
-          curl --silent --location "$CI_PROJECT_URL/-/jobs/artifacts/main/raw/changes/${p}_${variant}.changes?job=build_patched" > "changes/${p}_${variant}.changes"
-          env --chdir=changes dcmd "${p}_${variant}.changes" | while read f; do
-            echo "downloading $f" >&2
-            curl --silent --location "$CI_PROJECT_URL/-/jobs/artifacts/main/raw/changes/${f}?job=build_patched" > "changes/${f}"
-          done
-          echo "including ${p}_${variant}.changes" >&2
-          runuser -u build -- reprepro --basedir ./repo include "reform" "changes/${p}_${variant}.changes"
-        done
-      fi
-    done
+    ## if we are on gitlab CI and if the current branch is NOT main, then
+    ## fill the repo with cached results from the last successful run in main
+    #for p in patches/*; do
+    #  p=${p#patches/}
+    #  [ -e "patches/$p" ] || continue
+    #  [ -x "patches/$p" ] || continue
+    #  if [ -n "${CI_COMMIT_REF_NAME+x}" ] && [ "${CI_COMMIT_REF_NAME:-}" != main ]; then
+    #    for variant in cross native; do
+    #      if [ "$(curl --silent --output /dev/null --write-out "%{http_code}" --location "$CI_PROJECT_URL/-/jobs/artifacts/main/raw/changes/${p}_${variant}.changes?job=build_patched")" != "200" ]; then
+    #        echo "${p}_${variant}.changes is not available" >&2
+    #        continue
+    #      fi
+    #      curl --silent --location "$CI_PROJECT_URL/-/jobs/artifacts/main/raw/changes/${p}_${variant}.changes?job=build_patched" > "changes/${p}_${variant}.changes"
+    #      env --chdir=changes dcmd "${p}_${variant}.changes" | while read f; do
+    #        echo "downloading $f" >&2
+    #        curl --silent --location "$CI_PROJECT_URL/-/jobs/artifacts/main/raw/changes/${f}?job=build_patched" > "changes/${f}"
+    #      done
+    #      echo "including ${p}_${variant}.changes" >&2
+    #      runuser -u build -- reprepro --basedir ./repo include "reform" "changes/${p}_${variant}.changes"
+    #    done
+    #  fi
+    #done
     if [ "$BASESUITE" = "experimental" ]; then
       BASESUITE=unstable
     fi
