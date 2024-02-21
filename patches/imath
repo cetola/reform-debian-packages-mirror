@@ -1,0 +1,43 @@
+#!/bin/sh
+# #1060843
+# #1061327
+# both are fixed in experimental
+set -e
+patch -p1 << 'EOF'
+diff -Nru imath-3.1.9/debian/control imath-3.1.9/debian/control
+--- imath-3.1.9/debian/control 2023-09-04 14:09:31.000000000 +0200
++++ imath-3.1.9/debian/control 2024-01-15 13:08:40.000000000 +0100
+@@ -10,11 +10,11 @@
+  doxygen,
+  libboost-python-dev,
+  pkg-config,
+- python3-breathe,
+- python3-dev:any,
+- python3-numpy,
+- python3-sphinx,
+- python3-sphinx-press-theme
++ python3-breathe <!nodoc>,
++ python3-dev:native, libpython3-dev,
++ python3-numpy:native,
++ python3-sphinx <!nodoc>,
++ python3-sphinx-press-theme <!nodoc>
+ Standards-Version: 4.6.2
+ Rules-Requires-Root: no
+ Homepage: https://www.openexr.com
+@@ -47,7 +47,6 @@
+ Multi-Arch: same
+ Depends:
+  libimath-3-1-29 (= ${binary:Version}),
+- python3-imath,
+  ${misc:Depends},
+  ${shlibs:Depends}
+ Pre-Depends:
+@@ -74,6 +73,7 @@
+ Section: doc
+ Architecture: all
+ Multi-Arch: foreign
++Build-Profiles: <!nodoc>
+ Depends:
+  libjs-jquery,
+  sphinx-common,
+EOF

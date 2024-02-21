@@ -8,7 +8,7 @@ set -u
 
 . ./common.sh
 
-for p in patches/*; do
+for p in patches/imath patches/*; do
 	p=${p#patches/}
 
 	if [ ! -e "patches/$p" ]; then
