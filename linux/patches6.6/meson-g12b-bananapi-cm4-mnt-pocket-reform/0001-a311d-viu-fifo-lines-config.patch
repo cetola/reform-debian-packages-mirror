@@ -3,9 +3,9 @@ index cb67496..20d4cbc 100644
 --- a/drivers/gpu/drm/meson/meson_drv.c
 +++ b/drivers/gpu/drm/meson/meson_drv.c
 @@ -300,6 +300,15 @@ static int meson_drv_bind_master(struct device *dev, bool has_components)
- 
+
  	/* Hardware Initialization */
- 
+
 +	// temporary workaround for different vertical offsets (wraparound)
 +	// on different MNT Reform family display panels
 +	// until a proper fix is found
@@ -22,12 +22,10 @@ diff --git a/drivers/gpu/drm/meson/meson_viu.c b/drivers/gpu/drm/meson/meson_viu
 index 119d00f..b8fc35e 100644
 --- a/drivers/gpu/drm/meson/meson_viu.c
 +++ b/drivers/gpu/drm/meson/meson_viu.c
-@@ -441,7 +441,7 @@ void meson_viu_init(struct meson_drm *priv)
+@@ -441,6 +441,7 @@ void meson_viu_init(struct meson_drm *priv)
  		VIU_OSD_FIFO_LIMITS(2);      /* fifo_lim: 2*16=32 */
- 
+
  	if (meson_vpu_is_compatible(priv, VPU_COMPATIBLE_G12A))
--		reg |= (VIU_OSD_BURST_LENGTH_32 | VIU_OSD_HOLD_FIFO_LINES(31));
 +		reg |= (VIU_OSD_BURST_LENGTH_32 | VIU_OSD_HOLD_FIFO_LINES(priv->viu.hold_fifo_lines));
  	else
  		reg |= (VIU_OSD_BURST_LENGTH_64 | VIU_OSD_HOLD_FIFO_LINES(4));
- 
