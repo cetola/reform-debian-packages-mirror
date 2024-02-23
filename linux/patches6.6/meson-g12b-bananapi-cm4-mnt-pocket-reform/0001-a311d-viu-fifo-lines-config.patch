@@ -22,8 +22,7 @@ diff --git a/drivers/gpu/drm/meson/meson_viu.c b/drivers/gpu/drm/meson/meson_viu
 index 119d00f..b8fc35e 100644
 --- a/drivers/gpu/drm/meson/meson_viu.c
 +++ b/drivers/gpu/drm/meson/meson_viu.c
-@@ -441,4 +441,5 @@ void meson_viu_init(struct meson_drm *priv)
->>>>>>> afb4920c (intial support for A311D MNT Pocket Reform)
+@@ -441,5 +441,5 @@ void meson_viu_init(struct meson_drm *priv)
  		VIU_OSD_FIFO_LIMITS(2);      /* fifo_lim: 2*16=32 */
 
  	if (meson_vpu_is_compatible(priv, VPU_COMPATIBLE_G12A))
