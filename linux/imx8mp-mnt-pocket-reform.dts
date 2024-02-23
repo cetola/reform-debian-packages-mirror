@@ -765,15 +765,12 @@
 
 		pinctrl = <&pinctrl_panel>;
 
-		// FIXME none of these are connected to the SOC
-		// reset is driven by rp2040 through a LED (lol)
+		// reset is driven by rp2040
 		// dcdc en is also driven by rp2040
-		// fake (goes nowhere)
-		reset-gpios = <&gpio1 9 GPIO_ACTIVE_LOW>;
 		// actually backlight enable
 		enable-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
-		// fake (goes nowhere currently)
-		dcdc-en-gpio = <&gpio2 6 GPIO_ACTIVE_HIGH>;
+
+		burst-mode;
 
 		port {
 			panel_in: endpoint {
