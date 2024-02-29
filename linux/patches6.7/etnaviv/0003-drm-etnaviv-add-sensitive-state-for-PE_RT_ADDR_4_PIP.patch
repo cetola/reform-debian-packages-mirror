@@ -1,0 +1,29 @@
+From c9959996a8fc171bbb2c2d9c7478306f331a6cca Mon Sep 17 00:00:00 2001
+From: Christian Gmeiner <cgmeiner@igalia.com>
+Date: Thu, 7 Dec 2023 08:43:08 +0100
+Subject: [PATCH 3/4] drm/etnaviv: add sensitive state for PE_RT_ADDR_4_PIPE(3,
+ 0|1) address
+
+0x1540 is the address of 4th render target address pair (two pixel pipes).
+
+Signed-off-by: Christian Gmeiner <cgmeiner@igalia.com>
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+---
+ drivers/gpu/drm/etnaviv/etnaviv_cmd_parser.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/gpu/drm/etnaviv/etnaviv_cmd_parser.c b/drivers/gpu/drm/etnaviv/etnaviv_cmd_parser.c
+index b106e8b288ad..9bf47327f436 100644
+--- a/drivers/gpu/drm/etnaviv/etnaviv_cmd_parser.c
++++ b/drivers/gpu/drm/etnaviv/etnaviv_cmd_parser.c
+@@ -54,6 +54,7 @@ static const struct {
+ 	ST(0x1480, 8),
+ 	ST(0x1500, 8),
+ 	ST(0x1520, 8),
++	ST(0x1540, 8),
+ 	ST(0x1608, 1),
+ 	ST(0x1610, 1),
+ 	ST(0x1658, 1),
+-- 
+2.44.0
+
