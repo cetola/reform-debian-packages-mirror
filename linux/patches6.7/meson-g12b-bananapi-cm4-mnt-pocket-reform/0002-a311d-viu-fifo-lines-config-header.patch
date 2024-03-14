@@ -1,0 +1,12 @@
+diff --git a/drivers/gpu/drm/meson/meson_drv.h b/drivers/gpu/drm/meson/meson_drv.h
+index 3f9345c..5d88d10 100644
+--- a/drivers/gpu/drm/meson/meson_drv.h
++++ b/drivers/gpu/drm/meson/meson_drv.h
+@@ -154,6 +154,7 @@ struct meson_drm {
+ 		uint32_t vpp_hsc_phase_ctrl;
+ 		uint32_t vpp_blend_vd2_h_start_end;
+ 		uint32_t vpp_blend_vd2_v_start_end;
++		uint32_t hold_fifo_lines;
+ 	} viu;
+ 
+ 	struct {
