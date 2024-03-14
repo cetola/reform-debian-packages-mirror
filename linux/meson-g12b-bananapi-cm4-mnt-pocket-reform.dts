@@ -12,7 +12,7 @@
 #include <dt-bindings/sound/meson-g12a-tohdmitx.h>
 
 / {
-	model = "MNT Reform 2 with BPI-CM4 Module";
+	model = "MNT Pocket Reform with BPI-CM4 Module";
 	compatible = "mntre,reform2-cm4", "bananapi,bpi-cm4", "amlogic,a311d", "amlogic,g12b";
 	chassis-type = "laptop";
 
