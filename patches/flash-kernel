@@ -5,7 +5,7 @@ diff --git a/db/all.db b/db/all.db
 index 1bacc51..765fe45 100644
 --- a/db/all.db
 +++ b/db/all.db
-@@ -1168,6 +1168,13 @@ DTB-Id: sun7i-a20-mk808c.dtb
+@@ -1168,6 +1168,20 @@ DTB-Id: sun7i-a20-mk808c.dtb
  U-Boot-Script-Name: bootscr.sunxi
  Required-Packages: u-boot-tools
 
@@ -16,16 +16,30 @@ index 1bacc51..765fe45 100644
 +U-Boot-Script-Name: bootscr.uboot-generic
 +Required-Packages: u-boot-tools
 +
++Machine: MNT Pocket Reform with BPI-CM4 Module
++Kernel-Flavors: any
++Boot-Script-Path: /boot/boot.scr
++DTB-Id: amlogic/meson-g12b-bananapi-cm4-mnt-pocket-reform.dtb
++U-Boot-Script-Name: bootscr.uboot-generic
++Required-Packages: u-boot-tools
++
  Machine: MNT Reform 2
  Kernel-Flavors: any
  Boot-Script-Path: /boot/boot.scr
-@@ -1185,6 +1192,27 @@ Boot-Script-Path: /boot/boot.scr
+@@ -1185,6 +1192,34 @@ Boot-Script-Path: /boot/boot.scr
  U-Boot-Script-Name: bootscr.uboot-generic
  Required-Packages: u-boot-tools
 
 +Machine: MNT Reform 2 with BPI-CM4 Module
 +Kernel-Flavors: any
 +DTB-Id: amlogic/meson-g12b-bananapi-cm4-mnt-reform2.dtb
++Boot-Script-Path: /boot/boot.scr
++U-Boot-Script-Name: bootscr.uboot-generic
++Required-Packages: u-boot-tools
++
++Machine: MNT Reform 2 with i.MX8MP Module
++Kernel-Flavors: any
++DTB-Id: freescale/imx8mp-mnt-reform2.dtb
 +Boot-Script-Path: /boot/boot.scr
 +U-Boot-Script-Name: bootscr.uboot-generic
 +Required-Packages: u-boot-tools
