@@ -137,6 +137,7 @@ build_custom:
       - buildlogs
   script: |
     runuser -u build -- sh -x ./build_custom.sh 2>&1 | ./filter-output
+  after_script: |
     echo "BASESUITE: $BASESUITE"
     echo "OURSUITE: $OURSUITE"
     echo "REFORM_TOOLS_BRANCH: $REFORM_TOOLS_BRANCH"
@@ -156,6 +157,7 @@ build_linux:
   script: |
     runuser -u build -- sh -xc '. ./common.sh; cd linux; export BASESUITE=unstable; . ./build.sh' 2>&1 | ./filter-output
     dpkg-deb -c changes/linux-image-*-reform2-arm64_*_arm64.deb | grep 'kernel/drivers/gpu/drm/imx\(/cdns\)\?/cdns_mhdp_imx.ko'
+  after_script: |
     echo "BASESUITE: $BASESUITE"
     echo "OURSUITE: $OURSUITE"
     echo "REFORM_TOOLS_BRANCH: $REFORM_TOOLS_BRANCH"
