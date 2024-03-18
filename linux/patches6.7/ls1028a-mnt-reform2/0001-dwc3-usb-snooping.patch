@@ -1,0 +1,69 @@
+commit 2093e3a44c4c82a458ddcb92321c5f021a71d798
+Author: Lukas F. Hartmann <lukas@mntre.com>
+Date:   Mon Mar 18 21:14:25 2024 +0100
+
+    Add USB3 snooping feature/fix for DWC3 USB enumeration on LS1028A
+    
+    Forward-ported and simplified from https://lore.kernel.org/lkml/AM5PR0402MB28650ECE851C840990816C1CF1180@AM5PR0402MB2865.eurprd04.prod.outlook.com/T/
+    
+    Co-authored-by: Ran Wang <ran.wang_1@nxp.com>
+
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index f50b557..5f9c011 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -322,6 +322,25 @@ int dwc3_core_soft_reset(struct dwc3 *dwc)
+ 	return 0;
+ }
+ 
++/*
++ * dwc3_enable_snooping - Enable snooping feature. Fixes enumeration 
++ * issues on LS1028A.
++ * @dwc3: Pointer to our controller context structure
++ */
++static void dwc3_enable_snooping(struct dwc3 *dwc)
++{
++	u32 cfg;
++	if (!device_property_read_bool(dwc->dev, "snps,snooping")) return;
++
++	cfg = dwc3_readl(dwc->regs, DWC3_GSBUSCFG0);
++	cfg &= ~DWC3_GSBUSCFG0_SNP_MASK;
++	cfg |= (AXI3_CACHE_TYPE_SNP << DWC3_GSBUSCFG0_DATARD_SHIFT) |
++		(AXI3_CACHE_TYPE_SNP << DWC3_GSBUSCFG0_DESCRD_SHIFT) |
++		(AXI3_CACHE_TYPE_SNP << DWC3_GSBUSCFG0_DATAWR_SHIFT) |
++		(AXI3_CACHE_TYPE_SNP << DWC3_GSBUSCFG0_DESCWR_SHIFT);
++	dwc3_writel(dwc->regs, DWC3_GSBUSCFG0, cfg);
++}
++
+ /*
+  * dwc3_frame_length_adjustment - Adjusts frame length if required
+  * @dwc3: Pointer to our controller context structure
+@@ -1251,6 +1270,9 @@ static int dwc3_core_init(struct dwc3 *dwc)
+ 	/* Adjust Frame Length */
+ 	dwc3_frame_length_adjustment(dwc);
+ 
++	/* Layerscape cache snooping fix */
++	dwc3_enable_snooping(dwc);
++
+ 	/* Adjust Reference Clock Period */
+ 	dwc3_ref_clk_period(dwc);
+ 
+diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+index efe6caf..324005b 100644
+--- a/drivers/usb/dwc3/core.h
++++ b/drivers/usb/dwc3/core.h
+@@ -191,6 +191,14 @@
+ #define DWC3_GDBGLSPMUX_DEVSELECT(n)	(((n) & 0xf) << 4)
+ #define DWC3_GDBGLSPMUX_EPSELECT(n)	((n) & 0xf)
+ 
++/* Global SoC Bus Configuration Register 0 */
++#define AXI3_CACHE_TYPE_SNP		0x2 /* cacheable */
++#define DWC3_GSBUSCFG0_DATARD_SHIFT	28
++#define DWC3_GSBUSCFG0_DESCRD_SHIFT	24
++#define DWC3_GSBUSCFG0_DATAWR_SHIFT	20
++#define DWC3_GSBUSCFG0_DESCWR_SHIFT	16
++#define DWC3_GSBUSCFG0_SNP_MASK		0xffff0000
++
+ /* Global Debug Queue/FIFO Space Available Register */
+ #define DWC3_GDBGFIFOSPACE_NUM(n)	((n) & 0x1f)
+ #define DWC3_GDBGFIFOSPACE_TYPE(n)	(((n) << 5) & 0x1e0)

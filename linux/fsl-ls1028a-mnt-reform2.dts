@@ -185,11 +185,13 @@ XSPI1_A_DATA6 = GPIO2_DAT30
 
 &usb0 {
 	dr_mode = "host";
+	snps,snooping;
 	status = "okay";
 };
 
 &usb1 {
 	dr_mode = "host";
+	snps,snooping;
 	status = "okay";
 };
 
