@@ -181,6 +181,8 @@ reprepro:
     adduser --comment build --disabled-password build
     runuser -u build -- sh -x ./reprepro.sh
     {
+      echo "CI_COMMIT_BRANCH=\"$CI_COMMIT_BRANCH\"";
+      echo "CI_COMMIT_REF_NAME=\"$CI_COMMIT_REF_NAME\"";
       echo "BASESUITE=\"$BASESUITE\"";
       echo "OURSUITE=\"$OURSUITE\"";
       echo "REFORM_TOOLS_BRANCH=\"$REFORM_TOOLS_BRANCH\"";
