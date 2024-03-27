@@ -562,7 +562,6 @@
 
 &usb3_0 {
 	fsl,disable-port-power-control;
-	fsl,over-current-active-low;
 	status = "okay";
 };
 
@@ -892,13 +891,13 @@
 		#size-cells = <0>;
 
 		// since module 2.0, this is 0. before it was 4.
-		ethphy0: ethernet-phy@0 {
-			reg = <0>;
+		ethphy0: ethernet-phy {
+			//reg = <0>;
 			compatible = "ethernet-phy-ieee802.3-c22";
 			at803x,hib-disabled;
 			eee-broken-1000t;
 			interrupts-extended = GPIRQ_EQOS_PHY;
-			reset-gpios = GP_EQOS_RESET;
+			//reset-gpios = GP_EQOS_RESET;
 			reg-mask = <0x90>;
 		};
 	};
