@@ -49,19 +49,25 @@ setup:
       - chdist
   script: |
     set -x
-    # do not allow custom builds on the main branch as those would taint the
-    # repository at https://mntre.com/reform-debian-repo/
-    if [ "$CI_SERVER_HOST" = "source.mnt.re" ] && [ "x$CI_COMMIT_BRANCH" = xmain -o "x$CI_COMMIT_REF_NAME" = xmain ]; then
+    # Do not allow custom builds in the 'reform' namespace as those can
+    # potentially taint the repository at https://mntre.com/reform-debian-repo/
+    if [ "$CI_SERVER_HOST" = "source.mnt.re" ] && [ "$CI_PROJECT_NAMESPACE" = "reform" ]; then
       if [ "$BASESUITE" != "unstable" ]; then
-        echo "refusing to run pipeline on the main branch with BASESUITE not set to 'unstable'" >&2
+        echo "Refusing to run pipeline in the 'reform' namespace with BASESUITE not set to 'unstable'" >&2
+        echo "to avoid accidentally tainting the repository at https://mntre.com/reform-debian-repo." >&2
+        echo "Consider running custom pipelines in a fork of reform-debian-packages under your own username instead." >&2
         exit 1
       fi
       if [ "$OURSUITE" != "reform" ]; then
-        echo "refusing to run pipeline on the main branch with OURSUITE not set to 'reform'" >&2
+        echo "Refusing to run pipeline on the 'reform' namespace with OURSUITE not set to 'reform'" >&2
+        echo "to avoid accidentally tainting the repository at https://mntre.com/reform-debian-repo." >&2
+        echo "Consider running custom pipelines in a fork of reform-debian-packages under your own username instead." >&2
         exit 1
       fi
       if [ "$REFORM_TOOLS_BRANCH" != "main" ]; then
-        echo "refusing to run pipeline on the main branch with REFORM_TOOLS_BRANCH not set to 'main'" >&2
+        echo "Refusing to run pipeline on the 'reform' namespace with REFORM_TOOLS_BRANCH not set to 'main'" >&2
+        echo "to avoid accidentally tainting the repository at https://mntre.com/reform-debian-repo." >&2
+        echo "Consider running custom pipelines in a fork of reform-debian-packages under your own username instead." >&2
         exit 1
       fi
     fi
@@ -181,6 +187,7 @@ reprepro:
     adduser --comment build --disabled-password build
     runuser -u build -- sh -x ./reprepro.sh
     {
+      echo "CI_PROJECT_NAMESPACE=\"$CI_PROJECT_NAMESPACE\"";
       echo "CI_COMMIT_BRANCH=\"$CI_COMMIT_BRANCH\"";
       echo "CI_COMMIT_REF_NAME=\"$CI_COMMIT_REF_NAME\"";
       echo "BASESUITE=\"$BASESUITE\"";
