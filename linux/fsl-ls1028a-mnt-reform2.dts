@@ -21,6 +21,7 @@
 		crypto = &crypto;
 		serial0 = &duart0;
 		serial1 = &duart1;
+		serial2 = &lpuart1;
 		mmc0 = &esdhc;
 		mmc1 = &esdhc1;
 		rtc1 = &ftm_alarm0;
@@ -96,6 +97,11 @@
 };
 
 &duart1 {
+	status = "okay";
+};
+
+// connected to LPC11U24 chip on the motherboard
+&lpuart1 {
 	status = "okay";
 };
 
@@ -185,4 +191,13 @@ XSPI1_A_DATA6 = GPIO2_DAT30
 &usb1 {
 	dr_mode = "host";
 	status = "okay";
+};
+
+&dspi2 {
+	status = "okay";
+	spidev@0 {
+		compatible = "mntre,lpc11u24";
+		spi-max-frequency = <1000000>;
+		reg = <0>;
+	};
 };
