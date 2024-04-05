@@ -213,7 +213,7 @@ build_qcacld:
     unxz usr/src/linux-config-*/config.arm64_none_arm64.xz
 
     # install kernel config
-    KERNSRC=$(ls linux-source-* | head -n1)
+    KERNSRC=$(echo linux-source-*)
     mv usr/src/linux-config-*/config.arm64_none_arm64 "${KERNSRC}/.config"
 
     # prepare kernel tree
