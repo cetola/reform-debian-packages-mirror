@@ -174,10 +174,10 @@ build_qcacld:
     echo "build_qcacld debug:"
     echo "$(pwd):"
     echo "ls -lh"
-    echo "ls -lh linux"
+    echo "ls -lh changes"
 
     # find the linux debs
-    cd linux
+    cd changes
     LINUX_IMG_DEB=$(ls *.deb | grep -e '^linux-image-[0-9]' | grep -v '\-rt-' | head -n1)
     LINUX_SRC_DEB=$(ls *.deb | grep -e '^linux-source-[0-9]' | head -n1)
     LINUX_CFG_DEB=$(ls *.deb | grep -e '^linux-config-[0-9]' | head -n1)
@@ -197,11 +197,11 @@ build_qcacld:
     cd qcacld2
 
     # extract kernel source
-    dpkg -x "../linux/${LINUX_SRC_DEB}" ./
+    dpkg -x "../changes/${LINUX_SRC_DEB}" ./
     tar xfJ usr/src/linux-source-*.tar.xz
 
     # extract kernel config
-    dpkg -x "../linux/${LINUX_CFG_DEB}" ./
+    dpkg -x "../changes/${LINUX_CFG_DEB}" ./
     unxz usr/src/linux-config-*/config.arm64_none_arm64.xz
 
     # install kernel config
