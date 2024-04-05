@@ -164,9 +164,9 @@ build_linux:
 
 build_qcacld:
   stage: build
-  dependencies:
-    - setup
-    - build_linux
+  needs:
+    - job: build_linux
+      artifacts: true
   script: |
     set -x
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
@@ -244,6 +244,7 @@ build_qcacld:
     cd ..
 
   artifacts:
+    when: always
     paths:
       - "reform-qcacld2*.deb"
 
