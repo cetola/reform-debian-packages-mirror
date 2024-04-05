@@ -168,6 +168,8 @@ build_qcacld:
     - setup
     - build_linux
   script: |
+    set -x
+    apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
     apt-get --yes install --no-install-recommends gcc-aarch64-linux-gnu build-essential bison flex device-tree-compiler git ca-certificates xz-utils libssl-dev bc
 
     # debug
