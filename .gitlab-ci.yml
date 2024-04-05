@@ -168,6 +168,89 @@ build_linux:
     echo "OURSUITE: $OURSUITE"
     echo "REFORM_TOOLS_BRANCH: $REFORM_TOOLS_BRANCH"
 
+build_qcacld:
+  stage: build
+  dependencies:
+    - setup
+    - build_linux
+  script: |
+    apt-get --yes install --no-install-recommends gcc-aarch64-linux-gnu build-essential bison flex device-tree-compiler git ca-certificates xz-utils libssl-dev bc
+
+    # debug
+    echo "build_qcacld debug:"
+    echo "$(pwd):"
+    echo "ls -lh"
+    echo "ls -lh linux"
+
+    # find the linux debs
+    cd linux
+    LINUX_IMG_DEB=$(ls *.deb | grep -e '^linux-image-[0-9]' | grep -v '\-rt-' | head -n1)
+    LINUX_SRC_DEB=$(ls *.deb | grep -e '^linux-source-[0-9]' | head -n1)
+    LINUX_CFG_DEB=$(ls *.deb | grep -e '^linux-config-[0-9]' | head -n1)
+    cd..
+
+    echo "build_qcacld debug vars:"
+    echo "img: ${LINUX_IMG_DEB}"
+    echo "src: ${LINUX_SRC_DEB}"
+    echo "cfg: ${LINUX_CFG_DEB}"
+
+    KERNELPACKAGENAME=$(echo $LINUX_IMG_DEB | cut -d '_' -f 1)
+    KERNELVERSION=$(echo $LINUX_IMG_DEB | cut -d '_' -f 2)
+    KERNELRELEASE=${KERNELPACKAGENAME/linux-image-/}
+
+    # clone driver
+    git clone --branch binary-deb https://source.mnt.re/reform/qcacld2.git
+    cd qcacld2
+
+    # extract kernel source
+    dpkg -x "../linux/${LINUX_SRC_DEB}" ./
+    tar xfJ usr/src/linux-source-*.tar.xz
+
+    # extract kernel config
+    dpkg -x "../linux/${LINUX_CFG_DEB}" ./
+    unxz usr/src/linux-config-*/config.arm64_none_arm64.xz
+
+    # install kernel config
+    KERNSRC=$(ls linux-source-* | head -n1)
+    mv usr/src/linux-config-*/config.arm64_none_arm64 "${KERNSRC}/.config"
+
+    # prepare kernel tree
+    cd $KERNSRC
+    make -j $(nproc) ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- modules_prepare
+    cd ..
+
+    # build driver
+    KBUILD_MODPOST_WARN=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- MODNAME=qcacld2 KERNEL_SRC=${KERNSRC} make
+
+    # build debian package
+    QCAPACKAGEVERSION=$(date -u +"%Y%m%dT%H%M%SZ")
+    mkdir -p debian/opt/reform-qcacld2
+    mv qcacld2.ko "debian/opt/reform-qcacld2/qcacld2-${KERNELVERSION}.ko"
+    sed -i "s/KERNELRELEASE/$KERNELRELEASE/g" debian/DEBIAN/control
+    sed -i "s/QCAPACKAGEVERSION/$QCAPACKAGEVERSION/g" debian/DEBIAN/control
+    sed -i "s/KERNELPACKAGENAME/$KERNELPACKAGENAME/g" debian/DEBIAN/control
+    ## permissions are world writable by default in CI, fix that
+    chmod -R og-w debian
+    ls -lR debian
+    dpkg --build debian "reform-qcacld2-${KERNELRELEASE}_${QCAPACKAGEVERSION}_arm64.deb"
+
+    # build debian meta-package that tracks the latest version of the
+    # actual driver package so it is auto-upgraded together with kernel upgrades
+    # and that also includes a NeverAutoRemove snippet for /etc/apt/apt.conf.d/
+    # this package also contains the shared firmware for the drivers.
+    sed -i "s/KERNELRELEASE/$KERNELRELEASE/g" debian-meta/DEBIAN/control
+    sed -i "s/QCAPACKAGEVERSION/$QCAPACKAGEVERSION/g" debian-meta/DEBIAN/control
+    ## permissions are world writable by default in CI, fix that
+    chmod -R og-w debian-meta
+    ls -lR debian-meta
+    dpkg --build debian-meta "reform-qcacld2_${QCAPACKAGEVERSION}_arm64.deb"
+    mv *.deb ..
+    cd ..
+
+  artifacts:
+    paths:
+      - "reform-qcacld2*.deb"
+
 reprepro:
   stage: reprepro
   dependencies:
@@ -175,6 +258,7 @@ reprepro:
     - build_patched
     - build_custom
     - build_linux
+    - build_qcacld
   artifacts:
     when: always
     paths:
