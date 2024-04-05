@@ -189,7 +189,7 @@ build_qcacld:
     LINUX_IMG_DEB=$(ls *.deb | grep -e '^linux-image-[0-9]' | grep -v '\-rt-' | head -n1)
     LINUX_SRC_DEB=$(ls *.deb | grep -e '^linux-source-[0-9]' | head -n1)
     LINUX_CFG_DEB=$(ls *.deb | grep -e '^linux-config-[0-9]' | head -n1)
-    cd..
+    cd ..
 
     echo "build_qcacld debug vars:"
     echo "img: ${LINUX_IMG_DEB}"
