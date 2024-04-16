@@ -64,12 +64,6 @@ setup:
         echo "Consider running custom pipelines in a fork of reform-debian-packages under your own username instead." >&2
         exit 1
       fi
-      if [ "$REFORM_TOOLS_BRANCH" != "main" ]; then
-        echo "Refusing to run pipeline on the 'reform' namespace with REFORM_TOOLS_BRANCH not set to 'main'" >&2
-        echo "to avoid accidentally tainting the repository at https://mntre.com/reform-debian-repo." >&2
-        echo "Consider running custom pipelines in a fork of reform-debian-packages under your own username instead." >&2
-        exit 1
-      fi
     fi
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
     apt-get --no-install-recommends -y install reprepro python3 devscripts mmdebstrap uidmap
