@@ -17,7 +17,7 @@ index 3dc2102cbb3d..d55db50df4a3 100644
  		};
 +
 +		opp-2000000000 {
-+			opp-hz = /bits/ 64 <1800000000>;
++			opp-hz = /bits/ 64 <2000000000>;
 +			opp-microvolt = <1000000>;
 +			opp-supported-hw = <0x20>, <0x3>;
 +			clock-latency-ns = <150000>;
