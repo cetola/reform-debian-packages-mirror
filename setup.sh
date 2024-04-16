@@ -47,10 +47,10 @@ fi
 {
 echo "deb-src $MIRROR $BASESUITE main";
 case $BASESUITE in
-	experimental)
+	experimental|rc-buggy)
 		echo "deb-src $MIRROR unstable main"
 		;;
-	unstable) : ;;
+	unstable|sid|testing) : ;;
 	*-backports)
 		echo "deb-src $MIRROR ${BASESUITE%-backports} main"
 		echo "deb-src $MIRROR ${BASESUITE%-backports}-updates main"
