@@ -227,13 +227,13 @@ index f9a69f347068..724e12aa2d69 100644
  {
  	struct jdi_panel *jdi = to_jdi_panel(panel);
 +	struct device *dev = &jdi->dsi->dev;
-+	int ret;
++	int ret, i;
  
  	if (jdi->enabled)
  		return 0;
  
 -	backlight_enable(jdi->backlight);
-+	ret = jdi_panel_init(jdi);
++	for (i = 0; i < 2; i++) ret = jdi_panel_init(jdi);
 +	if (ret < 0) {
 +		dev_err(dev, "failed jdi_panel_init: %d\n", ret);
 +		return ret;
