@@ -13,11 +13,10 @@ Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
 
 --- a/arch/arm64/boot/dts/freescale/imx8mp.dtsi
 +++ b/arch/arm64/boot/dts/freescale/imx8mp.dtsi
-@@ -1569,6 +1569,89 @@
- 					opp-hz = /bits/ 64 <1000000000>;
+@@ -1748,6 +1748,89 @@ lcdif2_to_ldb: endpoint {
  				};
  			};
-+
+ 
 +			hdmi_pvi: display-bridge@32fc4000 {
 +				compatible = "fsl,imx8mp-hdmi-pvi";
 +				reg = <0x32fc4000 0x40>;
@@ -100,6 +99,7 @@ Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
 +				#phy-cells = <0>;
 +				status = "disabled";
 +			};
- 		};
- 
- 		aips4: bus@32c00000 {
++
+ 			media_blk_ctrl: blk-ctrl@32ec0000 {
+ 				compatible = "fsl,imx8mp-media-blk-ctrl",
+ 					     "syscon";
