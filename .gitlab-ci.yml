@@ -21,19 +21,20 @@ stages:
     set -x
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
     apt-get --no-install-recommends -y install devscripts reprepro sbuild debhelper debian-keyring quilt pristine-tar rsync git python3-debian faketime python3-jinja2 python3-dacite uidmap debian-archive-keyring curl
-    if [ ! -e /proc/sys/fs/binfmt_misc/status ]; then
-      mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
+    if [ "$(dpkg --print-architecture)" != "arm64" ]; then
+      if [ ! -e /proc/sys/fs/binfmt_misc/status ]; then
+        mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
+      fi
+      apt-get --no-install-recommends -y install arch-test binfmt-support qemu-user-static
+      arch-test arm64
     fi
-    apt-get --no-install-recommends -y install arch-test binfmt-support qemu-user-static
-    arch-test arm64
     adduser --comment build --disabled-password build
     runuser -u build -- sh -c 'echo "\$chroot_mode = \"unshare\";1;" > ~/.sbuildrc'
     runuser -u build -- sh -c 'mkdir -p changes buildlogs ~/.cache/sbuild'
     if [ "$BASESUITE" = "experimental" ]; then
       runuser -u build -- sh -c 'ln -s unstable-amd64.tar ~/.cache/sbuild/experimental-amd64.tar'
     fi
-    #for arch in amd64 arm64; do
-    for arch in amd64; do
+    for arch in $(dpkg --print-architecture); do
       # running in a runuser sub-shell to properly expand ~
       runuser -u build -- sh -c "cp chroot-${arch}.tar ~/.cache/sbuild/$([ "$BASESUITE" = "experimental" ] && echo unstable || echo "$BASESUITE")-$arch.tar"
     done
@@ -43,8 +44,7 @@ setup:
   stage: setup
   artifacts:
     paths:
-      - chroot-amd64.tar
-      #- chroot-arm64.tar
+      - chroot-*.tar
       - repo
       - chdist
   script: |
@@ -67,15 +67,17 @@ setup:
     fi
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
     apt-get --no-install-recommends -y install reprepro python3 devscripts mmdebstrap uidmap
-    if [ ! -e /proc/sys/fs/binfmt_misc/status ]; then
-      mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
+    if [ "$(dpkg --print-architecture)" != "arm64" ]; then
+      if [ ! -e /proc/sys/fs/binfmt_misc/status ]; then
+        mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
+      fi
+      apt-get --no-install-recommends -y install arch-test binfmt-support qemu-user-static
+      arch-test arm64
     fi
-    apt-get --no-install-recommends -y install arch-test binfmt-support qemu-user-static
-    arch-test arm64
     adduser --comment build --disabled-password build
     chown build -R .
     rm -rvf changes buildlogs chdist repo chroot-amd64.tar chroot-arm64.tar
-    runuser -u build -- mmdebstrap --architecture=amd64 --variant=buildd --mode=unshare \
+    runuser -u build -- mmdebstrap --architecture=$(dpkg --print-architecture) --variant=buildd --mode=unshare \
       --chrooted-customize-hook='rm /usr/bin/ischroot && ln -s /bin/true /usr/bin/ischroot' ${IFS# DebianBug:1056385} \
       "$([ "$BASESUITE" = "experimental" ] && echo unstable || echo "$BASESUITE")" chroot-amd64.tar
     #runuser -u build -- mmdebstrap --architecture=arm64 --variant=buildd --mode=unshare \
