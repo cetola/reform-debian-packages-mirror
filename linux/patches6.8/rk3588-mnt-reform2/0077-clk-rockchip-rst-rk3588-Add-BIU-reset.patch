@@ -1,0 +1,39 @@
+From f4e07b03d341a2bd26a8e0713a044ce91e5509cd Mon Sep 17 00:00:00 2001
+From: Shreeya Patel <shreeya.patel@collabora.com>
+Date: Wed, 14 Jun 2023 15:06:37 +0530
+Subject: [PATCH 77/80] clk: rockchip: rst-rk3588: Add BIU reset
+
+Export hdmirx_biu soft reset id which is required by the hdmirx controller.
+
+Signed-off-by: Shreeya Patel <shreeya.patel@collabora.com>
+---
+ drivers/clk/rockchip/rst-rk3588.c               | 1 +
+ include/dt-bindings/reset/rockchip,rk3588-cru.h | 2 ++
+ 2 files changed, 3 insertions(+)
+
+diff --git a/drivers/clk/rockchip/rst-rk3588.c b/drivers/clk/rockchip/rst-rk3588.c
+index e855bb8d5413..c4ebc01f1c9c 100644
+--- a/drivers/clk/rockchip/rst-rk3588.c
++++ b/drivers/clk/rockchip/rst-rk3588.c
+@@ -577,6 +577,7 @@ static const int rk3588_register_offset[] = {
+ 
+ 	/* SOFTRST_CON59 */
+ 	RK3588_CRU_RESET_OFFSET(SRST_A_HDCP1_BIU, 59, 6),
++	RK3588_CRU_RESET_OFFSET(SRST_A_HDMIRX_BIU, 59, 7),
+ 	RK3588_CRU_RESET_OFFSET(SRST_A_VO1_BIU, 59, 8),
+ 	RK3588_CRU_RESET_OFFSET(SRST_H_VOP1_BIU, 59, 9),
+ 	RK3588_CRU_RESET_OFFSET(SRST_H_VOP1_S_BIU, 59, 10),
+diff --git a/include/dt-bindings/reset/rockchip,rk3588-cru.h b/include/dt-bindings/reset/rockchip,rk3588-cru.h
+index d4264db2a07f..e2fe4bd5f7f0 100644
+--- a/include/dt-bindings/reset/rockchip,rk3588-cru.h
++++ b/include/dt-bindings/reset/rockchip,rk3588-cru.h
+@@ -751,4 +751,6 @@
+ #define SRST_P_TRNG_CHK			658
+ #define SRST_TRNG_S			659
+ 
++#define SRST_A_HDMIRX_BIU		660
++
+ #endif
+-- 
+2.39.2
+

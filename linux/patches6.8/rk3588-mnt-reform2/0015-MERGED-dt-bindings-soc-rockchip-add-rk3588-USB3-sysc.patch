@@ -1,0 +1,32 @@
+From cbf354f319c5d041795e080d5321974c572c1179 Mon Sep 17 00:00:00 2001
+From: Sebastian Reichel <sebastian.reichel@collabora.com>
+Date: Tue, 13 Feb 2024 17:32:36 +0100
+Subject: [PATCH 15/80] [MERGED] dt-bindings: soc: rockchip: add rk3588 USB3
+ syscon
+
+RK3588 USB3 support requires the GRF for USB and USBDP PHY.
+
+Acked-by: Conor Dooley <conor.dooley@microchip.com>
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+Link: https://lore.kernel.org/r/20240213163609.44930-3-sebastian.reichel@collabora.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+---
+ Documentation/devicetree/bindings/soc/rockchip/grf.yaml | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/soc/rockchip/grf.yaml b/Documentation/devicetree/bindings/soc/rockchip/grf.yaml
+index 9793ea6f0fe6..b4712c4c7bca 100644
+--- a/Documentation/devicetree/bindings/soc/rockchip/grf.yaml
++++ b/Documentation/devicetree/bindings/soc/rockchip/grf.yaml
+@@ -28,6 +28,8 @@ properties:
+               - rockchip,rk3588-sys-grf
+               - rockchip,rk3588-pcie3-phy-grf
+               - rockchip,rk3588-pcie3-pipe-grf
++              - rockchip,rk3588-usb-grf
++              - rockchip,rk3588-usbdpphy-grf
+               - rockchip,rk3588-vo-grf
+               - rockchip,rk3588-vop-grf
+               - rockchip,rv1108-usbgrf
+-- 
+2.39.2
+

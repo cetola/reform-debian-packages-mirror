@@ -1,0 +1,58 @@
+From 69f9d1e89c76c9918112c154ce21bb01394b7b31 Mon Sep 17 00:00:00 2001
+From: Sebastian Reichel <sebastian.reichel@collabora.com>
+Date: Tue, 13 Feb 2024 17:32:35 +0100
+Subject: [PATCH 16/80] [MERGED] dt-bindings: soc: rockchip: add clock to
+ RK3588 VO grf
+
+The RK3588 VO GRF needs a clock. This adds the clock to the allowed
+properties, makes it mandatory for the RK3588 VO grf and disallows it
+for any other Rockchip grf.
+
+Acked-by: Conor Dooley <conor.dooley@microchip.com>
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+Link: https://lore.kernel.org/r/20240213163609.44930-2-sebastian.reichel@collabora.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+---
+ .../devicetree/bindings/soc/rockchip/grf.yaml | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/soc/rockchip/grf.yaml b/Documentation/devicetree/bindings/soc/rockchip/grf.yaml
+index b4712c4c7bca..12e7a78f7f6b 100644
+--- a/Documentation/devicetree/bindings/soc/rockchip/grf.yaml
++++ b/Documentation/devicetree/bindings/soc/rockchip/grf.yaml
+@@ -68,6 +68,9 @@ properties:
+   reg:
+     maxItems: 1
+ 
++  clocks:
++    maxItems: 1
++
+   "#address-cells":
+     const: 1
+ 
+@@ -250,6 +253,22 @@ allOf:
+ 
+           unevaluatedProperties: false
+ 
++  - if:
++      properties:
++        compatible:
++          contains:
++            enum:
++              - rockchip,rk3588-vo-grf
++
++    then:
++      required:
++        - clocks
++
++    else:
++      properties:
++        clocks: false
++
++
+ examples:
+   - |
+     #include <dt-bindings/clock/rk3399-cru.h>
+-- 
+2.39.2
+

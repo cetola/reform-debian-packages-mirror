@@ -1,0 +1,1279 @@
+From git@z Thu Jan  1 00:00:00 1970
+Subject: [PATCH v9 7/12] clk: meson: add vclk driver
+From: Neil Armstrong <neil.armstrong@linaro.org>
+Date: Fri, 24 Nov 2023 09:41:18 +0100
+Message-Id: <20231124-amlogic-v6-4-upstream-dsi-ccf-vim3-v9-7-95256ed139e6@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+The VCLK and VCLK_DIV clocks have supplementary bits.
+
+The VCLK has a "SOFT RESET" bit to toggle after the whole
+VCLK sub-tree rate has been set, this is implemented in
+the gate enable callback.
+
+The VCLK_DIV clocks as enable and reset bits used to disable
+and reset the divider, associated with CLK_SET_RATE_GATE it ensures
+the rate is set while the divider is disabled and in reset mode.
+
+The VCLK_DIV enable bit isn't implemented as a gate since it's part
+of the divider logic and vendor does this exact sequence to ensure
+the divider is correctly set.
+
+Signed-off-by: Neil Armstrong <neil.armstrong@linaro.org>
+---
+ drivers/clk/meson/Kconfig  |   5 ++
+ drivers/clk/meson/Makefile |   1 +
+ drivers/clk/meson/vclk.c   | 141 +++++++++++++++++++++++++++++++++++++++++++++
+ drivers/clk/meson/vclk.h   |  51 ++++++++++++++++
+ 4 files changed, 198 insertions(+)
+
+diff --git a/drivers/clk/meson/Kconfig b/drivers/clk/meson/Kconfig
+index 29ffd14d267b..59a40a49f8e1 100644
+--- a/drivers/clk/meson/Kconfig
++++ b/drivers/clk/meson/Kconfig
+@@ -30,6 +30,10 @@ config COMMON_CLK_MESON_VID_PLL_DIV
+ 	tristate
+ 	select COMMON_CLK_MESON_REGMAP
+ 
++config COMMON_CLK_MESON_VCLK
++	tristate
++	select COMMON_CLK_MESON_REGMAP
++
+ config COMMON_CLK_MESON_CLKC_UTILS
+ 	tristate
+ 
+@@ -140,6 +144,7 @@ config COMMON_CLK_G12A
+ 	select COMMON_CLK_MESON_EE_CLKC
+ 	select COMMON_CLK_MESON_CPU_DYNDIV
+ 	select COMMON_CLK_MESON_VID_PLL_DIV
++	select COMMON_CLK_MESON_VCLK
+ 	select MFD_SYSCON
+ 	help
+ 	  Support for the clock controller on Amlogic S905D2, S905X2 and S905Y2
+diff --git a/drivers/clk/meson/Makefile b/drivers/clk/meson/Makefile
+index 9ee4b954c896..9ba43fe7a07a 100644
+--- a/drivers/clk/meson/Makefile
++++ b/drivers/clk/meson/Makefile
+@@ -12,6 +12,7 @@ obj-$(CONFIG_COMMON_CLK_MESON_PLL) += clk-pll.o
+ obj-$(CONFIG_COMMON_CLK_MESON_REGMAP) += clk-regmap.o
+ obj-$(CONFIG_COMMON_CLK_MESON_SCLK_DIV) += sclk-div.o
+ obj-$(CONFIG_COMMON_CLK_MESON_VID_PLL_DIV) += vid-pll-div.o
++obj-$(CONFIG_COMMON_CLK_MESON_VCLK) += vclk.o
+ 
+ # Amlogic Clock controllers
+ 
+diff --git a/drivers/clk/meson/vclk.c b/drivers/clk/meson/vclk.c
+new file mode 100644
+index 000000000000..47f08a52b49f
+--- /dev/null
++++ b/drivers/clk/meson/vclk.c
+@@ -0,0 +1,141 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright (c) 2023 Neil Armstrong <neil.armstrong@linaro.org>
++ */
++
++#include <linux/module.h>
++#include "vclk.h"
++
++/* The VCLK gate has a supplementary reset bit to pulse after ungating */
++
++static inline struct clk_regmap_vclk_data *
++clk_get_regmap_vclk_data(struct clk_regmap *clk)
++{
++	return (struct clk_regmap_vclk_data *)clk->data;
++}
++
++static int clk_regmap_vclk_enable(struct clk_hw *hw)
++{
++	struct clk_regmap *clk = to_clk_regmap(hw);
++	struct clk_regmap_vclk_data *vclk = clk_get_regmap_vclk_data(clk);
++
++	meson_parm_write(clk->map, &vclk->enable, 1);
++
++	/* Do a reset pulse */
++	meson_parm_write(clk->map, &vclk->reset, 1);
++	meson_parm_write(clk->map, &vclk->reset, 0);
++
++	return 0;
++}
++
++static void clk_regmap_vclk_disable(struct clk_hw *hw)
++{
++	struct clk_regmap *clk = to_clk_regmap(hw);
++	struct clk_regmap_vclk_data *vclk = clk_get_regmap_vclk_data(clk);
++
++	meson_parm_write(clk->map, &vclk->enable, 0);
++}
++
++static int clk_regmap_vclk_is_enabled(struct clk_hw *hw)
++{
++	struct clk_regmap *clk = to_clk_regmap(hw);
++	struct clk_regmap_vclk_data *vclk = clk_get_regmap_vclk_data(clk);
++
++	return meson_parm_read(clk->map, &vclk->enable);
++}
++
++const struct clk_ops clk_regmap_vclk_ops = {
++	.enable = clk_regmap_vclk_enable,
++	.disable = clk_regmap_vclk_disable,
++	.is_enabled = clk_regmap_vclk_is_enabled,
++};
++EXPORT_SYMBOL_GPL(clk_regmap_vclk_ops);
++
++/* The VCLK Divider has supplementary reset & enable bits */
++
++static inline struct clk_regmap_vclk_div_data *
++clk_get_regmap_vclk_div_data(struct clk_regmap *clk)
++{
++	return (struct clk_regmap_vclk_div_data *)clk->data;
++}
++
++static unsigned long clk_regmap_vclk_div_recalc_rate(struct clk_hw *hw,
++						     unsigned long prate)
++{
++	struct clk_regmap *clk = to_clk_regmap(hw);
++	struct clk_regmap_vclk_div_data *vclk = clk_get_regmap_vclk_div_data(clk);
++
++	return divider_recalc_rate(hw, prate, meson_parm_read(clk->map, &vclk->div),
++				   vclk->table, vclk->flags, vclk->div.width);
++}
++
++static int clk_regmap_vclk_div_determine_rate(struct clk_hw *hw,
++					      struct clk_rate_request *req)
++{
++	struct clk_regmap *clk = to_clk_regmap(hw);
++	struct clk_regmap_vclk_div_data *vclk = clk_get_regmap_vclk_div_data(clk);
++
++	return divider_determine_rate(hw, req, vclk->table, vclk->div.width,
++				      vclk->flags);
++}
++
++static int clk_regmap_vclk_div_set_rate(struct clk_hw *hw, unsigned long rate,
++					unsigned long parent_rate)
++{
++	struct clk_regmap *clk = to_clk_regmap(hw);
++	struct clk_regmap_vclk_div_data *vclk = clk_get_regmap_vclk_div_data(clk);
++	int ret;
++
++	ret = divider_get_val(rate, parent_rate, vclk->table, vclk->div.width,
++			      vclk->flags);
++	if (ret < 0)
++		return ret;
++
++	meson_parm_write(clk->map, &vclk->div, ret);
++
++	return 0;
++};
++
++static int clk_regmap_vclk_div_enable(struct clk_hw *hw)
++{
++	struct clk_regmap *clk = to_clk_regmap(hw);
++	struct clk_regmap_vclk_div_data *vclk = clk_get_regmap_vclk_div_data(clk);
++
++	/* Unreset the divider when ungating */
++	meson_parm_write(clk->map, &vclk->reset, 0);
++	meson_parm_write(clk->map, &vclk->enable, 1);
++
++	return 0;
++}
++
++static void clk_regmap_vclk_div_disable(struct clk_hw *hw)
++{
++	struct clk_regmap *clk = to_clk_regmap(hw);
++	struct clk_regmap_vclk_div_data *vclk = clk_get_regmap_vclk_div_data(clk);
++
++	/* Reset the divider when gating */
++	meson_parm_write(clk->map, &vclk->enable, 0);
++	meson_parm_write(clk->map, &vclk->reset, 1);
++}
++
++static int clk_regmap_vclk_div_is_enabled(struct clk_hw *hw)
++{
++	struct clk_regmap *clk = to_clk_regmap(hw);
++	struct clk_regmap_vclk_div_data *vclk = clk_get_regmap_vclk_div_data(clk);
++
++	return meson_parm_read(clk->map, &vclk->enable);
++}
++
++const struct clk_ops clk_regmap_vclk_div_ops = {
++	.recalc_rate = clk_regmap_vclk_div_recalc_rate,
++	.determine_rate = clk_regmap_vclk_div_determine_rate,
++	.set_rate = clk_regmap_vclk_div_set_rate,
++	.enable = clk_regmap_vclk_div_enable,
++	.disable = clk_regmap_vclk_div_disable,
++	.is_enabled = clk_regmap_vclk_div_is_enabled,
++};
++EXPORT_SYMBOL_GPL(clk_regmap_vclk_div_ops);
++
++MODULE_DESCRIPTION("Amlogic vclk clock driver");
++MODULE_AUTHOR("Neil Armstrong <neil.armstrong@linaro.org>");
++MODULE_LICENSE("GPL v2");
+diff --git a/drivers/clk/meson/vclk.h b/drivers/clk/meson/vclk.h
+new file mode 100644
+index 000000000000..4f25d7ad2717
+--- /dev/null
++++ b/drivers/clk/meson/vclk.h
+@@ -0,0 +1,51 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * Copyright (c) 2023 Neil Armstrong <neil.armstrong@linaro.org>
++ */
++
++#ifndef __VCLK_H
++#define __VCLK_H
++
++#include "clk-regmap.h"
++#include "parm.h"
++
++/**
++ * struct clk_regmap_vclk_data - vclk regmap backed specific data
++ *
++ * @enable:	vclk enable field
++ * @reset:	vclk reset field
++ * @flags:	hardware-specific flags
++ *
++ * Flags:
++ * Same as clk_gate except CLK_GATE_HIWORD_MASK which is ignored
++ */
++struct clk_regmap_vclk_data {
++	struct parm enable;
++	struct parm reset;
++	u8 flags;
++};
++
++extern const struct clk_ops clk_regmap_vclk_ops;
++
++/**
++ * struct clk_regmap_vclk_div_data - vclk_div regmap back specific data
++ *
++ * @div:	divider field
++ * @enable:	vclk divider enable field
++ * @reset:	vclk divider reset field
++ * @table:	array of value/divider pairs, last entry should have div = 0
++ *
++ * Flags:
++ * Same as clk_divider except CLK_DIVIDER_HIWORD_MASK which is ignored
++ */
++struct clk_regmap_vclk_div_data {
++	struct parm div;
++	struct parm enable;
++	struct parm reset;
++	const struct clk_div_table *table;
++	u8 flags;
++};
++
++extern const struct clk_ops clk_regmap_vclk_div_ops;
++
++#endif /* __VCLK_H */
+-- 
+2.34.1
+
+From git@z Thu Jan  1 00:00:00 1970
+Subject: [PATCH v9 8/12] clk: meson: g12a: make VCLK2 and ENCL clock path
+ configurable by CCF
+From: Neil Armstrong <neil.armstrong@linaro.org>
+Date: Fri, 24 Nov 2023 09:41:19 +0100
+Message-Id: <20231124-amlogic-v6-4-upstream-dsi-ccf-vim3-v9-8-95256ed139e6@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+In order to setup the DSI clock, let's make the unused VCLK2 clock path
+configuration via CCF.
+
+The nocache option is removed from following clocks:
+- vclk2_sel
+- vclk2_input
+- vclk2_div
+- vclk2
+- vclk_div1
+- vclk2_div2_en
+- vclk2_div4_en
+- vclk2_div6_en
+- vclk2_div12_en
+- vclk2_div2
+- vclk2_div4
+- vclk2_div6
+- vclk2_div12
+- cts_encl_sel
+
+vclk2 and vclk2_div uses the newly introduced vclk regmap driver
+to handle the enable and reset bits.
+
+In order to set a rate on cts_encl via the vclk2 clock path,
+the NO_REPARENT flag is set on cts_encl_sel & vclk2_sel in order
+to keep CCF from selection a parent.
+The parents of cts_encl_sel & vclk2_sel are expected to be defined
+in DT.
+
+The following clock scheme is to be used for DSI:
+
+xtal
+\_ gp0_pll_dco
+   \_ gp0_pll
+      |- vclk2_sel
+      |  \_ vclk2_input
+      |     \_ vclk2_div
+      |        \_ vclk2
+      |           \_ vclk2_div1
+      |              \_ cts_encl_sel
+      |                 \_ cts_encl	-> to VPU LCD Encoder
+      |- mipi_dsi_pxclk_sel
+      \_ mipi_dsi_pxclk_div
+         \_ mipi_dsi_pxclk		-> to DSI controller
+
+The mipi_dsi_pxclk_div is set as RO in order to use the same GP0
+for mipi_dsi_pxclk and vclk2_input.
+
+Signed-off-by: Neil Armstrong <neil.armstrong@linaro.org>
+---
+ drivers/clk/meson/g12a.c | 68 +++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 47 insertions(+), 21 deletions(-)
+
+diff --git a/drivers/clk/meson/g12a.c b/drivers/clk/meson/g12a.c
+index cadd824336ad..fb3d9196a1fd 100644
+--- a/drivers/clk/meson/g12a.c
++++ b/drivers/clk/meson/g12a.c
+@@ -22,6 +22,7 @@
+ #include "clk-regmap.h"
+ #include "clk-cpu-dyndiv.h"
+ #include "vid-pll-div.h"
++#include "vclk.h"
+ #include "meson-eeclk.h"
+ #include "g12a.h"
+ 
+@@ -3165,7 +3166,7 @@ static struct clk_regmap g12a_vclk2_sel = {
+ 		.ops = &clk_regmap_mux_ops,
+ 		.parent_hws = g12a_vclk_parent_hws,
+ 		.num_parents = ARRAY_SIZE(g12a_vclk_parent_hws),
+-		.flags = CLK_SET_RATE_NO_REPARENT | CLK_GET_RATE_NOCACHE,
++		.flags = CLK_SET_RATE_PARENT | CLK_SET_RATE_NO_REPARENT,
+ 	},
+ };
+ 
+@@ -3193,7 +3194,7 @@ static struct clk_regmap g12a_vclk2_input = {
+ 		.ops = &clk_regmap_gate_ops,
+ 		.parent_hws = (const struct clk_hw *[]) { &g12a_vclk2_sel.hw },
+ 		.num_parents = 1,
+-		.flags = CLK_SET_RATE_PARENT | CLK_IGNORE_UNUSED,
++		.flags = CLK_SET_RATE_PARENT,
+ 	},
+ };
+ 
+@@ -3215,19 +3216,32 @@ static struct clk_regmap g12a_vclk_div = {
+ };
+ 
+ static struct clk_regmap g12a_vclk2_div = {
+-	.data = &(struct clk_regmap_div_data){
+-		.offset = HHI_VIID_CLK_DIV,
+-		.shift = 0,
+-		.width = 8,
++	.data = &(struct clk_regmap_vclk_div_data){
++		.div = {
++			.reg_off = HHI_VIID_CLK_DIV,
++			.shift   = 0,
++			.width   = 8,
++		},
++		.enable = {
++			.reg_off = HHI_VIID_CLK_DIV,
++			.shift   = 16,
++			.width   = 1,
++		},
++		.reset = {
++			.reg_off = HHI_VIID_CLK_DIV,
++			.shift   = 17,
++			.width   = 1,
++		},
++		.flags = CLK_DIVIDER_ROUND_CLOSEST,
+ 	},
+ 	.hw.init = &(struct clk_init_data){
+ 		.name = "vclk2_div",
+-		.ops = &clk_regmap_divider_ops,
++		.ops = &clk_regmap_vclk_div_ops,
+ 		.parent_hws = (const struct clk_hw *[]) {
+ 			&g12a_vclk2_input.hw
+ 		},
+ 		.num_parents = 1,
+-		.flags = CLK_GET_RATE_NOCACHE,
++		.flags = CLK_SET_RATE_PARENT | CLK_SET_RATE_GATE,
+ 	},
+ };
+ 
+@@ -3246,16 +3260,24 @@ static struct clk_regmap g12a_vclk = {
+ };
+ 
+ static struct clk_regmap g12a_vclk2 = {
+-	.data = &(struct clk_regmap_gate_data){
+-		.offset = HHI_VIID_CLK_CNTL,
+-		.bit_idx = 19,
++	.data = &(struct clk_regmap_vclk_data){
++		.enable = {
++			.reg_off = HHI_VIID_CLK_CNTL,
++			.shift   = 19,
++			.width   = 1,
++		},
++		.reset = {
++			.reg_off = HHI_VIID_CLK_CNTL,
++			.shift   = 15,
++			.width   = 1,
++		},
+ 	},
+ 	.hw.init = &(struct clk_init_data) {
+ 		.name = "vclk2",
+-		.ops = &clk_regmap_gate_ops,
++		.ops = &clk_regmap_vclk_ops,
+ 		.parent_hws = (const struct clk_hw *[]) { &g12a_vclk2_div.hw },
+ 		.num_parents = 1,
+-		.flags = CLK_SET_RATE_PARENT | CLK_IGNORE_UNUSED,
++		.flags = CLK_SET_RATE_PARENT | CLK_SET_RATE_GATE,
+ 	},
+ };
+ 
+@@ -3339,7 +3361,7 @@ static struct clk_regmap g12a_vclk2_div1 = {
+ 		.ops = &clk_regmap_gate_ops,
+ 		.parent_hws = (const struct clk_hw *[]) { &g12a_vclk2.hw },
+ 		.num_parents = 1,
+-		.flags = CLK_SET_RATE_PARENT | CLK_IGNORE_UNUSED,
++		.flags = CLK_SET_RATE_PARENT,
+ 	},
+ };
+ 
+@@ -3353,7 +3375,7 @@ static struct clk_regmap g12a_vclk2_div2_en = {
+ 		.ops = &clk_regmap_gate_ops,
+ 		.parent_hws = (const struct clk_hw *[]) { &g12a_vclk2.hw },
+ 		.num_parents = 1,
+-		.flags = CLK_SET_RATE_PARENT | CLK_IGNORE_UNUSED,
++		.flags = CLK_SET_RATE_PARENT,
+ 	},
+ };
+ 
+@@ -3367,7 +3389,7 @@ static struct clk_regmap g12a_vclk2_div4_en = {
+ 		.ops = &clk_regmap_gate_ops,
+ 		.parent_hws = (const struct clk_hw *[]) { &g12a_vclk2.hw },
+ 		.num_parents = 1,
+-		.flags = CLK_SET_RATE_PARENT | CLK_IGNORE_UNUSED,
++		.flags = CLK_SET_RATE_PARENT,
+ 	},
+ };
+ 
+@@ -3381,7 +3403,7 @@ static struct clk_regmap g12a_vclk2_div6_en = {
+ 		.ops = &clk_regmap_gate_ops,
+ 		.parent_hws = (const struct clk_hw *[]) { &g12a_vclk2.hw },
+ 		.num_parents = 1,
+-		.flags = CLK_SET_RATE_PARENT | CLK_IGNORE_UNUSED,
++		.flags = CLK_SET_RATE_PARENT,
+ 	},
+ };
+ 
+@@ -3395,7 +3417,7 @@ static struct clk_regmap g12a_vclk2_div12_en = {
+ 		.ops = &clk_regmap_gate_ops,
+ 		.parent_hws = (const struct clk_hw *[]) { &g12a_vclk2.hw },
+ 		.num_parents = 1,
+-		.flags = CLK_SET_RATE_PARENT | CLK_IGNORE_UNUSED,
++		.flags = CLK_SET_RATE_PARENT,
+ 	},
+ };
+ 
+@@ -3461,6 +3483,7 @@ static struct clk_fixed_factor g12a_vclk2_div2 = {
+ 			&g12a_vclk2_div2_en.hw
+ 		},
+ 		.num_parents = 1,
++		.flags = CLK_SET_RATE_PARENT,
+ 	},
+ };
+ 
+@@ -3474,6 +3497,7 @@ static struct clk_fixed_factor g12a_vclk2_div4 = {
+ 			&g12a_vclk2_div4_en.hw
+ 		},
+ 		.num_parents = 1,
++		.flags = CLK_SET_RATE_PARENT,
+ 	},
+ };
+ 
+@@ -3487,6 +3511,7 @@ static struct clk_fixed_factor g12a_vclk2_div6 = {
+ 			&g12a_vclk2_div6_en.hw
+ 		},
+ 		.num_parents = 1,
++		.flags = CLK_SET_RATE_PARENT,
+ 	},
+ };
+ 
+@@ -3500,6 +3525,7 @@ static struct clk_fixed_factor g12a_vclk2_div12 = {
+ 			&g12a_vclk2_div12_en.hw
+ 		},
+ 		.num_parents = 1,
++		.flags = CLK_SET_RATE_PARENT,
+ 	},
+ };
+ 
+@@ -3561,7 +3587,7 @@ static struct clk_regmap g12a_cts_encl_sel = {
+ 		.ops = &clk_regmap_mux_ops,
+ 		.parent_hws = g12a_cts_parent_hws,
+ 		.num_parents = ARRAY_SIZE(g12a_cts_parent_hws),
+-		.flags = CLK_SET_RATE_NO_REPARENT | CLK_GET_RATE_NOCACHE,
++		.flags = CLK_SET_RATE_PARENT | CLK_SET_RATE_NO_REPARENT,
+ 	},
+ };
+ 
+@@ -3717,7 +3743,7 @@ static struct clk_regmap g12a_mipi_dsi_pxclk_sel = {
+ 		.ops = &clk_regmap_mux_ops,
+ 		.parent_hws = g12a_mipi_dsi_pxclk_parent_hws,
+ 		.num_parents = ARRAY_SIZE(g12a_mipi_dsi_pxclk_parent_hws),
+-		.flags = CLK_SET_RATE_NO_REPARENT,
++		.flags = CLK_SET_RATE_PARENT | CLK_SET_RATE_NO_REPARENT,
+ 	},
+ };
+ 
+@@ -3729,7 +3755,7 @@ static struct clk_regmap g12a_mipi_dsi_pxclk_div = {
+ 	},
+ 	.hw.init = &(struct clk_init_data){
+ 		.name = "mipi_dsi_pxclk_div",
+-		.ops = &clk_regmap_divider_ops,
++		.ops = &clk_regmap_divider_ro_ops,
+ 		.parent_hws = (const struct clk_hw *[]) {
+ 			&g12a_mipi_dsi_pxclk_sel.hw
+ 		},
+-- 
+2.34.1
+
+From git@z Thu Jan  1 00:00:00 1970
+Subject: [PATCH v9 9/12] drm/meson: gate px_clk when setting rate
+From: Neil Armstrong <neil.armstrong@linaro.org>
+Date: Fri, 24 Nov 2023 09:41:20 +0100
+Message-Id: <20231124-amlogic-v6-4-upstream-dsi-ccf-vim3-v9-9-95256ed139e6@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Disable the px_clk when setting the rate to recover a fully
+configured and correctly reset VCLK clock tree after the rate
+is set.
+
+Fixes: 77d9e1e6b846 ("drm/meson: add support for MIPI-DSI transceiver")
+Signed-off-by: Neil Armstrong <neil.armstrong@linaro.org>
+---
+ drivers/gpu/drm/meson/meson_dw_mipi_dsi.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/gpu/drm/meson/meson_dw_mipi_dsi.c b/drivers/gpu/drm/meson/meson_dw_mipi_dsi.c
+index e5fe4e994f43..72abe2057ec3 100644
+--- a/drivers/gpu/drm/meson/meson_dw_mipi_dsi.c
++++ b/drivers/gpu/drm/meson/meson_dw_mipi_dsi.c
+@@ -95,6 +95,7 @@ static int dw_mipi_dsi_phy_init(void *priv_data)
+ 		return ret;
+ 	}
+ 
++	clk_disable_unprepare(mipi_dsi->px_clk);
+ 	ret = clk_set_rate(mipi_dsi->px_clk, mipi_dsi->mode->clock * 1000);
+ 
+ 	if (ret) {
+@@ -103,6 +104,12 @@ static int dw_mipi_dsi_phy_init(void *priv_data)
+ 		return ret;
+ 	}
+ 
++	ret = clk_prepare_enable(mipi_dsi->px_clk);
++	if (ret) {
++		dev_err(mipi_dsi->dev, "Failed to enable DSI Pixel clock (ret %d)\n", ret);
++		return ret;
++	}
++
+ 	switch (mipi_dsi->dsi_device->format) {
+ 	case MIPI_DSI_FMT_RGB888:
+ 		dpi_data_format = DPI_COLOR_24BIT;
+-- 
+2.34.1
+
+From git@z Thu Jan  1 00:00:00 1970
+Subject: [PATCH v9 10/12] arm64: meson: g12-common: add the MIPI DSI nodes
+From: Neil Armstrong <neil.armstrong@linaro.org>
+Date: Fri, 24 Nov 2023 09:41:21 +0100
+Message-Id: <20231124-amlogic-v6-4-upstream-dsi-ccf-vim3-v9-10-95256ed139e6@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Add the MIPI DSI Analog & Digital PHY nodes and the DSI control
+nodes with proper port endpoint to the VPU.
+
+Signed-off-by: Neil Armstrong <neil.armstrong@linaro.org>
+---
+ arch/arm64/boot/dts/amlogic/meson-g12-common.dtsi | 70 +++++++++++++++++++++++
+ 1 file changed, 70 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/amlogic/meson-g12-common.dtsi b/arch/arm64/boot/dts/amlogic/meson-g12-common.dtsi
+index ff68b911b729..7300408262d5 100644
+--- a/arch/arm64/boot/dts/amlogic/meson-g12-common.dtsi
++++ b/arch/arm64/boot/dts/amlogic/meson-g12-common.dtsi
+@@ -1663,9 +1663,28 @@ pwrc: power-controller {
+ 								       <250000000>,
+ 								       <0>; /* Do Nothing */
+ 					};
++
++					mipi_analog_dphy: phy {
++						compatible = "amlogic,g12a-mipi-dphy-analog";
++						#phy-cells = <0>;
++						status = "disabled";
++					};
+ 				};
+ 			};
+ 
++			mipi_dphy: phy@44000 {
++				compatible = "amlogic,axg-mipi-dphy";
++				reg = <0x0 0x44000 0x0 0x2000>;
++				clocks = <&clkc CLKID_MIPI_DSI_PHY>;
++				clock-names = "pclk";
++				resets = <&reset RESET_MIPI_DSI_PHY>;
++				reset-names = "phy";
++				phys = <&mipi_analog_dphy>;
++				phy-names = "analog";
++				#phy-cells = <0>;
++				status = "disabled";
++			};
++
+ 			usb3_pcie_phy: phy@46000 {
+ 				compatible = "amlogic,g12a-usb3-pcie-phy";
+ 				reg = <0x0 0x46000 0x0 0x2000>;
+@@ -2152,6 +2171,15 @@ hdmi_tx_out: endpoint {
+ 					remote-endpoint = <&hdmi_tx_in>;
+ 				};
+ 			};
++
++			/* DPI output port */
++			dpi_port: port@2 {
++				reg = <2>;
++
++				dpi_out: endpoint {
++					remote-endpoint = <&mipi_dsi_in>;
++				};
++			};
+ 		};
+ 
+ 		gic: interrupt-controller@ffc01000 {
+@@ -2189,6 +2217,48 @@ gpio_intc: interrupt-controller@f080 {
+ 				amlogic,channel-interrupts = <64 65 66 67 68 69 70 71>;
+ 			};
+ 
++			mipi_dsi: dsi@7000 {
++				compatible = "amlogic,meson-g12a-dw-mipi-dsi";
++				reg = <0x0 0x7000 0x0 0x1000>;
++				resets = <&reset RESET_MIPI_DSI_HOST>;
++				reset-names = "top";
++				clocks = <&clkc CLKID_MIPI_DSI_HOST>,
++					 <&clkc CLKID_MIPI_DSI_PXCLK>,
++					 <&clkc CLKID_CTS_ENCL>;
++				clock-names = "pclk", "bit", "px";
++				phys = <&mipi_dphy>;
++				phy-names = "dphy";
++				#address-cells = <1>;
++				#size-cells = <0>;
++				status = "disabled";
++
++				assigned-clocks = <&clkc CLKID_MIPI_DSI_PXCLK_SEL>,
++					 <&clkc CLKID_CTS_ENCL_SEL>,
++					 <&clkc CLKID_VCLK2_SEL>;
++				assigned-clock-parents = <&clkc CLKID_GP0_PLL>,
++					 <&clkc CLKID_VCLK2_DIV1>,
++					 <&clkc CLKID_GP0_PLL>;
++
++				ports {
++					#address-cells = <1>;
++					#size-cells = <0>;
++
++					/* VPU VENC Input */
++					mipi_dsi_venc_port: port@0 {
++						reg = <0>;
++
++						mipi_dsi_in: endpoint {
++							remote-endpoint = <&dpi_out>;
++						};
++					};
++
++					/* DSI Output */
++					mipi_dsi_panel_port: port@1 {
++						reg = <1>;
++					};
++				};
++			};
++
+ 			watchdog: watchdog@f0d0 {
+ 				compatible = "amlogic,meson-gxbb-wdt";
+ 				reg = <0x0 0xf0d0 0x0 0x10>;
+-- 
+2.34.1
+
+From git@z Thu Jan  1 00:00:00 1970
+Subject: [PATCH v9 11/12] DONOTMERGE: arm64: meson: khadas-vim3l: add DSI
+ panel
+From: Neil Armstrong <neil.armstrong@linaro.org>
+Date: Fri, 24 Nov 2023 09:41:22 +0100
+Message-Id: <20231124-amlogic-v6-4-upstream-dsi-ccf-vim3-v9-11-95256ed139e6@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+This add nodes to support the Khadas TS050 panel on the
+Khadas VIM3 & VIM3L boards.
+
+Signed-off-by: Neil Armstrong <neil.armstrong@linaro.org>
+---
+ .../boot/dts/amlogic/meson-g12b-khadas-vim3.dtsi   |  2 +-
+ arch/arm64/boot/dts/amlogic/meson-khadas-vim3.dtsi | 74 ++++++++++++++++++++++
+ .../boot/dts/amlogic/meson-sm1-khadas-vim3l.dts    |  2 +-
+ 3 files changed, 76 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/amlogic/meson-g12b-khadas-vim3.dtsi b/arch/arm64/boot/dts/amlogic/meson-g12b-khadas-vim3.dtsi
+index 16dd409051b4..81c3057143b4 100644
+--- a/arch/arm64/boot/dts/amlogic/meson-g12b-khadas-vim3.dtsi
++++ b/arch/arm64/boot/dts/amlogic/meson-g12b-khadas-vim3.dtsi
+@@ -98,7 +98,7 @@ &pwm_ab {
+ };
+ 
+ &pwm_AO_cd {
+-	pinctrl-0 = <&pwm_ao_d_e_pins>;
++	pinctrl-0 = <&pwm_ao_c_6_pins>, <&pwm_ao_d_e_pins>;
+ 	pinctrl-names = "default";
+ 	clocks = <&xtal>;
+ 	clock-names = "clkin1";
+diff --git a/arch/arm64/boot/dts/amlogic/meson-khadas-vim3.dtsi b/arch/arm64/boot/dts/amlogic/meson-khadas-vim3.dtsi
+index 514a6dd4b124..aafc37863f2e 100644
+--- a/arch/arm64/boot/dts/amlogic/meson-khadas-vim3.dtsi
++++ b/arch/arm64/boot/dts/amlogic/meson-khadas-vim3.dtsi
+@@ -40,6 +40,14 @@ button-function {
+ 		};
+ 	};
+ 
++	panel_backlight: backlight {
++		compatible = "pwm-backlight";
++		pwms = <&pwm_AO_cd 0 25000 0>;
++		brightness-levels = <0 255>;
++		num-interpolated-steps = <255>;
++		default-brightness-level = <200>;
++	};
++
+ 	leds {
+ 		compatible = "gpio-leds";
+ 
+@@ -358,6 +366,23 @@ rtc: rtc@51 {
+ 	};
+ };
+ 
++&i2c3 {
++	status = "okay";
++	pinctrl-0 = <&i2c3_sda_a_pins>, <&i2c3_sck_a_pins>;
++	pinctrl-names = "default";
++
++	touch-controller@38 {
++		compatible = "edt,edt-ft5206";
++		reg = <0x38>;
++		interrupt-parent = <&gpio_intc>;
++		interrupts = <66 IRQ_TYPE_EDGE_FALLING>; /* GPIOA_5 */
++		reset-gpios = <&gpio_expander 6 GPIO_ACTIVE_LOW>;
++		touchscreen-size-x = <1080>;
++		touchscreen-size-y = <1920>;
++		status = "okay";
++	};
++};
++
+ &ir {
+ 	status = "okay";
+ 	pinctrl-0 = <&remote_input_ao_pins>;
+@@ -365,6 +390,55 @@ &ir {
+ 	linux,rc-map-name = "rc-khadas";
+ };
+ 
++&mipi_dsi {
++	status = "okay";
++
++	assigned-clocks = <&clkc CLKID_GP0_PLL>,
++			  <&clkc CLKID_MIPI_DSI_PXCLK_SEL>,
++			  <&clkc CLKID_MIPI_DSI_PXCLK>,
++			  <&clkc CLKID_CTS_ENCL_SEL>,
++			  <&clkc CLKID_VCLK2_SEL>;
++	assigned-clock-parents = <0>,
++				 <&clkc CLKID_GP0_PLL>,
++				 <0>,
++				 <&clkc CLKID_VCLK2_DIV1>,
++				 <&clkc CLKID_GP0_PLL>;
++	assigned-clock-rates = <960000000>,
++			       <0>,
++			       <960000000>,
++			       <0>,
++			       <0>;
++
++	panel@0 {
++		compatible = "khadas,ts050";
++		reset-gpios = <&gpio_expander 0 GPIO_ACTIVE_LOW>;
++		enable-gpios = <&gpio_expander 1 GPIO_ACTIVE_HIGH>;
++		power-supply = <&vcc_3v3>;
++		backlight = <&panel_backlight>;
++		reg = <0>;
++
++		port {
++			mipi_in_panel: endpoint {
++				remote-endpoint = <&mipi_out_panel>;
++			};
++		};
++	};
++};
++
++&mipi_analog_dphy {
++	status = "okay";
++};
++
++&mipi_dphy {
++	status = "okay";
++};
++
++&mipi_dsi_panel_port {
++	mipi_out_panel: endpoint {
++		remote-endpoint = <&mipi_in_panel>;
++	};
++};
++
+ &pcie {
+ 	reset-gpios = <&gpio GPIOA_8 GPIO_ACTIVE_LOW>;
+ };
+diff --git a/arch/arm64/boot/dts/amlogic/meson-sm1-khadas-vim3l.dts b/arch/arm64/boot/dts/amlogic/meson-sm1-khadas-vim3l.dts
+index 9c0b544e2209..cb52a55ab70a 100644
+--- a/arch/arm64/boot/dts/amlogic/meson-sm1-khadas-vim3l.dts
++++ b/arch/arm64/boot/dts/amlogic/meson-sm1-khadas-vim3l.dts
+@@ -76,7 +76,7 @@ &cpu3 {
+ };
+ 
+ &pwm_AO_cd {
+-	pinctrl-0 = <&pwm_ao_d_e_pins>;
++	pinctrl-0 = <&pwm_ao_c_6_pins>, <&pwm_ao_d_e_pins>;
+ 	pinctrl-names = "default";
+ 	clocks = <&xtal>;
+ 	clock-names = "clkin1";
+-- 
+2.34.1
+
+From git@z Thu Jan  1 00:00:00 1970
+Subject: [PATCH v9 12/12] arm64: dts: amlogic: meson-g12b-bananapi-cm4: add
+ support for MNT Reform2 with CM4 adaper
+From: Neil Armstrong <neil.armstrong@linaro.org>
+Date: Fri, 24 Nov 2023 09:41:23 +0100
+Message-Id: <20231124-amlogic-v6-4-upstream-dsi-ccf-vim3-v9-12-95256ed139e6@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+This adds a basic devicetree for the MNT Reform2 DIY laptop when using a
+CM4 adapter and a BPI-CM4 module.
+
+Co-developed-by: Lukas F. Hartmann <lukas@mntre.com>
+Signed-off-by: Neil Armstrong <neil.armstrong@linaro.org>
+---
+ arch/arm64/boot/dts/amlogic/Makefile               |   1 +
+ .../meson-g12b-bananapi-cm4-mnt-reform2.dts        | 384 +++++++++++++++++++++
+ 2 files changed, 385 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/amlogic/Makefile b/arch/arm64/boot/dts/amlogic/Makefile
+index cc8b34bd583d..58b5b332bdb7 100644
+--- a/arch/arm64/boot/dts/amlogic/Makefile
++++ b/arch/arm64/boot/dts/amlogic/Makefile
+@@ -15,6 +15,7 @@ dtb-$(CONFIG_ARCH_MESON) += meson-g12a-x96-max.dtb
+ dtb-$(CONFIG_ARCH_MESON) += meson-g12b-a311d-bananapi-m2s.dtb
+ dtb-$(CONFIG_ARCH_MESON) += meson-g12b-a311d-khadas-vim3.dtb
+ dtb-$(CONFIG_ARCH_MESON) += meson-g12b-bananapi-cm4-cm4io.dtb
++dtb-$(CONFIG_ARCH_MESON) += meson-g12b-bananapi-cm4-mnt-reform2.dtb
+ dtb-$(CONFIG_ARCH_MESON) += meson-g12b-gsking-x.dtb
+ dtb-$(CONFIG_ARCH_MESON) += meson-g12b-gtking-pro.dtb
+ dtb-$(CONFIG_ARCH_MESON) += meson-g12b-gtking.dtb
+diff --git a/arch/arm64/boot/dts/amlogic/meson-g12b-bananapi-cm4-mnt-reform2.dts b/arch/arm64/boot/dts/amlogic/meson-g12b-bananapi-cm4-mnt-reform2.dts
+new file mode 100644
+index 000000000000..003efed529ba
+--- /dev/null
++++ b/arch/arm64/boot/dts/amlogic/meson-g12b-bananapi-cm4-mnt-reform2.dts
+@@ -0,0 +1,384 @@
++// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
++/*
++ * Copyright (c) 2023 Neil Armstrong <neil.armstrong@linaro.org>
++ * Copyright 2023 MNT Research GmbH
++ */
++
++/dts-v1/;
++
++#include "meson-g12b-bananapi-cm4.dtsi"
++#include <dt-bindings/input/input.h>
++#include <dt-bindings/leds/common.h>
++#include <dt-bindings/sound/meson-g12a-tohdmitx.h>
++
++/ {
++	model = "MNT Reform 2 with BPI-CM4 Module";
++	compatible = "mntre,reform2-cm4", "bananapi,bpi-cm4", "amlogic,a311d", "amlogic,g12b";
++	chassis-type = "laptop";
++
++	aliases {
++		ethernet0 = &ethmac;
++		i2c0 = &i2c1;
++		i2c1 = &i2c3;
++	};
++
++	hdmi_connector: hdmi-connector {
++		compatible = "hdmi-connector";
++		type = "a";
++
++		port {
++			hdmi_connector_in: endpoint {
++				remote-endpoint = <&hdmi_tx_tmds_out>;
++			};
++		};
++	};
++
++	leds {
++		compatible = "gpio-leds";
++
++		led-blue {
++			color = <LED_COLOR_ID_BLUE>;
++			function = LED_FUNCTION_STATUS;
++			gpios = <&gpio_ao GPIOAO_7 GPIO_ACTIVE_HIGH>;
++			linux,default-trigger = "heartbeat";
++		};
++
++		led-green {
++			color = <LED_COLOR_ID_GREEN>;
++			function = LED_FUNCTION_STATUS;
++			gpios = <&gpio_ao GPIOAO_2 GPIO_ACTIVE_HIGH>;
++		};
++	};
++
++	sound {
++		compatible = "amlogic,axg-sound-card";
++		model = "MNT-REFORM2-BPI-CM4";
++		audio-widgets = "Headphone", "Headphone Jack",
++				"Speaker", "External Speaker",
++				"Microphone", "Mic Jack";
++		audio-aux-devs = <&tdmout_a>, <&tdmout_b>, <&tdmin_b>;
++		audio-routing =	"TDMOUT_A IN 0", "FRDDR_A OUT 0",
++				"TDMOUT_A IN 1", "FRDDR_B OUT 0",
++				"TDMOUT_A IN 2", "FRDDR_C OUT 0",
++				"TDM_A Playback", "TDMOUT_A OUT",
++				"TDMOUT_B IN 0", "FRDDR_A OUT 1",
++				"TDMOUT_B IN 1", "FRDDR_B OUT 1",
++				"TDMOUT_B IN 2", "FRDDR_C OUT 1",
++				"TDM_B Playback", "TDMOUT_B OUT",
++				"TDMIN_B IN 1", "TDM_B Capture",
++				"TDMIN_B IN 4", "TDM_B Loopback",
++				"TODDR_A IN 1", "TDMIN_B OUT",
++				"TODDR_B IN 1", "TDMIN_B OUT",
++				"TODDR_C IN 1", "TDMIN_B OUT",
++				"Headphone Jack", "HP_L",
++				"Headphone Jack", "HP_R",
++				"External Speaker", "SPK_LP",
++				"External Speaker", "SPK_LN",
++				"External Speaker", "SPK_RP",
++				"External Speaker", "SPK_RN",
++				"LINPUT1", "Mic Jack",
++				"Mic Jack", "MICB";
++
++		assigned-clocks = <&clkc CLKID_MPLL2>,
++					<&clkc CLKID_MPLL0>,
++					<&clkc CLKID_MPLL1>;
++		assigned-clock-parents = <0>, <0>, <0>;
++		assigned-clock-rates = <294912000>,
++				       <270950400>,
++				       <393216000>;
++
++		dai-link-0 {
++			sound-dai = <&frddr_a>;
++		};
++
++		dai-link-1 {
++			sound-dai = <&frddr_b>;
++		};
++
++		dai-link-2 {
++			sound-dai = <&frddr_c>;
++		};
++
++		dai-link-3 {
++			sound-dai = <&toddr_a>;
++		};
++
++		dai-link-4 {
++			sound-dai = <&toddr_b>;
++		};
++
++		dai-link-5 {
++			sound-dai = <&toddr_c>;
++		};
++
++		/* 8ch hdmi interface */
++		dai-link-6 {
++			sound-dai = <&tdmif_a>;
++			dai-format = "i2s";
++			dai-tdm-slot-tx-mask-0 = <1 1>;
++			dai-tdm-slot-tx-mask-1 = <1 1>;
++			dai-tdm-slot-tx-mask-2 = <1 1>;
++			dai-tdm-slot-tx-mask-3 = <1 1>;
++			mclk-fs = <256>;
++
++			codec {
++				sound-dai = <&tohdmitx TOHDMITX_I2S_IN_A>;
++			};
++		};
++
++		/* Analog Audio */
++		dai-link-7 {
++			sound-dai = <&tdmif_b>;
++			dai-format = "i2s";
++			dai-tdm-slot-tx-mask-0 = <1 1>;
++			mclk-fs = <256>;
++
++			codec {
++				sound-dai = <&wm8960>;
++			};
++		};
++
++		/* hdmi glue */
++		dai-link-8 {
++			sound-dai = <&tohdmitx TOHDMITX_I2S_OUT>;
++
++			codec {
++				sound-dai = <&hdmi_tx>;
++			};
++		};
++	};
++
++	reg_main_1v8: regulator-main-1v8 {
++		compatible = "regulator-fixed";
++		regulator-name = "1V8";
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <1800000>;
++		vin-supply = <&reg_main_3v3>;
++	};
++
++	reg_main_1v2: regulator-main-1v2 {
++		compatible = "regulator-fixed";
++		regulator-name = "1V2";
++		regulator-min-microvolt = <1200000>;
++		regulator-max-microvolt = <1200000>;
++		vin-supply = <&reg_main_5v>;
++	};
++
++	reg_main_3v3: regulator-main-3v3 {
++		compatible = "regulator-fixed";
++		regulator-name = "3V3";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++	};
++
++	reg_main_5v: regulator-main-5v {
++		compatible = "regulator-fixed";
++		regulator-name = "5V";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++	};
++
++	reg_main_usb: regulator-main-usb {
++		compatible = "regulator-fixed";
++		regulator-name = "USB_PWR";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		vin-supply = <&reg_main_5v>;
++	};
++
++	backlight: backlight {
++		compatible = "pwm-backlight";
++		pwms = <&pwm_AO_ab 0 10000 0>;
++		power-supply = <&reg_main_usb>;
++		enable-gpios = <&gpio 58 GPIO_ACTIVE_HIGH>;
++		brightness-levels = <0 32 64 128 160 200 255>;
++		default-brightness-level = <6>;
++	};
++
++	panel {
++		compatible = "innolux,n125hce-gn1";
++		power-supply = <&reg_main_3v3>;
++		backlight = <&backlight>;
++		no-hpd;
++
++		port {
++			panel_in: endpoint {
++				remote-endpoint = <&edp_bridge_out>;
++			};
++		};
++	};
++
++	clock_12288: clock_12288 {
++		compatible = "fixed-clock";
++		#clock-cells = <0>;
++		clock-frequency = <12288000>;
++	};
++};
++
++&mipi_analog_dphy {
++	status = "okay";
++};
++
++&mipi_dphy {
++	status = "okay";
++};
++
++&mipi_dsi {
++	status = "okay";
++
++	assigned-clocks = <&clkc CLKID_GP0_PLL>,
++			  <&clkc CLKID_MIPI_DSI_PXCLK_SEL>,
++			  <&clkc CLKID_MIPI_DSI_PXCLK>,
++			  <&clkc CLKID_CTS_ENCL_SEL>,
++			  <&clkc CLKID_VCLK2_SEL>;
++	assigned-clock-parents = <0>,
++				 <&clkc CLKID_GP0_PLL>,
++				 <0>,
++				 <&clkc CLKID_VCLK2_DIV1>,
++				 <&clkc CLKID_GP0_PLL>;
++	assigned-clock-rates = <936000000>,
++			       <0>,
++			       <936000000>,
++			       <0>,
++			       <0>;
++};
++
++&mipi_dsi_panel_port {
++	mipi_dsi_out: endpoint {
++		remote-endpoint = <&edp_bridge_in>;
++	};
++};
++
++&cecb_AO {
++	status = "okay";
++};
++
++&ethmac {
++	status = "okay";
++};
++
++&hdmi_tx {
++	status = "okay";
++};
++
++&hdmi_tx_tmds_port {
++	hdmi_tx_tmds_out: endpoint {
++		remote-endpoint = <&hdmi_connector_in>;
++	};
++};
++
++&pwm_AO_ab {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pwm_ao_a_pins>;
++	status = "okay";
++};
++
++&i2c0 {
++	status = "okay";
++};
++
++&i2c3 {
++	status = "okay";
++
++	edp_bridge: bridge@2c {
++		compatible = "ti,sn65dsi86";
++		reg = <0x2c>;
++		enable-gpios = <&gpio GPIOX_10 GPIO_ACTIVE_HIGH>; // PIN_24 / GPIO8
++		vccio-supply = <&reg_main_1v8>;
++		vpll-supply = <&reg_main_1v8>;
++		vcca-supply = <&reg_main_1v2>;
++		vcc-supply = <&reg_main_1v2>;
++
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			port@0 {
++				reg = <0>;
++
++				edp_bridge_in: endpoint {
++					remote-endpoint = <&mipi_dsi_out>;
++				};
++			};
++
++			port@1 {
++				reg = <1>;
++
++				edp_bridge_out: endpoint {
++					remote-endpoint = <&panel_in>;
++				};
++			};
++		};
++	};
++};
++
++&i2c2 {
++	status = "okay";
++
++	wm8960: codec@1a {
++		compatible = "wlf,wm8960";
++		reg = <0x1a>;
++		clocks = <&clock_12288>;
++		clock-names = "mclk";
++		#sound-dai-cells = <0>;
++		wlf,shared-lrclk;
++	};
++
++	rtc@68 {
++		compatible = "nxp,pcf8523";
++		reg = <0x68>;
++	};
++};
++
++&pcie {
++	status = "okay";
++};
++
++&sd_emmc_b {
++	status = "okay";
++};
++
++&tdmif_a {
++	status = "okay";
++};
++
++&tdmout_a {
++	status = "okay";
++};
++
++&tdmif_b {
++	pinctrl-0 = <&tdm_b_dout0_pins>, <&tdm_b_fs_pins>, <&tdm_b_sclk_pins>, <&tdm_b_din1_pins>;
++	pinctrl-names = "default";
++
++	assigned-clocks = <&clkc_audio AUD_CLKID_TDM_SCLK_PAD1>,
++			  <&clkc_audio AUD_CLKID_TDM_LRCLK_PAD1>;
++	assigned-clock-parents = <&clkc_audio AUD_CLKID_MST_B_SCLK>,
++				 <&clkc_audio AUD_CLKID_MST_B_LRCLK>;
++	assigned-clock-rates = <0>, <0>;
++};
++
++&tdmin_b {
++	status = "okay";
++};
++
++&toddr_a {
++	status = "okay";
++};
++
++&toddr_b {
++	status = "okay";
++};
++
++&toddr_c {
++	status = "okay";
++};
++
++&tohdmitx {
++	status = "okay";
++};
++
++&usb {
++	dr_mode = "host";
++
++	status = "okay";
++};
+-- 
+2.34.1
+

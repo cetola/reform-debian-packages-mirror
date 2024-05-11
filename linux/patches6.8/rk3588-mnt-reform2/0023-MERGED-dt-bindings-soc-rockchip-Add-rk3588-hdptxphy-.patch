@@ -1,0 +1,31 @@
+From c2952f7a337e848bf405283fcabb6d7b04eb601e Mon Sep 17 00:00:00 2001
+From: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
+Date: Fri, 19 Jan 2024 21:38:01 +0200
+Subject: [PATCH 23/80] [MERGED] dt-bindings: soc: rockchip: Add rk3588
+ hdptxphy syscon
+
+Add compatible for the hdptxphy GRF used by rk3588-hdptx-phy.
+
+Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Link: https://lore.kernel.org/r/20240119193806.1030214-2-cristian.ciocaltea@collabora.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+---
+ Documentation/devicetree/bindings/soc/rockchip/grf.yaml | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Documentation/devicetree/bindings/soc/rockchip/grf.yaml b/Documentation/devicetree/bindings/soc/rockchip/grf.yaml
+index 12e7a78f7f6b..0b87c266760c 100644
+--- a/Documentation/devicetree/bindings/soc/rockchip/grf.yaml
++++ b/Documentation/devicetree/bindings/soc/rockchip/grf.yaml
+@@ -22,6 +22,7 @@ properties:
+               - rockchip,rk3568-usb2phy-grf
+               - rockchip,rk3588-bigcore0-grf
+               - rockchip,rk3588-bigcore1-grf
++              - rockchip,rk3588-hdptxphy-grf
+               - rockchip,rk3588-ioc
+               - rockchip,rk3588-php-grf
+               - rockchip,rk3588-pipe-phy-grf
+-- 
+2.39.2
+

@@ -1,0 +1,31 @@
+From cdd12119f2c833b76a55ea8a3fb8da1dc5b0cf5e Mon Sep 17 00:00:00 2001
+From: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
+Date: Mon, 19 Feb 2024 22:37:24 +0200
+Subject: [PATCH 25/80] [MERGED] arm64: defconfig: Enable Rockchip HDMI/eDP
+ Combo PHY
+
+Enable support for the Rockchip HDMI/eDP Combo PHY, which is based on a
+Samsung IP block. This is used by the RK3588 SoC family.
+
+Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
+Link: https://lore.kernel.org/r/20240219203725.283532-1-cristian.ciocaltea@collabora.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+---
+ arch/arm64/configs/defconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm64/configs/defconfig b/arch/arm64/configs/defconfig
+index e6cf3e5d63c3..134dce860641 100644
+--- a/arch/arm64/configs/defconfig
++++ b/arch/arm64/configs/defconfig
+@@ -1490,6 +1490,7 @@ CONFIG_PHY_ROCKCHIP_INNO_USB2=y
+ CONFIG_PHY_ROCKCHIP_INNO_DSIDPHY=m
+ CONFIG_PHY_ROCKCHIP_NANENG_COMBO_PHY=m
+ CONFIG_PHY_ROCKCHIP_PCIE=m
++CONFIG_PHY_ROCKCHIP_SAMSUNG_HDPTX=m
+ CONFIG_PHY_ROCKCHIP_SNPS_PCIE3=y
+ CONFIG_PHY_ROCKCHIP_TYPEC=y
+ CONFIG_PHY_SAMSUNG_UFS=y
+-- 
+2.39.2
+
