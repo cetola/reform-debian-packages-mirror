@@ -51,7 +51,14 @@ fi
 DEB_VERSION="$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog)"
 DEB_VERSION_UPSTREAM="$(echo "$DEB_VERSION" | sed -e 's/-[^-]*$//')"
 KVER=$(echo "$DEB_VERSION" | sed 's/\([0-9]\+\.[0-9]\+\).*/\1/')
-if dpkg --compare-versions "$KVER" ge "6.7"; then
+if dpkg --compare-versions "$KVER" ge "6.8"; then
+	# Starting with kernel 6.8 we use the flavour name instead of the
+	# upstream version to indicate that this is the reform kernel, so
+	# we don't need to replace versions and move orig tarballs but
+	# just append a suffix to the version.
+	# VERSUFFIX is set in common.sh and "reform" by default.
+	env --chdir=linux TZ=UTC $faketime dch --newversion "$DEB_VERSION+$VERSUFFIX$datesuffix" "apply mnt reform patch"
+elif dpkg --compare-versions "$KVER" ge "6.7"; then
 	oldversion="$(dpkg-parsechangelog --show-field=Version --file linux/debian/changelog)"
 	newversion="$(echo "$oldversion" | sed 's/\([0-9.]\+\)\(.*\)/\1-reform2\2/')"
 	env --chdir=linux TZ=UTC $faketime dch --newversion "$newversion+$VERSUFFIX$datesuffix" "apply mnt reform patch"
@@ -61,25 +68,74 @@ else
 fi
 env --chdir=linux TZ=UTC $faketime dch --force-distribution --distribution="$OURSUITE" --release ""
 
-env --chdir=linux patch -p1 < packaging.diff
+if dpkg --compare-versions "$KVER" ge "6.8"; then
+	env --chdir=linux patch -p1 < packaging6.8.diff
+	# These meta-meta-packages must be provided by the MNT repositories
+	# until the last installation manually removed the linux-*-arm64
+	# packages in favour of linux-*-mnt-reform-arm64. If they disappear
+	# from the MNT repos before that, then even installations which had the
+	# linux-*-mnt-reform-arm64 packages pulled in will upgrade their
+	# linux-*-arm64 to the version from Debian which will in turn pull
+	# in the wrong kernel. This will only not be a disaster at the point
+	# where *all* required patches were upstreamed (haha).
+	cat <<'END' >>linux/debian/templates/extra.control.in
+
+Package: linux-image-arm64
+Architecture: arm64
+Meta-Rules-Target: meta
+Build-Profiles: <!pkg.linux.nokernel !pkg.linux.nometa>
+Depends: linux-image-mnt-reform-arm64 (= ${binary:Version}), ${misc:Depends}
+Description: Linux for 64-bit ARMv8 machines (MNT Reform) (meta-meta-package)
+ This meta-meta-package depends on the linux-image-mnt-reform-arm64
+ meta-package for use on MNT Reform 2, MNT Pocket Reform and Reform Next to
+ ensure a smooth transition after changing the kernel flavour name in 6.8.9.
+ .
+ This is an empty transitional package and can be safely removed as its
+ functionality is provided by the linux-image-mnt-reform-arm64 package instead.
+
+Package: linux-headers-arm64
+Architecture: arm64
+Meta-Rules-Target: meta
+Build-Profiles: <!pkg.linux.nokernel !pkg.linux.nometa !pkg.linux.quick>
+Depends: linux-headers-mnt-reform-arm64 (= ${binary:Version}), ${misc:Depends}
+Description: Linux for 64-bit ARMv8 machines (MNT Reform) (meta-meta-package)
+ This meta-meta-package depends on the linux-headers-mnt-reform-arm64
+ meta-package for use on MNT Reform 2, MNT Pocket Reform and Reform Next to
+ ensure a smooth transition after changing the kernel flavour name in 6.8.9.
+ .
+ This is an empty transitional package and can be safely removed as its
+ functionality is provided by the linux-headers-mnt-reform-arm64 package
+ instead.
+END
+else
+	env --chdir=linux patch -p1 < packaging.diff
+fi
 
 # new toml config format since 6.7
 if dpkg --compare-versions "$KVER" ge "6.7"; then
+	flavour="arm64"
+	# in 6.8 we changed the flavourname from "arm64" to "mnt-reform-arm64"
+	if dpkg --compare-versions "$KVER" ge "6.8"; then
+		flavour="mnt-reform-arm64"
+	fi
 	mkdir -p linux/debian/config.local/arm64
 	cat << END >> linux/debian/config.local/arm64/defines.toml
 [[flavour]]
-name = 'arm64'
+name = '$flavour'
 [flavour.defs]
 is_default = true
 [flavour.packages]
 installer = false
 docs = false
+[flavour.description]
+hardware = '64-bit ARMv8 machines (MNT Reform)'
+hardware_long = 'MNT Reform 2, MNT Pocket Reform and Reform Next'
 
 [[featureset]]
 name = 'none'
 
 [[featureset.flavour]]
-name = 'arm64'
+name = '$flavour'
 
 [build]
 enable_signed = false
@@ -103,8 +159,6 @@ END
 flavours: arm64
 END
 fi
-
-KVER=$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog | sed 's/\([0-9]\+\.[0-9]\+\).*/\1/')
 
 # the abiname field was dropped in 6.6 with commit 3282bf29846a0c47a8e01c60c038d29ad17c573d
 # since 6.7 there is the new toml config format
@@ -137,11 +191,15 @@ else
 	grep --quiet '^abiname: [0-9a-z.]\+-reform2$' linux/debian/config/defines
 fi
 
-export DEBIAN_KERNEL_DISABLE_DEBUG=1
-export DEBIAN_KERNEL_DISABLE_INSTALLER=1
-export DEBIAN_KERNEL_DISABLE_SIGNED=1
+if dpkg --compare-versions "$KVER" lt "6.8"; then
+	export DEBIAN_KERNEL_DISABLE_DEBUG=1
+	export DEBIAN_KERNEL_DISABLE_INSTALLER=1
+	export DEBIAN_KERNEL_DISABLE_SIGNED=1
+fi
 
 if $USE_GIT; then
+	# the orig directory will contain orig.tar.gz tarballs downloaded by
+	# debian/bin/genorig.py
 	if [ ! -e orig ]; then
 		env --chdir=linux debian/bin/genorig.py https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
 	fi
@@ -149,18 +207,19 @@ if $USE_GIT; then
 	make -C linux -f debian/rules orig
 fi
 
+if dpkg --compare-versions "$KVER" ge "6.8"; then
+	# renaming things like abi or flavour means that now there are files without
+	# purpose in ./debian -- clean them up
+	make -C linux -f debian/rules clean-generated
+fi
+
 # this command fails intentionally, so we let it always succeed
 make -C linux -f debian/rules debian/control-real && exit 1 || :
 
-# running the last command creates pyc files that we don't want
-rm -r ./linux/debian/lib/python/debian_linux/__pycache__
-
-if [ ! -d kernel-team ]; then
-	git clone https://salsa.debian.org/kernel-team/kernel-team.git
+if dpkg --compare-versions "$KVER" lt "6.8"; then
+	# running the last command creates pyc files that we don't want
+	rm -r ./linux/debian/lib/python/debian_linux/__pycache__
 fi
-cat config >> linux/debian/config/arm64/config
-env --chdir=linux debian/rules source
-env --chdir=linux ../kernel-team/utils/kconfigeditor2/process.py .
 
 if [ ! -e "patches${KVER}" ]; then
 	echo "no patches for linux $KVER prepared yet" >&2
@@ -173,6 +232,10 @@ cp -a "patches${KVER}"/* linux/debian/patches/reform
 find "patches${KVER}/" -type f -name "*.patch" | sort | sed 's/^patches'"$KVER"'\//reform\//' >> linux/debian/patches/series
 
 env --chdir=linux QUILT_PATCHES=debian/patches quilt push -a
+
+
+# The next few dozen lines create a new quilt patch containing all the device
+# tree files that we copy into the kernel tree
 env --chdir=linux QUILT_PATCHES=debian/patches quilt new reform/dts.patch
 env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/freescale/fsl-ls1028a-mnt-reform2.dts
 cp fsl-ls1028a-mnt-reform2.dts linux/arch/arm64/boot/dts/freescale/fsl-ls1028a-mnt-reform2.dts
@@ -205,8 +268,19 @@ if dpkg --compare-versions "$KVER" ge "6.8"; then
 	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/rockchip/Makefile
 	sed -i '/rk3588-rock-5b.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform2.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
 fi
-
+# finalize dts.patch
 env --chdir=linux QUILT_PATCHES=debian/patches quilt refresh
+
+# add config *after* adding patches or otherwise kconfigeditor2 will throw
+# (nonfatal) warnings about config options that don't exist (yet)
+if [ ! -d kernel-team ]; then
+	git clone https://salsa.debian.org/kernel-team/kernel-team.git
+fi
+
+cat config >> linux/debian/config/arm64/config
+env --chdir=linux debian/rules source
+env --chdir=linux ../kernel-team/utils/kconfigeditor2/process.py .
+
 
 DEB_BUILD_PROFILES="nodoc pkg.linux.nokerneldbg pkg.linux.nokerneldbginfo"
 if [ "$BUILD_ARCH" != "$HOST_ARCH" ]; then
