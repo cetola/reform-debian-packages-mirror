@@ -4,14 +4,12 @@ Date:   Tue Mar 5 14:06:47 2024 +0100
 
     rk3588: dtsi: add hdmi1 (second HDMI controller)
 
-diff --git a/arch/arm64/boot/dts/rockchip/rk3588-pinctrl.dtsi b/arch/arm64/boot/dts/rockchip/rk3588-pinctrl.dtsi
-index 244c66faa161..2cf234526de2 100644
 --- a/arch/arm64/boot/dts/rockchip/rk3588-pinctrl.dtsi
 +++ b/arch/arm64/boot/dts/rockchip/rk3588-pinctrl.dtsi
-@@ -169,6 +169,62 @@ hdmim0_tx1_sda: hdmim0-tx1-sda {
- 				/* hdmim0_tx1_sda */
- 				<2 RK_PB4 4 &pcfg_pull_none>;
- 		};
+@@ -210,6 +210,62 @@
+                                 /* hdmim1_rx_sda */
+                                 <3 RK_PD3 5 &pcfg_pull_none>;
+                 };
 +
 +		/omit-if-no-ref/
 +		hdmim1_tx0_cec: hdmim1-tx0-cec {
@@ -71,11 +69,9 @@ index 244c66faa161..2cf234526de2 100644
  	};
  
  	i2c0 {
-diff --git a/arch/arm64/boot/dts/rockchip/rk3588s.dtsi b/arch/arm64/boot/dts/rockchip/rk3588s.dtsi
-index 9be9ebc2fdb4..61fe26c8197e 100644
 --- a/arch/arm64/boot/dts/rockchip/rk3588s.dtsi
 +++ b/arch/arm64/boot/dts/rockchip/rk3588s.dtsi
-@@ -25,6 +25,10 @@ aliases {
+@@ -25,6 +25,10 @@
  		gpio2 = &gpio2;
  		gpio3 = &gpio3;
  		gpio4 = &gpio4;
@@ -86,7 +82,7 @@ index 9be9ebc2fdb4..61fe26c8197e 100644
  		i2c0 = &i2c0;
  		i2c1 = &i2c1;
  		i2c2 = &i2c2;
-@@ -1222,6 +1226,11 @@ hdptxphy0_grf: syscon@fd5e0000 {
+@@ -978,6 +982,11 @@
  		reg = <0x0 0xfd5e0000 0x0 0x100>;
  	};
  
@@ -98,7 +94,7 @@ index 9be9ebc2fdb4..61fe26c8197e 100644
  	ioc: syscon@fd5f0000 {
  		compatible = "rockchip,rk3588-ioc", "syscon";
  		reg = <0x0 0xfd5f0000 0x0 0x10000>;
-@@ -1822,6 +1831,61 @@ hdmi0_out: port@1 {
+@@ -1576,6 +1585,61 @@
  		};
  	};
  
@@ -160,7 +156,7 @@ index 9be9ebc2fdb4..61fe26c8197e 100644
  	qos_gpu_m0: qos@fdf35000 {
  		compatible = "rockchip,rk3588-qos", "syscon";
  		reg = <0x0 0xfdf35000 0x0 0x20>;
-@@ -3069,6 +3133,23 @@ hdptxphy_hdmi0: phy@fed60000 {
+@@ -2995,6 +3059,23 @@
  		status = "disabled";
  	};
  
