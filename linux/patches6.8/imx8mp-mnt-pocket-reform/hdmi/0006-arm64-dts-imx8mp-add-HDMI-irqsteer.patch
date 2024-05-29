@@ -21,7 +21,7 @@ Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
 +
 +			irqsteer_hdmi: interrupt-controller@32fc2000 {
 +				compatible = "fsl,imx-irqsteer";
-+				reg = <0x32fc2000 0x44>;
++				reg = <0x32fc2000 0x1000>;
 +				interrupts = <GIC_SPI 43 IRQ_TYPE_LEVEL_HIGH>;
 +				interrupt-controller;
 +				#interrupt-cells = <1>;
@@ -32,5 +32,5 @@ Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
 +				power-domains = <&hdmi_blk_ctrl IMX8MP_HDMIBLK_PD_IRQSTEER>;
 +			};
  		};
- 
+
  		aips5: bus@30c00000 {
