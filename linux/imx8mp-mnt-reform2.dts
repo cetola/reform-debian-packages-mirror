@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 
 /*
- * Copyright 2019-2023 MNT Research GmbH
+ * Copyright 2019-2024 MNT Research GmbH
  * Copyright 2021 Lucas Stach <dev@lynxeye.de>
  * Copyright 2020 Boundary Devices
 */
-
-// see also:	https://github.com/boundarydevices/linux/blob/boundary-imx_5.15.y/arch/arm64/boot/dts/freescale/imx8mp-nitrogen8mp.dts
 
 /dts-v1/;
 
@@ -33,34 +31,10 @@
 			MX8MP_IOMUXC_ENET_RD3__ENET_QOS_RGMII_RD3	0x91
 #define GP_EQOS_RESET	<&gpio3 16 GPIO_ACTIVE_LOW>
 			MX8MP_IOMUXC_NAND_READY_B__GPIO3_IO16		0x100
-#define GPIRQ_EQOS_PHY	<&gpio3 2 IRQ_TYPE_LEVEL_LOW>
-			MX8MP_IOMUXC_NAND_CE1_B__GPIO3_IO02		0x10
+#define GPIRQ_EQOS_PHY	<&gpio3 14 IRQ_TYPE_LEVEL_LOW>
+			MX8MP_IOMUXC_NAND_DQS__GPIO3_IO14 0x10
 		>;
 	};
-
-	/*pinctrl_fec: fecgrp {
-		fsl,pins = <
-			MX8MP_IOMUXC_SAI1_RXD2__ENET1_MDC		0x0
-			MX8MP_IOMUXC_SAI1_RXD3__ENET1_MDIO		0xa0
-			MX8MP_IOMUXC_SAI1_TXD4__ENET1_RGMII_TX_CTL	0x1f
-			MX8MP_IOMUXC_SAI1_TXD5__ENET1_RGMII_TXC		0x1f
-			MX8MP_IOMUXC_SAI1_TXD0__ENET1_RGMII_TD0		0x1f
-			MX8MP_IOMUXC_SAI1_TXD1__ENET1_RGMII_TD1		0x1f
-			MX8MP_IOMUXC_SAI1_TXD2__ENET1_RGMII_TD2		0x1f
-			MX8MP_IOMUXC_SAI1_TXD3__ENET1_RGMII_TD3		0x1f
-
-			MX8MP_IOMUXC_SAI1_TXFS__ENET1_RGMII_RX_CTL	0x91
-			MX8MP_IOMUXC_SAI1_TXC__ENET1_RGMII_RXC		0x91
-			MX8MP_IOMUXC_SAI1_RXD4__ENET1_RGMII_RD0		0x91
-			MX8MP_IOMUXC_SAI1_RXD5__ENET1_RGMII_RD1		0x91
-			MX8MP_IOMUXC_SAI1_RXD6__ENET1_RGMII_RD2		0x91
-			MX8MP_IOMUXC_SAI1_RXD7__ENET1_RGMII_RD3		0x91
-#define GP_FEC_RESET	<&gpio5 8 GPIO_ACTIVE_LOW>
-			MX8MP_IOMUXC_ECSPI1_MISO__GPIO5_IO08		0x100
-#define GPIRQ_FEC_PHY	<&gpio1 7 IRQ_TYPE_LEVEL_LOW>
-			MX8MP_IOMUXC_GPIO1_IO07__GPIO1_IO07		0x10
-		>;
-	};*/
 
 	pinctrl_hog: hoggrp {
 		fsl,pins = <
@@ -71,7 +45,7 @@
 			MX8MP_IOMUXC_SD1_RESET_B__GPIO2_IO10		0x41	/* Pin 23 */
 			MX8MP_IOMUXC_SD1_DATA6__GPIO2_IO08		0x41	/* Pin 25 */
 			MX8MP_IOMUXC_SD1_DATA5__GPIO2_IO07		0x41	/* Pin 29 */
-			MX8MP_IOMUXC_SD1_DATA4__GPIO2_IO06		0x41	/* Pin 31 */
+			//MX8MP_IOMUXC_SD1_DATA4__GPIO2_IO06		0x41	/* Pin 31 */
 			MX8MP_IOMUXC_SAI1_MCLK__GPIO4_IO20		0x16	/* Pin 2 */
 			MX8MP_IOMUXC_SAI1_TXD7__GPIO4_IO19		0x1c4	/* Pin 4 */
 		>;
@@ -204,14 +178,14 @@
 		>;
 	};
 
- /* pinctrl_pwm1: pwm1grp {
+	pinctrl_pwm1: pwm1grp {
 		fsl,pins = <
-		//MX8MP_IOMUXC_GPIO1_IO01__PWM1_OUT	0x100
-		//MX8MP_IOMUXC_GPIO1_IO10__GPIO1_IO10	0x149
+		MX8MP_IOMUXC_GPIO1_IO01__PWM1_OUT	0x100
+		MX8MP_IOMUXC_GPIO1_IO10__GPIO1_IO10	0x149
 		// backlight enable
-		//MX8MP_IOMUXC_GPIO1_IO07__GPIO1_IO07		0x100
+		MX8MP_IOMUXC_GPIO1_IO07__GPIO1_IO07		0x100
 		>;
-	};*/
+	};
 
 	pinctrl_edp_bridge: edpbridgegrp {
 		fsl,pins = <
@@ -335,6 +309,7 @@
 			MX8MP_IOMUXC_NAND_CE2_B__USDHC3_DATA5	0x1d0
 			MX8MP_IOMUXC_NAND_CE3_B__USDHC3_DATA6	0x1d0
 			MX8MP_IOMUXC_NAND_CLE__USDHC3_DATA7	0x1d0
+			MX8MP_IOMUXC_NAND_CE1_B__USDHC3_STROBE	0x10
 #define GP_EMMC_RESET	<&gpio3 1 IRQ_TYPE_LEVEL_LOW>
 			MX8MP_IOMUXC_NAND_CE0_B__GPIO3_IO01	0x140
 		>;
@@ -352,6 +327,7 @@
 			MX8MP_IOMUXC_NAND_CE2_B__USDHC3_DATA5	0x1d4
 			MX8MP_IOMUXC_NAND_CE3_B__USDHC3_DATA6	0x1d4
 			MX8MP_IOMUXC_NAND_CLE__USDHC3_DATA7	0x1d4
+			MX8MP_IOMUXC_NAND_CE1_B__USDHC3_STROBE	0x14
 		>;
 	};
 
@@ -367,6 +343,7 @@
 			MX8MP_IOMUXC_NAND_CE2_B__USDHC3_DATA5	0x1d6
 			MX8MP_IOMUXC_NAND_CE3_B__USDHC3_DATA6	0x1d6
 			MX8MP_IOMUXC_NAND_CLE__USDHC3_DATA7	0x1d6
+			MX8MP_IOMUXC_NAND_CE1_B__USDHC3_STROBE	0x12
 		>;
 	};
 
@@ -403,14 +380,11 @@
 
 	backlight: backlight {
 		compatible = "pwm-backlight";
-		// FIXME
-		pwms = <&pwm2 0 10000 0>;
+		pwms = <&pwm1 0 10000 0>;
 		power-supply = <&reg_main_usb>;
-		// FIXME
-		//enable-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
-		enable-gpios = <&gpio1 12 GPIO_ACTIVE_HIGH>;
-		brightness-levels = <0 32 64 128 160 200 255>;
-		default-brightness-level = <6>;
+		enable-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
+		brightness-levels = <0 8 16 32 64 128 160 200 255>;
+		default-brightness-level = <8>;
 	};
 
 	panel {
@@ -425,6 +399,19 @@
 			};
 		};
 	};
+
+	/*dp0: connector {
+		compatible = "dp-connector";
+		label = "DP-1";
+		type = "full-size";
+		dp-pwr-supply = <&reg_main_3v3>;
+
+		port {
+			panel_in: endpoint {
+				remote-endpoint = <&edp_bridge_out>;
+			};
+		};
+	};*/
 
 	pcie0_refclk: pcie0-refclk {
 		compatible = "fixed-clock";
@@ -558,22 +545,18 @@
 };
 
 &pwm1 {
-	//pinctrl-names = "default";
-	//pinctrl-0 = <&pinctrl_pwm1>;
-	status = "okay";
-};
-
-&pwm2 {
-	//pinctrl-names = "default";
-	//pinctrl-0 = <&pinctrl_pwm2>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pwm1>;
 	status = "okay";
 };
 
 &usb3_0 {
+	fsl,disable-port-power-control;
 	status = "okay";
 };
 
 &usb3_1 {
+	fsl,disable-port-power-control;
 	status = "okay";
 };
 
@@ -582,21 +565,23 @@
 	pinctrl-0 = <&pinctrl_wdog>;
 	fsl,ext-reset-output;
 	timeout-sec = <7200>;
-	status = "ok";
+	status = "okay";
 };
+
 &wdog2 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_wdog>;
 	fsl,ext-reset-output;
 	timeout-sec = <7200>;
-	status = "ok";
+	status = "okay";
 };
+
 &wdog3 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_wdog>;
 	fsl,ext-reset-output;
 	timeout-sec = <7200>;
-	status = "ok";
+	status = "okay";
 };
 
 &i2c1 {
@@ -766,6 +751,7 @@
 
 	edp_bridge: bridge@2c {
 		compatible = "ti,sn65dsi86";
+		burst-mode;
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_edp_bridge>;
 		reg = <0x2c>;
@@ -791,6 +777,7 @@
 				reg = <1>;
 
 				edp_bridge_out: endpoint {
+					data-lanes = <0 1>;
 					remote-endpoint = <&panel_in>;
 				};
 			};
@@ -800,6 +787,8 @@
 
 &mipi_dsi {
 	status = "okay";
+	samsung,burst-clock-frequency = <972000000>;
+	samsung,esc-clock-frequency = <24000000>;
 
 	ports {
 		#address-cells = <1>;
@@ -836,6 +825,19 @@
 	status = "okay";
 };
 
+&ecspi2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_ecspi2>;
+	cs-gpios = GP_ECSPI2_CS;
+	status = "okay";
+
+	spidev@0 {
+		compatible = "mntre,lpc11u24";
+		spi-max-frequency = <1000000>;
+		reg = <0>;
+	};
+};
+
 &eqos {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_eqos>;
@@ -848,46 +850,24 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
-		ethphy0: ethernet-phy@4 {
-			reg = <4>;
+		// since module 2.0, this is 0. before it was 4.
+		ethphy0: ethernet-phy {
+			//reg = <0>;
 			compatible = "ethernet-phy-ieee802.3-c22";
 			at803x,hib-disabled;
 			eee-broken-1000t;
 			interrupts-extended = GPIRQ_EQOS_PHY;
-#if 0
-			reset-gpios = GP_EQOS_RESET;
-#endif
+			//reset-gpios = GP_EQOS_RESET;
 			reg-mask = <0x90>;
 		};
 	};
 };
 
-// apparently FEC can be run via SAI1 pins
-/*&fec {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_fec>;
-	phy-mode = "rgmii-id";
-	phy-handle = <&ethphy1>;
-	fsl,magic-packet;
-	status = "okay";
-
-	mdio {
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		ethphy1: ethernet-phy {
-			compatible = "ethernet-phy-ieee802.3-c22";
-			eee-broken-1000t;
-			interrupts-extended = GPIRQ_FEC_PHY;
-			reg-mask = <0x90>;
-		};
-	};
-};*/
-
-// SD Card
+// microsd card
 &usdhc1 {
 	assigned-clocks = <&clk IMX8MP_CLK_USDHC1_ROOT>;
 	assigned-clock-rates = <400000000>;
+	//max-frequency = <12000000>;
 	bus-width = <4>;
 	cd-gpios = GP_USDHC1_CD;
 	pinctrl-names = "default"; //, "state_100mhz", "state_200mhz";
@@ -899,20 +879,15 @@
 	vqmmc-supply = <&reg_main_3v3>;
 };
 
-// SDIO (wifi/bt qca9733)
+// sdio (wifi/bt qca9733)
 &usdhc2 {
-	assigned-clocks = <&clk IMX8MP_CLK_USDHC2_ROOT>;
-	assigned-clock-rates = <200000000>;
+	//assigned-clocks = <&clk IMX8MP_CLK_USDHC2_ROOT>;
+	//assigned-clock-rates = <200000000>;
 	bus-width = <4>;
-	//fsl,sdio-async-interrupt-enabled; // needs patch https://www.spinics.net/lists/linux-mmc/msg65247.html
+	//max-frequency = <100000000>;
 	keep-power-in-suspend;
 	no-sd-uhs-sdr104;
-	sd-uhs-ddr50;
-	no-mmc;
-	no-sd;
-	//no-cqe;
 	non-removable;
-	cap-sdio-irq;
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
 	pinctrl-0 = <&pinctrl_usdhc2>;
 	pinctrl-1 = <&pinctrl_usdhc2_100mhz>;
@@ -926,8 +901,7 @@
 
 // emmc
 &usdhc3 {
-	bus-width = <4>; // FIXME was 8
-	no-mmc-hs400;
+	bus-width = <8>;
 	non-removable;
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
 	pinctrl-0 = <&pinctrl_usdhc3>;
