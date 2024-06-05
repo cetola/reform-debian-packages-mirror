@@ -355,7 +355,7 @@
 };
 
 / {
-	model = "MNT Reform with i.MX8MP Module";
+	model = "MNT Reform 2 with i.MX8MP Module";
 	compatible = "mntre,reform2", "boundary,imx8mq-nitrogen8mp-som", "fsl,imx8mp";
 	chassis-type = "laptop";
 
