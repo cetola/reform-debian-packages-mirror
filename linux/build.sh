@@ -229,7 +229,7 @@ fi
 mkdir linux/debian/patches/reform
 cp -a "patches${KVER}"/* linux/debian/patches/reform
 
-find "patches${KVER}/" -type f -name "*.patch" | sort | sed 's/^patches'"$KVER"'\//reform\//' >> linux/debian/patches/series
+find "patches${KVER}/" -type f -name "*.patch" | env LC_ALL=C sort | sed 's/^patches'"$KVER"'\//reform\//' >> linux/debian/patches/series
 
 env --chdir=linux QUILT_PATCHES=debian/patches quilt push -a
 
