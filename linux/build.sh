@@ -69,7 +69,9 @@ fi
 env --chdir=linux TZ=UTC $faketime dch --force-distribution --distribution="$OURSUITE" --release ""
 
 if dpkg --compare-versions "$KVER" ge "6.8"; then
-	env --chdir=linux patch -p1 < packaging6.8.diff
+	if dpkg --compare-versions "$KVER" lt "6.9"; then
+		env --chdir=linux patch -p1 < packaging6.8.diff
+	fi
 	# These meta-meta-packages must be provided by the MNT repositories
 	# until the last installation manually removed the linux-*-arm64
 	# packages in favour of linux-*-mnt-reform-arm64. If they disappear

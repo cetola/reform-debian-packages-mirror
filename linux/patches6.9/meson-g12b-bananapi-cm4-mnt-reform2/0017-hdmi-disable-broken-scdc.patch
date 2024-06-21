@@ -1,0 +1,21 @@
+From 7d825f9ded4fde6b8238c87d63886a3f04e0d7e6 Mon Sep 17 00:00:00 2001
+From: "Lukas F. Hartmann" <lukas@mntre.com>
+Date: Sun, 17 Sep 2023 17:43:09 +0200
+Subject: [PATCH 17/21] hdmi-disable-broken-scdc
+
+---
+ drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+--- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
++++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+@@ -1375,6 +1375,9 @@ static bool dw_hdmi_support_scdc(struct
+ 	if (!hdmi->ddc)
+ 		return false;
+ 
++	// disable, scdc is broken
++	return false;
++
+ 	/* Disable if SCDC is not supported, or if an HF-VSDB block is absent */
+ 	if (!display->hdmi.scdc.supported ||
+ 	    !display->hdmi.scdc.scrambling.supported)
