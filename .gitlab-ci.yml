@@ -159,7 +159,11 @@ build_linux:
   script: |
     set -x
     runuser -u build -- sh -xc '. ./common.sh; cd linux; . ./build.sh' 2>&1 | ./filter-output
-    dpkg-deb -c changes/linux-image-*-mnt-reform-arm64_*_arm64.deb | grep 'kernel/drivers/gpu/drm/imx\(/cdns\)\?/cdns_mhdp_imx.ko'
+    if ! dpkg-deb -c changes/linux-image-*-mnt-reform-arm64_*_arm64.deb | grep 'kernel/drivers/gpu/drm/imx\(/cdns\)\?/cdns_mhdp_imx.ko' \
+      && ! dpkg-deb -c changes/linux-image-*-mnt-reform-arm64_*_arm64.deb | grep 'kernel/drivers/gpu/drm/bridge/cadence/cdns-mhdp8546.ko'; then
+      echo "cdns missing" >&2
+      exit 1
+    fi
   after_script: |
     echo "BASESUITE: $BASESUITE"
     echo "OURSUITE: $OURSUITE"
