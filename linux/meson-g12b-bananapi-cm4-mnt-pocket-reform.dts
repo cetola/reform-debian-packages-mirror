@@ -54,8 +54,8 @@
 		compatible = "amlogic,axg-sound-card";
 		model = "MNT-POCKET-REFORM-BPI-CM4";
 		audio-widgets = "Headphone", "Headphone Jack",
-				"Speaker", "External Speaker",
-				"Microphone", "Mic Jack";
+				"Speaker", "Speaker",
+				"Microphone", "Microphone Jack";
 		audio-aux-devs = <&tdmout_a>, <&tdmout_b>, <&tdmin_b>;
 		audio-routing =	"TDMOUT_A IN 0", "FRDDR_A OUT 0",
 				"TDMOUT_A IN 1", "FRDDR_B OUT 0",
@@ -70,14 +70,10 @@
 				"TODDR_A IN 1", "TDMIN_B OUT",
 				"TODDR_B IN 1", "TDMIN_B OUT",
 				"TODDR_C IN 1", "TDMIN_B OUT",
-				"Headphone Jack", "HP_L",
-				"Headphone Jack", "HP_R",
-				"External Speaker", "SPK_LP",
-				"External Speaker", "SPK_LN",
-				"External Speaker", "SPK_RP",
-				"External Speaker", "SPK_RN",
-				"LINPUT1", "Mic Jack",
-				"Mic Jack", "MICB";
+				"MIC1RP", "MICBIAS",
+				"MIC1RP", "Microphone Jack",
+				"Headphone Jack", "HPR",
+				"Speaker", "SPK";
 
 		assigned-clocks = <&clkc CLKID_MPLL2>,
 					<&clkc CLKID_MPLL0>,
@@ -191,6 +187,24 @@
 		#clock-cells = <0>;
 		clock-frequency = <12288000>;
 	};
+
+	spi {
+		compatible = "spi-gpio";
+		#address-cells = <0x1>;
+		ranges;
+
+		sck-gpios = <&gpio_ao GPIOAO_5 0>; // GPIOAO_5 / GPIO7
+		miso-gpios = <&gpio GPIOH_4 0>; // GPIOH_4 / GPIO5
+		mosi-gpios = <&gpio_ao GPIOAO_10 0>; // GPIOAO_10 / GPIO6
+		cs-gpios = <&gpio GPIOA_10 0>; // GPIOA_10 / GPIO4
+		num-chipselects = <1>;
+
+		spidev@0 {
+			compatible = "mntre,lpc11u24";
+			spi-max-frequency = <1000000>;
+			reg = <0>;
+		};
+	};
 };
 
 &mipi_analog_dphy {
@@ -292,6 +306,7 @@
 		reg = <0x18>;
 		clocks = <&clock_12288>;
 		clock-names = "mclk";
+		ai31xx-micbias-vg = <2>;
 		#sound-dai-cells = <0>;
 
 		HPVDD-supply = <&reg_main_3v3>;
@@ -300,7 +315,6 @@
 		AVDD-supply = <&reg_main_3v3>;
 		IOVDD-supply = <&reg_main_3v3>;
 		DVDD-supply = <&reg_main_1v8>;
-		//wlf,shared-lrclk;
 	};
 
 	rtc@68 {
