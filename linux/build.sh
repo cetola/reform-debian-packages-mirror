@@ -291,41 +291,6 @@ fi
 
 env --chdir=linux DEB_BUILD_PROFILES="$DEB_BUILD_PROFILES" \
 	sbuild --chroot="$BASESUITE-$BUILD_ARCH" --arch-any --arch-all --host="$HOST_ARCH" \
-		--add-depends=wget \
-		--starting-build-commands='wget http://snapshot.debian.org/archive/debian/20240321T160517Z/pool/main/b/binutils/binutils_2.42-4_arm64.deb' \
-		--starting-build-commands='echo 8adadd00cce24ec22d75084d73c66c4fb1f3361b binutils_2.42-4_arm64.deb | sha1sum --check' \
-		--starting-build-commands='wget http://snapshot.debian.org/archive/debian/20240321T160517Z/pool/main/b/binutils/libbinutils_2.42-4_arm64.deb' \
-		--starting-build-commands='echo 395df8999bd9a9baab05010eaf50a04066a17f01 libbinutils_2.42-4_arm64.deb | sha1sum --check' \
-		--starting-build-commands='wget http://snapshot.debian.org/archive/debian/20240321T160517Z/pool/main/b/binutils/binutils-aarch64-linux-gnu_2.42-4_arm64.deb' \
-		--starting-build-commands='echo 0c5ce4a35051624be52bec82da1c6e3210d3837e binutils-aarch64-linux-gnu_2.42-4_arm64.deb | sha1sum --check' \
-		--starting-build-commands='wget http://snapshot.debian.org/archive/debian/20240321T160517Z/pool/main/b/binutils/binutils-arm-linux-gnueabihf_2.42-4_arm64.deb' \
-		--starting-build-commands='echo 888d7636081fbae3e1a79413df7fdfcf511efd02 binutils-arm-linux-gnueabihf_2.42-4_arm64.deb | sha1sum --check' \
-		--starting-build-commands='wget http://snapshot.debian.org/archive/debian/20240321T160517Z/pool/main/b/binutils/binutils-common_2.42-4_arm64.deb' \
-		--starting-build-commands='echo 14929dc5e152e302bec48f14616067ec6eb6e14c binutils-common_2.42-4_arm64.deb | sha1sum --check' \
-		--starting-build-commands='wget http://snapshot.debian.org/archive/debian/20240321T160517Z/pool/main/b/binutils/libctf0_2.42-4_arm64.deb' \
-		--starting-build-commands='echo 64afd720bd81a9461f2de29a4490b542bfd057a8 libctf0_2.42-4_arm64.deb | sha1sum --check' \
-		--starting-build-commands='wget http://snapshot.debian.org/archive/debian/20240321T160517Z/pool/main/b/binutils/libgprofng0_2.42-4_arm64.deb' \
-		--starting-build-commands='echo 588508527dc7e4ca5708a5c4806cacecd97c9938 libgprofng0_2.42-4_arm64.deb | sha1sum --check' \
-		--starting-build-commands='wget http://snapshot.debian.org/archive/debian/20240515T144351Z/pool/main/g/gcc-13/gcc-13-aarch64-linux-gnu_13.2.0-25_arm64.deb' \
-		--starting-build-commands='echo 3df524557f9d2bee83246f87349dcb530e563182 gcc-13-aarch64-linux-gnu_13.2.0-25_arm64.deb | sha1sum --check' \
-		--starting-build-commands='wget http://snapshot.debian.org/archive/debian/20240515T144351Z/pool/main/g/gcc-13/gcc-13_13.2.0-25_arm64.deb' \
-		--starting-build-commands='echo e68c72a40303e14ccc08d56ae9333b63715aaa06 gcc-13_13.2.0-25_arm64.deb | sha1sum --check' \
-		--starting-build-commands='wget http://snapshot.debian.org/archive/debian/20240515T144351Z/pool/main/g/gcc-13/g%2B%2B-13_13.2.0-25_arm64.deb' \
-		--starting-build-commands='echo 144f66ae45fedbfacf793951816579383e7dd592 g++-13_13.2.0-25_arm64.deb | sha1sum --check' \
-		--starting-build-commands='wget http://snapshot.debian.org/archive/debian/20240515T144351Z/pool/main/g/gcc-13/libstdc%2B%2B-13-dev_13.2.0-25_arm64.deb' \
-		--starting-build-commands='echo ee7f321d5a11ebfe4864dde0d27465ff11b128b1 libstdc++-13-dev_13.2.0-25_arm64.deb | sha1sum --check' \
-		--starting-build-commands='wget http://snapshot.debian.org/archive/debian/20240515T144351Z/pool/main/g/gcc-13/cpp-13_13.2.0-25_arm64.deb' \
-		--starting-build-commands='echo 633b27ceb653aaad623c8c3c8a0483ca246512a4 cpp-13_13.2.0-25_arm64.deb | sha1sum --check' \
-		--starting-build-commands='wget http://snapshot.debian.org/archive/debian/20240515T144351Z/pool/main/g/gcc-13/cpp-13-aarch64-linux-gnu_13.2.0-25_arm64.deb' \
-		--starting-build-commands='echo a0db287c4f0addf53a643612102332612d3091a2 cpp-13-aarch64-linux-gnu_13.2.0-25_arm64.deb | sha1sum --check' \
-		--starting-build-commands='wget http://snapshot.debian.org/archive/debian/20240515T144351Z/pool/main/g/gcc-13/g%2B%2B-13-aarch64-linux-gnu_13.2.0-25_arm64.deb' \
-		--starting-build-commands='echo a9e81f2f49b84f910bad26cc10649b7e8a96ba9a g++-13-aarch64-linux-gnu_13.2.0-25_arm64.deb | sha1sum --check' \
-		--starting-build-commands='wget http://snapshot.debian.org/archive/debian/20240515T144351Z/pool/main/g/gcc-13/gcc-13-base_13.2.0-25_arm64.deb' \
-		--starting-build-commands='echo dc1820e52418d3e805fa2f8531ff794910faa1cc gcc-13-base_13.2.0-25_arm64.deb | sha1sum --check' \
-		--starting-build-commands='wget http://snapshot.debian.org/archive/debian/20240515T144351Z/pool/main/g/gcc-13/libgcc-13-dev_13.2.0-25_arm64.deb' \
-		--starting-build-commands='echo c1728d9a95e220e3b89d6fd689a8852fbd0be014 libgcc-13-dev_13.2.0-25_arm64.deb | sha1sum --check' \
-		--starting-build-commands='apt-get install --yes --allow-downgrades ./binutils-arm-linux-gnueabihf_2.42-4_arm64.deb ./binutils-common_2.42-4_arm64.deb ./binutils_2.42-4_arm64.deb ./libbinutils_2.42-4_arm64.deb ./binutils-aarch64-linux-gnu_2.42-4_arm64.deb ./libctf0_2.42-4_arm64.deb ./libgprofng0_2.42-4_arm64.deb ./gcc-13-aarch64-linux-gnu_13.2.0-25_arm64.deb ./gcc-13_13.2.0-25_arm64.deb ./g++-13_13.2.0-25_arm64.deb ./libstdc++-13-dev_13.2.0-25_arm64.deb ./cpp-13_13.2.0-25_arm64.deb ./cpp-13-aarch64-linux-gnu_13.2.0-25_arm64.deb ./g++-13-aarch64-linux-gnu_13.2.0-25_arm64.deb ./gcc-13-base_13.2.0-25_arm64.deb ./libgcc-13-dev_13.2.0-25_arm64.deb' \
-		--starting-build-commands='rm ./binutils-arm-linux-gnueabihf_2.42-4_arm64.deb ./binutils-common_2.42-4_arm64.deb ./binutils_2.42-4_arm64.deb ./libbinutils_2.42-4_arm64.deb ./binutils-aarch64-linux-gnu_2.42-4_arm64.deb ./libctf0_2.42-4_arm64.deb ./libgprofng0_2.42-4_arm64.deb ./gcc-13-aarch64-linux-gnu_13.2.0-25_arm64.deb ./gcc-13_13.2.0-25_arm64.deb ./g++-13_13.2.0-25_arm64.deb ./libstdc++-13-dev_13.2.0-25_arm64.deb ./cpp-13_13.2.0-25_arm64.deb ./cpp-13-aarch64-linux-gnu_13.2.0-25_arm64.deb ./g++-13-aarch64-linux-gnu_13.2.0-25_arm64.deb ./gcc-13-base_13.2.0-25_arm64.deb ./libgcc-13-dev_13.2.0-25_arm64.deb' \
 		--verbose --no-source-only-changes --no-run-lintian --no-run-autopkgtest
 
 mv "./linux_$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog)_arm64.changes" "./linux.changes"
