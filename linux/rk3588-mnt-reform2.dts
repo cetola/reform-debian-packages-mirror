@@ -246,7 +246,7 @@
 };
 
 &hdmi1 {
-	enable-gpios = <&gpio4 RK_PA1 GPIO_ACTIVE_HIGH>;
+	enable-gpios = <&gpio4 RK_PB4 GPIO_ACTIVE_HIGH>;
 	status = "okay";
 };
 
@@ -439,6 +439,21 @@
 	cd-gpios = <&gpio0 RK_PA4 GPIO_ACTIVE_LOW>;
 	disable-wp;
 	status = "okay";
+};
+
+&spi1 {
+	status = "okay";
+	assigned-clocks = <&cru CLK_SPI2>;
+	assigned-clock-rates = <200000000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&spi1m2_cs0 &spi1m2_pins>;
+	num-cs = <1>;
+
+	spidev@0 {
+		compatible = "mntre,lpc11u24";
+		spi-max-frequency = <1000000>;
+		reg = <0>;
+	};
 };
 
 &spi2 {
