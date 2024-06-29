@@ -131,7 +131,7 @@ Date:   Tue Mar 5 14:06:47 2024 +0100
 +		reset-names = "ref", "hdp";
 +		power-domains = <&power RK3588_PD_VO1>;
 +		pinctrl-names = "default";
-+		pinctrl-0 = <&hdmim2_tx1_cec &hdmim0_tx1_hpd &hdmim1_tx1_scl &hdmim1_tx1_sda>;
++		pinctrl-0 = <&hdmim2_tx1_cec &hdmim1_tx1_hpd &hdmim1_tx1_scl &hdmim1_tx1_sda>;
 +		reg-io-width = <4>;
 +		rockchip,grf = <&sys_grf>;
 +		rockchip,vo1_grf = <&vo1_grf>;
