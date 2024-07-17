@@ -179,7 +179,7 @@ index f9a69f347068..376d4e77728d 100644
  
  	jdi->prepared = false;
  
-@@ -229,53 +170,34 @@ static int jdi_panel_prepare(struct drm_panel *panel)
+@@ -229,53 +170,35 @@ static int jdi_panel_prepare(struct drm_panel *panel)
  
  	msleep(20);
  
@@ -239,6 +239,7 @@ index f9a69f347068..376d4e77728d 100644
 +		dev_err(dev, "failed jdi_panel_init: %d\n", ret);
 +		return ret;
 +	}
++	backlight_enable(jdi->backlight);
  
  	jdi->enabled = true;
  
