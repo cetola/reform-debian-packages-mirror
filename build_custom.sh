@@ -8,6 +8,44 @@ set -u
 
 . ./common.sh
 
+
+if [ ! -e fonts-reform-iosevka-term_2.3.0-1_all.deb ]; then
+	if [ ! -e 02-iosevka-term-2.3.0.zip ]; then
+		curl --location --remote-name https://github.com/be5invis/Iosevka/releases/download/v2.3.0/02-iosevka-term-2.3.0.zip
+	fi
+	echo "ce6d0b566f217fd7b778689f388c9973e3914d94  02-iosevka-term-2.3.0.zip" | sha1sum --check
+	rm -Rf "$WORKDIR"
+	mkdir --mode=0777 "$WORKDIR"
+	mkdir -p "$WORKDIR/02-iosevka-term-2.3.0"
+	unzip -d "$WORKDIR/02-iosevka-term-2.3.0" -x 02-iosevka-term-2.3.0.zip
+	rm -r "$WORKDIR/02-iosevka-term-2.3.0/ttf-unhinted"
+	rm -r "$WORKDIR/02-iosevka-term-2.3.0/woff"
+	rm -r "$WORKDIR/02-iosevka-term-2.3.0/woff2"
+	rm -r "$WORKDIR/02-iosevka-term-2.3.0/iosevka-term-regular.charmap"
+	rm -r "$WORKDIR/02-iosevka-term-2.3.0/webfont.css"
+	mkdir -p "$WORKDIR/usr/share/fonts/truetype/"
+	mv "$WORKDIR/02-iosevka-term-2.3.0/ttf" "$WORKDIR/usr/share/fonts/truetype/Iosevka Term"
+	rmdir "$WORKDIR/02-iosevka-term-2.3.0"
+	mkdir "$WORKDIR/DEBIAN"
+	cat << 'END' > "$WORKDIR/DEBIAN/control"
+Package: fonts-reform-iosevka-term
+Version: 2.3.0-1
+Section: fonts
+Priority: optional
+Architecture: all
+Multi-Arch: foreign
+Maintainer: Lukas F. Hartmann <lukas@mntre.com>
+Description: Versatile typeface for code, from code
+ Iosevka [ˌjɔˈseβ.kʰa] is an open-source, sans-serif + slab-serif, monospace +
+ quasi‑proportional typeface family, designed for writing code, using in
+ terminals, and preparing technical documents.
+ .
+ This package provides the "Term" subfamily of Iosevka as ttf.
+END
+	dpkg-deb --build "$WORKDIR" .
+	rm -Rf "$WORKDIR"
+fi
+
 # simplified version of $our_version from build_patched.sh because the binary
 # version is always equal to the source version here
 our_version=$(reprepro --list-format '${version}\n' -T deb listfilter "$OURSUITE" "\$Source (== reform-tools)" | uniq)

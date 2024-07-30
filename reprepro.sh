@@ -10,7 +10,7 @@ for c in changes/*.changes; do
 done
 
 # include binary out-of-tree driver modules
-for d in reform-qcacld2*.deb; do
+for d in reform-qcacld2*.deb fonts-reform-iosevka-term_2.3.0-1_all.deb; do
 	echo "including $d..." >&2
 	reprepro includedeb "$OURSUITE" "$d"
 done
