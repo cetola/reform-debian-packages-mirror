@@ -69,23 +69,13 @@ fi
 
 for HB in reform-handbook pocket-reform-handbook; do
 our_version=$(reprepro --list-format '${version}\n' -T deb listfilter "$OURSUITE" "\$Source (== $HB)" | uniq)
-# FIXME: requires master branch of reform-handbook being renamed to main
-#their_version=$(curl --silent "https://source.mnt.re/reform/$HB/-/raw/main/debian/changelog" | dpkg-parsechangelog --show-field Version --file -)
-if [ "$HB" = "reform-handbook" ]; then
-	their_version=$(curl --silent "https://source.mnt.re/reform/reform-handbook/-/raw/master/debian/changelog" | dpkg-parsechangelog --show-field Version --file -)
-else
-	their_version=$(curl --silent "https://source.mnt.re/grimmware/pocket-reform-handbook/-/raw/packaging/debian/changelog" | dpkg-parsechangelog --show-field Version --file -)
-fi
+their_version=$(curl --silent "https://source.mnt.re/reform/$HB/-/raw/main/debian/changelog" | dpkg-parsechangelog --show-field Version --file -)
 if [ -z "$our_version" ] || dpkg --compare-versions "$our_version" lt "$their_version"; then
 	rm -Rf "$WORKDIR"
 	mkdir --mode=0777 "$WORKDIR"
 	(
 		cd "$WORKDIR"
-		if [ "$HB" = "reform-handbook" ]; then
 		git clone "https://source.mnt.re/reform/$HB.git"
-		else
-			git clone --branch packaging https://source.mnt.re/grimmware/pocket-reform-handbook/
-		fi
 		cd "$HB"
 		sbuild -d "$OURSUITE" --arch-all --arch-any --chroot "$BASESUITE-$BUILD_ARCH" $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
 		dcmd mv -v "../${HB}_"*"_${BUILD_ARCH}.changes" "$ROOTDIR/changes"
