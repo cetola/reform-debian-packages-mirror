@@ -17,7 +17,7 @@ done
 
 for p in $(reprepro --list-format '${source}\n' -T deb list "$OURSUITE" | sed 's/^\([^ (]\+\).*/\1/' | sort -u); do
 	case $p in
-		linux|box64|reform-tools|reform-handbook|wayfire|wayfire-dev|libwf-touch-dev|libwf-utils-dev|libwf-utils0|firedecor) continue;;
+		linux|box64|reform-tools|reform-handbook|pocket-reform-handbook|wayfire|wayfire-dev|libwf-touch-dev|libwf-utils-dev|libwf-utils0|firedecor) continue;;
 	esac
 
 	if [ ! -e "patches/$p" ]; then
