@@ -155,6 +155,10 @@ name = 'none'
 [[featureset.flavour]]
 name = '$flavour'
 
+[[featureset]]
+name = 'rt'
+enable = false
+
 [build]
 enable_signed = false
 END
