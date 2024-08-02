@@ -443,7 +443,7 @@
 
 &spi1 {
 	status = "okay";
-	assigned-clocks = <&cru CLK_SPI2>;
+	assigned-clocks = <&cru CLK_SPI1>;
 	assigned-clock-rates = <200000000>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&spi1m2_cs0 &spi1m2_pins>;
@@ -952,7 +952,7 @@
 };*/
 
 &usb_host0_xhci {
-	dr_mode = "otg";
+	dr_mode = "host";
 	status = "okay";
 };
 
