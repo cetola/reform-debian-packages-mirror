@@ -101,6 +101,7 @@ Architecture: arm64
 Meta-Rules-Target: meta
 Build-Profiles: <!pkg.linux.nokernel !pkg.linux.nometa>
 Depends: linux-image-mnt-reform-arm64 (= ${binary:Version}), ${misc:Depends}
+Section: oldlibs
 Description: Linux for 64-bit ARMv8 machines (MNT Reform) (meta-meta-package)
  This meta-meta-package depends on the linux-image-mnt-reform-arm64
  meta-package for use on MNT Reform 2, MNT Pocket Reform and Reform Next to
@@ -114,6 +115,7 @@ Architecture: arm64
 Meta-Rules-Target: meta
 Build-Profiles: <!pkg.linux.nokernel !pkg.linux.nometa !pkg.linux.quick>
 Depends: linux-headers-mnt-reform-arm64 (= ${binary:Version}), ${misc:Depends}
+Section: oldlibs
 Description: Linux for 64-bit ARMv8 machines (MNT Reform) (meta-meta-package)
  This meta-meta-package depends on the linux-headers-mnt-reform-arm64
  meta-package for use on MNT Reform 2, MNT Pocket Reform and Reform Next to
