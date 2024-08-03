@@ -71,6 +71,20 @@ env --chdir=linux TZ=UTC $faketime dch --force-distribution --distribution="$OUR
 if dpkg --compare-versions "$KVER" ge "6.8"; then
 	if dpkg --compare-versions "$KVER" lt "6.9"; then
 		env --chdir=linux patch -p1 < packaging6.8.diff
+	else
+		cat << END | env --chdir=linux patch -p1
+--- a/debian/lib/python/debian_linux/debian.py
++++ b/debian/lib/python/debian_linux/debian.py
+@@ -202,7 +202,7 @@ $
+         .+?
+     )
+ )
+-(?:\+b\d+)?
++(?:\+[a-zA-Z0-9]+)?
+ $
+     """, re.X)
+ 
+END
 	fi
 	# These meta-meta-packages must be provided by the MNT repositories
 	# until the last installation manually removed the linux-*-arm64
@@ -280,6 +294,7 @@ if [ ! -d kernel-team ]; then
 fi
 
 cat config >> linux/debian/config/arm64/config
+env --chdir=linux make -f debian/rules debian/control-real && exit 1 || :
 env --chdir=linux debian/rules source
 env --chdir=linux ../kernel-team/utils/kconfigeditor2/process.py .
 
