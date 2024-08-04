@@ -72,6 +72,9 @@ if dpkg --compare-versions "$KVER" ge "6.8"; then
 	if dpkg --compare-versions "$KVER" lt "6.9"; then
 		env --chdir=linux patch -p1 < packaging6.8.diff
 	else
+		# https://salsa.debian.org/kernel-team/linux/-/merge_requests/1150
+		# sed -i 's/^(?:\\+b\\d+)?$/(?:\\+[a-zA-Z0-9]+)?/' debian/lib/python/debian_linux/debian.py
+		# https://salsa.debian.org/kernel-team/linux/-/merge_requests/1152
 		cat << END | env --chdir=linux patch -p1
 --- a/debian/lib/python/debian_linux/debian.py
 +++ b/debian/lib/python/debian_linux/debian.py
@@ -84,6 +87,17 @@ if dpkg --compare-versions "$KVER" ge "6.8"; then
  $
      """, re.X)
  
+--- a/debian/lib/python/debian_linux/gencontrol.py
++++ b/debian/lib/python/debian_linux/gencontrol.py
+@@ -454,7 +454,7 @@ class Gencontrol(object):
+
+         extra_arches: dict[str, Any] = {}
+         for package in packages_extra:
+-            arches = package['Architecture']
++            arches = package.architecture
+             for arch in arches:
+                 i = extra_arches.get(arch, [])
+                 i.append(package)
 END
 	fi
 	# These meta-meta-packages must be provided by the MNT repositories
