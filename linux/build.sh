@@ -123,7 +123,7 @@ if test "$KVER" = 6.8; then
 END
 fi
 
-if dpkg --compare-versions "$KVER" ge "6.9"; then
+if true; then
 	# make revision suffix more liberal to be able to recognize our
 	# bookworm-backports kernel as such
 	#
@@ -137,7 +137,7 @@ if dpkg --compare-versions "$KVER" ge "6.9"; then
      )
  )
 -(?:\+b\d+)?
-+(?:\+[a-zA-Z0-9]+)?
++(?:\+reform[0-9]+T[0-9]+Z[0-9]*)?
  $
      """, re.X)
  
