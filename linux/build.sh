@@ -10,6 +10,8 @@
 #  - allows features like supermin+guestfs or anbox
 #  - support for all hardware that Debian supports via modules
 #  - minimize the diff so that reform support can be added to the official packaging
+#
+# shellcheck disable=SC2016
 
 set -e
 set -u
@@ -17,7 +19,6 @@ set -x
 
 chdistdata=$(pwd)/../chdist
 chdist_base() {
-	local cmd
 	cmd=$1
 	shift
 	chdist "--data-dir=$chdistdata" "$cmd" base "$@"
@@ -41,12 +42,16 @@ fi
 
 # we add a suffix based on SOURCE_DATE_EPOCH if it is set or "now" otherwise
 datesuffix="$(date --utc ${SOURCE_DATE_EPOCH:+--date=@$SOURCE_DATE_EPOCH} +%Y%m%dT%H%M%SZ)"
-faketime=
+
 # if we have the faketime utility and if SOURCE_DATE_EPOCH is set, set a
 # reproducible d/changelog timestamp using faketime
-if command -v faketime >/dev/null && [ -n "${SOURCE_DATE_EPOCH:+x}" ]; then
-	faketime="faketime @$SOURCE_DATE_EPOCH"
-fi
+maybe_faketime () {
+	if command -v faketime >/dev/null && [ -n "${SOURCE_DATE_EPOCH:+x}" ]; then
+		env --chdir=linux TZ=UTC faketime "@$SOURCE_DATE_EPOCH" "$@"
+	else
+		env --chdir=linux TZ=UTC "$@"
+	fi
+}
 
 DEB_VERSION="$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog)"
 DEB_VERSION_UPSTREAM="$(echo "$DEB_VERSION" | sed -e 's/-[^-]*$//')"
@@ -57,16 +62,16 @@ if dpkg --compare-versions "$KVER" ge "6.8"; then
 	# we don't need to replace versions and move orig tarballs but
 	# just append a suffix to the version.
 	# VERSUFFIX is set in common.sh and "reform" by default.
-	env --chdir=linux TZ=UTC $faketime dch --newversion "$DEB_VERSION+$VERSUFFIX$datesuffix" "apply mnt reform patch"
+	maybe_faketime dch --newversion "$DEB_VERSION+$VERSUFFIX$datesuffix" "apply mnt reform patch"
 elif dpkg --compare-versions "$KVER" ge "6.7"; then
 	oldversion="$(dpkg-parsechangelog --show-field=Version --file linux/debian/changelog)"
 	newversion="$(echo "$oldversion" | sed 's/\([0-9.]\+\)\(.*\)/\1-reform2\2/')"
-	env --chdir=linux TZ=UTC $faketime dch --newversion "$newversion+$VERSUFFIX$datesuffix" "apply mnt reform patch"
+	maybe_faketime dch --newversion "$newversion+$VERSUFFIX$datesuffix" "apply mnt reform patch"
 	mv "linux_$DEB_VERSION_UPSTREAM.orig.tar.xz" "linux_$DEB_VERSION_UPSTREAM-reform2.orig.tar.xz"
 else
-	env --chdir=linux TZ=UTC $faketime dch --local "+$VERSUFFIX$datesuffix" "apply mnt reform patch"
+	maybe_faketime dch --local "+$VERSUFFIX$datesuffix" "apply mnt reform patch"
 fi
-env --chdir=linux TZ=UTC $faketime dch --force-distribution --distribution="$OURSUITE" --release ""
+maybe_faketime dch --force-distribution --distribution="$OURSUITE" --release ""
 
 if dpkg --compare-versions "$KVER" lt "6.8"; then
 	cat << END | env --chdir=linux patch -p1
@@ -232,6 +237,7 @@ name = 'none'
 [[featureset.flavour]]
 name = '$flavour'
 
+# https://bugs.debian.org/1077827
 [[featureset]]
 name = 'rt'
 enable = false
@@ -313,6 +319,8 @@ if dpkg --compare-versions "$KVER" ge "6.8"; then
 fi
 
 # this command fails intentionally, so we let it always succeed
+# we don't care that ":" runs even when control-real succeeds
+# shellcheck disable=SC2015
 make -C linux -f debian/rules debian/control-real && exit 1 || :
 
 if dpkg --compare-versions "$KVER" lt "6.8"; then
@@ -377,6 +385,8 @@ if [ ! -d kernel-team ]; then
 fi
 
 cat config >> linux/debian/config/arm64/config
+# we don't care that ":" runs even when control-real succeeds
+# shellcheck disable=SC2015
 env --chdir=linux make -f debian/rules debian/control-real && exit 1 || :
 env --chdir=linux debian/rules source
 env --chdir=linux ../kernel-team/utils/kconfigeditor2/process.py .
