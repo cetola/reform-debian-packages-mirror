@@ -68,14 +68,21 @@ else
 fi
 env --chdir=linux TZ=UTC $faketime dch --force-distribution --distribution="$OURSUITE" --release ""
 
-if dpkg --compare-versions "$KVER" ge "6.8"; then
-	if dpkg --compare-versions "$KVER" lt "6.9"; then
-		env --chdir=linux patch -p1 < packaging6.8.diff
-	else
-		# https://salsa.debian.org/kernel-team/linux/-/merge_requests/1150
-		# sed -i 's/^(?:\\+b\\d+)?$/(?:\\+[a-zA-Z0-9]+)?/' debian/lib/python/debian_linux/debian.py
-		# https://salsa.debian.org/kernel-team/linux/-/merge_requests/1152
-		cat << END | env --chdir=linux patch -p1
+if dpkg --compare-versions "$KVER" lt "6.8"; then
+	env --chdir=linux patch -p1 < packaging.diff
+fi
+
+if test "$KVER" = 6.8; then
+	env --chdir=linux patch -p1 < packaging6.8.diff
+fi
+
+if dpkg --compare-versions "$KVER" ge "6.9"; then
+	# make revision suffix more liberal to be able to recognize our
+	# bookworm-backports kernel as such
+	#
+	# https://salsa.debian.org/kernel-team/linux/-/merge_requests/1150
+	# sed -i 's/^(?:\\+b\\d+)?$/(?:\\+[a-zA-Z0-9]+)?/' debian/lib/python/debian_linux/debian.py
+	cat << END | env --chdir=linux patch -p1
 --- a/debian/lib/python/debian_linux/debian.py
 +++ b/debian/lib/python/debian_linux/debian.py
 @@ -202,7 +202,7 @@ $
@@ -87,6 +94,15 @@ if dpkg --compare-versions "$KVER" ge "6.8"; then
  $
      """, re.X)
  
+END
+fi
+
+if dpkg --compare-versions "$KVER" ge "6.10"; then
+	# patch oversight for extra control files when BinaryPackage
+	# was changed from dict to dataclass
+	#
+	# https://salsa.debian.org/kernel-team/linux/-/merge_requests/1152
+	cat << END | env --chdir=linux patch -p1
 --- a/debian/lib/python/debian_linux/gencontrol.py
 +++ b/debian/lib/python/debian_linux/gencontrol.py
 @@ -454,7 +454,7 @@ class Gencontrol(object):
@@ -99,7 +115,9 @@ if dpkg --compare-versions "$KVER" ge "6.8"; then
                  i = extra_arches.get(arch, [])
                  i.append(package)
 END
-	fi
+fi
+
+if dpkg --compare-versions "$KVER" ge "6.8"; then
 	# These meta-meta-packages must be provided by the MNT repositories
 	# until the last installation manually removed the linux-*-arm64
 	# packages in favour of linux-*-mnt-reform-arm64. If they disappear
@@ -139,8 +157,6 @@ Description: Linux for 64-bit ARMv8 machines (MNT Reform) (meta-meta-package)
  functionality is provided by the linux-headers-mnt-reform-arm64 package
  instead.
 END
-else
-	env --chdir=linux patch -p1 < packaging.diff
 fi
 
 # new toml config format since 6.7
