@@ -69,11 +69,58 @@ fi
 env --chdir=linux TZ=UTC $faketime dch --force-distribution --distribution="$OURSUITE" --release ""
 
 if dpkg --compare-versions "$KVER" lt "6.8"; then
-	env --chdir=linux patch -p1 < packaging.diff
+	cat << END | env --chdir=linux patch -p1
+--- a/debian/bin/gencontrol.py
++++ b/debian/bin/gencontrol.py
+@@ -74,13 +74,9 @@ class Gencontrol(Base):
+         for env, attr, desc in self.env_flags:
+             setattr(self, attr, False)
+             if os.getenv(env):
+-                if self.changelog[0].distribution == 'UNRELEASED':
+-                    import warnings
+-                    warnings.warn(f'Disable {desc} on request ({env} set)')
+-                    setattr(self, attr, True)
+-                else:
+-                    raise RuntimeError(
+-                        f'Unable to disable {desc} in release build ({env} set)')
++                import warnings
++                warnings.warn(f'Disable {desc} on request ({env} set)')
++                setattr(self, attr, True)
+ 
+     def _setup_makeflags(self, names, makeflags, data):
+         for src, dst, optional in names:
+END
 fi
 
 if test "$KVER" = 6.8; then
-	env --chdir=linux patch -p1 < packaging6.8.diff
+	cat << 'END' | env --chdir=linux patch -p1
+--- a/debian/rules
++++ b/debian/rules
+@@ -93,7 +93,7 @@ endif
+ 
+ CLEAN_PATTERNS := $(BUILD_DIR) $(STAMPS_DIR) debian/lib/python/debian_linux/*.pyc debian/lib/python/debian_linux/__pycache__ $$(find debian -maxdepth 1 -type d -name 'linux-*') debian/*-modules-*-di* debian/kernel-image-*-di* debian/*-tmp debian/*.substvars
+ 
+-maintainerclean:
++clean-generated:
+ 	rm -rf $(CLEAN_PATTERNS)
+ # We cannot use dh_clean here because it requires debian/control to exist
+ 	rm -rf debian/.debhelper debian/*.debhelper* debian/files debian/generated.*
+@@ -114,6 +114,8 @@ maintainerclean:
+ 		debian/linux-source.maintscript \
+ 		debian/rules.gen \
+ 		debian/tests/control
++
++maintainerclean: debianclean
+ 	rm -rf $(filter-out debian .git, $(wildcard * .[^.]*))
+ 
+ clean: debian/control
+@@ -154,4 +156,4 @@ debian/control-real: debian/bin/gencontrol.py $(CONTROL_FILES)
+ 	@echo
+ 	exit 1
+ 
+-.PHONY: binary binary-% build build-% clean debian/control-real orig setup source
++.PHONY: binary binary-% build build-% clean debian/control-real orig setup source clean-generated
+END
 fi
 
 if dpkg --compare-versions "$KVER" ge "6.9"; then
