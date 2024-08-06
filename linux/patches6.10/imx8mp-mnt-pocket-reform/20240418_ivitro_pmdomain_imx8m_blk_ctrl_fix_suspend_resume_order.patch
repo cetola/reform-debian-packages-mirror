@@ -1,0 +1,82 @@
+From git@z Thu Jan  1 00:00:00 1970
+Subject: [PATCH v1] pmdomain: imx8m-blk-ctrl: fix suspend/resume order
+From: Vitor Soares <vitor.soares@toradex.com>
+Date: Thu, 18 Apr 2024 16:51:51 +0100
+Message-Id: <20240418155151.355133-1-ivitro@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+During the probe, the genpd power_dev is added to the dpm_list after
+blk_ctrl due to its parent/child relationship. Making the blk_ctrl
+suspend after and resume before the genpd power_dev.
+
+As a consequence, the system hangs when resuming the VPU due to the
+power domain dependency.
+
+To ensure the proper suspend/resume order, add a device link betweem
+blk_ctrl and genpd power_dev. It guarantees genpd power_dev is suspended
+after and resumed before blk-ctrl.
+
+Cc: <stable@vger.kernel.org>
+Closes: https://lore.kernel.org/all/fccbb040330a706a4f7b34875db1d896a0bf81c8.camel@gmail.com/
+Link: https://lore.kernel.org/all/20240409085802.290439-1-ivitro@gmail.com/
+Fixes: 2684ac05a8c4 ("soc: imx: add i.MX8M blk-ctrl driver")
+Suggested-by: Lucas Stach <l.stach@pengutronix.de>
+Signed-off-by: Vitor Soares <vitor.soares@toradex.com>
+Reviewed-by: Lucas Stach <l.stach@pengutronix.de>
+---
+
+This is a new patch, but is a follow-up of:
+https://lore.kernel.org/all/20240409085802.290439-1-ivitro@gmail.com/
+
+As suggested by Lucas, we are addressing this PM issue in the imx8m-blk-ctrl
+driver instead of in the imx8mm.dtsi.
+
+ drivers/pmdomain/imx/imx8m-blk-ctrl.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/drivers/pmdomain/imx/imx8m-blk-ctrl.c b/drivers/pmdomain/imx/imx8m-blk-ctrl.c
+index ca942d7929c2..cd0d2296080d 100644
+--- a/drivers/pmdomain/imx/imx8m-blk-ctrl.c
++++ b/drivers/pmdomain/imx/imx8m-blk-ctrl.c
+@@ -283,6 +283,20 @@ static int imx8m_blk_ctrl_probe(struct platform_device *pdev)
+ 			goto cleanup_pds;
+ 		}
+ 
++		/*
++		 * Enforce suspend/resume ordering by making genpd power_dev a
++		 * provider of blk-ctrl. Genpd power_dev is suspended after and
++		 * resumed before blk-ctrl.
++		 */
++		if (!device_link_add(dev, domain->power_dev, DL_FLAG_STATELESS)) {
++			ret = -EINVAL;
++			dev_err_probe(dev, ret,
++				      "failed to link to %s\n", data->name);
++			pm_genpd_remove(&domain->genpd);
++			dev_pm_domain_detach(domain->power_dev, true);
++			goto cleanup_pds;
++		}
++
+ 		/*
+ 		 * We use runtime PM to trigger power on/off of the upstream GPC
+ 		 * domain, as a strict hierarchical parent/child power domain
+@@ -324,6 +338,7 @@ static int imx8m_blk_ctrl_probe(struct platform_device *pdev)
+ 	of_genpd_del_provider(dev->of_node);
+ cleanup_pds:
+ 	for (i--; i >= 0; i--) {
++		device_link_remove(dev, bc->domains[i].power_dev);
+ 		pm_genpd_remove(&bc->domains[i].genpd);
+ 		dev_pm_domain_detach(bc->domains[i].power_dev, true);
+ 	}
+@@ -343,6 +358,7 @@ static void imx8m_blk_ctrl_remove(struct platform_device *pdev)
+ 	for (i = 0; bc->onecell_data.num_domains; i++) {
+ 		struct imx8m_blk_ctrl_domain *domain = &bc->domains[i];
+ 
++		device_link_remove(&pdev->dev, domain->power_dev);
+ 		pm_genpd_remove(&domain->genpd);
+ 		dev_pm_domain_detach(domain->power_dev, true);
+ 	}
+-- 
+2.34.1
+
