@@ -17,6 +17,7 @@ Suite: $OURSUITE
 Architectures: $HOST_ARCH $(test "$BUILD_ARCH" = "$HOST_ARCH" || echo "$BUILD_ARCH")
 Components: main
 UDebComponents: main
+Contents: .xz
 Description: updated packages for mnt reform
 EOF
 	# if OURSUITE is backports, also add the base suite
@@ -30,6 +31,7 @@ Suite: ${OURSUITE%-backports}
 Architectures: $HOST_ARCH $(test "$BUILD_ARCH" = "$HOST_ARCH" || echo "$BUILD_ARCH")
 Components: main
 UDebComponents: main
+Contents: .xz
 Description: updated packages for mnt reform
 EOF
 		;;
