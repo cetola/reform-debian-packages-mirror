@@ -338,9 +338,7 @@
 		reg = <0x18>;
 		clocks = <&cru I2S0_8CH_MCLKOUT>;
 		clock-names = "mclk";
-		assigned-clocks = <&cru I2S0_8CH_MCLKOUT>;
-		assigned-clock-rates = <12288000>;
-		ai31xx-micbias-vg = <2>; // 2.5V
+		ai31xx-micbias-vg = <2>;
 		#sound-dai-cells = <0>;
 
 		HPVDD-supply = <&vcc_3v3_s3>;
