@@ -171,6 +171,12 @@ build_linux:
         exit 1
       fi
     done
+    for f in changes/linux-image-arm64_*_arm64.deb changes/linux-headers-arm64_*_arm64.deb; do
+      if [ ! -e "$f" ]; then
+        echo "$f does not exist" >&2
+        exit 1
+      fi
+    done
 
   after_script: |
     echo "BASESUITE: $BASESUITE"
