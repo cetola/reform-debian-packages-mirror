@@ -178,7 +178,21 @@ if dpkg --compare-versions "$KVER" ge "6.8"; then
 	# linux-*-arm64 to the version from Debian which will in turn pull
 	# in the wrong kernel. This will only not be a disaster at the point
 	# where *all* required patches were upstreamed (haha).
-	cat <<'END' >>linux/debian/templates/extra.control.in
+	if dpkg --compare-versions "$KVER" ge "6.10"; then
+		# Since 1f3a3d27318a99feef7ffcdb4e302d164250af64
+		# extra.control.in is broken, so we use headers.meta.control.in
+		# instead. We cannot use sourcebin.meta.control.in because even
+		# though the entries in debian/control will be created as
+		# expected, no binary packages will get emitted. We cannot use
+		# docs.meta.control.in because we are building with docs =
+		# false.
+		# https://salsa.debian.org/kernel-team/linux/-/merge_requests/1152#note_513085
+		sed -i 's/assert len(packages_meta) == 2/assert len(packages_meta) == 4/' linux/debian/bin/gencontrol.py
+		control="linux/debian/templates/headers.meta.control.in"
+	else
+		control="linux/debian/templates/extra.control.in"
+	fi
+	cat <<'END' >>"$control"
 
 Package: linux-image-arm64
 Architecture: arm64
