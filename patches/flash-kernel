@@ -5,7 +5,7 @@ diff --git a/db/all.db b/db/all.db
 index 1bacc51..765fe45 100644
 --- a/db/all.db
 +++ b/db/all.db
-@@ -1168,6 +1168,20 @@ DTB-Id: sun7i-a20-mk808c.dtb
+@@ -1168,6 +1168,27 @@ DTB-Id: sun7i-a20-mk808c.dtb
  U-Boot-Script-Name: bootscr.sunxi
  Required-Packages: u-boot-tools
 
@@ -20,6 +20,13 @@ index 1bacc51..765fe45 100644
 +Kernel-Flavors: any
 +Boot-Script-Path: /boot/boot.scr
 +DTB-Id: amlogic/meson-g12b-bananapi-cm4-mnt-pocket-reform.dtb
++U-Boot-Script-Name: bootscr.uboot-generic
++Required-Packages: u-boot-tools
++
++Machine: MNT Pocket Reform with RCORE RK3588 Module
++Kernel-Flavors: any
++DTB-Id: rockchip/rk3588-mnt-pocket-reform.dtb
++Boot-Script-Path: /boot/boot.scr
 +U-Boot-Script-Name: bootscr.uboot-generic
 +Required-Packages: u-boot-tools
 +
