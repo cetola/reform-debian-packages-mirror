@@ -73,6 +73,8 @@ else
 fi
 maybe_faketime dch --force-distribution --distribution="$OURSUITE" --release ""
 
+curl https://salsa.debian.org/kernel-team/linux/-/merge_requests/1159.patch | env --chdir=linux patch -p1
+
 if dpkg --compare-versions "$KVER" lt "6.8"; then
 	cat << END | env --chdir=linux patch -p1
 --- a/debian/bin/gencontrol.py
