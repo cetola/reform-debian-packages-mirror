@@ -6,11 +6,11 @@ patch -p1 << 'EOF'
 diff -Nru gtk+3.0-3.24.43/debian/patches/series gtk+3.0-3.24.43/debian/patches/series
 --- gtk+3.0-3.24.43/debian/patches/series	2024-08-20 22:42:46.000000000 +0200
 +++ gtk+3.0-3.24.43/debian/patches/series	2024-08-22 12:35:57.000000000 +0200
-@@ -3,9 +3,3 @@
+@@ -3,9 +3,4 @@
  060_ignore-random-icons.patch
  reftest_compare_surfaces-Report-how-much-the-images-diffe.patch
  reftests-Allow-minor-differences-to-be-tolerated.patch
--wayland-Add-support-for-v2-of-xdg_foreign-protocol.patch
+ wayland-Add-support-for-v2-of-xdg_foreign-protocol.patch
 -immulticontext-Don-t-have-a-global_context_id.patch
 -Ensure-the-staging_cairo_surface-is-destroyed-before-re-a.patch
 -gesture-set-widget-x-and-y-if-coordinate-translation-betw.patch
