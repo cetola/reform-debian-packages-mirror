@@ -156,18 +156,58 @@ if dpkg --compare-versions "$KVER" ge "6.10"; then
 	# was changed from dict to dataclass
 	#
 	# https://salsa.debian.org/kernel-team/linux/-/merge_requests/1152
+	# https://salsa.debian.org/kernel-team/linux/-/merge_requests/1170
 	cat << END | env --chdir=linux patch -p1
 --- a/debian/lib/python/debian_linux/gencontrol.py
 +++ b/debian/lib/python/debian_linux/gencontrol.py
-@@ -454,7 +454,7 @@ class Gencontrol(object):
-
-         extra_arches: dict[str, Any] = {}
+@@ -453,16 +453,13 @@ class Gencontrol(object):
+         except KeyError:
+             return
+ 
+-        extra_arches: dict[str, Any] = {}
          for package in packages_extra:
 -            arches = package['Architecture']
-+            arches = package.architecture
-             for arch in arches:
-                 i = extra_arches.get(arch, [])
-                 i.append(package)
+-            for arch in arches:
+-                i = extra_arches.get(arch, [])
+-                i.append(package)
+-                extra_arches[arch] = i
+-        for arch in sorted(extra_arches.keys()):
+-            self.bundle.add_packages(packages_extra, (arch, ),
+-                                     MakeFlags(), check_packages=False)
++            package.meta_rules_target = 'meta'
++            if not package.architecture:
++                raise RuntimeError('Require Architecture in debian/templates.extra.control')
++            for arch in package.architecture:
++                self.bundle.add_packages([package], (arch, ),
++                                         MakeFlags(), arch=arch, check_packages=False)
+ 
+     def do_indep_featureset(
+         self,
+--- a/debian/lib/python/debian_linux/utils.py
++++ b/debian/lib/python/debian_linux/utils.py
+@@ -52,12 +52,18 @@ class Templates(object):
+ 
+         if context:
+             if suffix == '.in':
+-                def subst(match):
+-                    return context[match.group(1)]
+-                return re.sub(r'@([-_a-z0-9]+)@', subst, str(value[0]))
++                try:
++                    def subst(match):
++                        return context[match.group(1)]
++                    return re.sub(r'@([-_a-z0-9]+)@', subst, str(value[0]))
++                except KeyError as e:
++                    raise RuntimeError(f'templates/{key}.in: {e} is undefined') from None
+ 
+             elif suffix == '.j2':
+-                return self._jinja2.from_string(value[0]).render(context)
++                try:
++                    return self._jinja2.from_string(value[0]).render(context)
++                except jinja2.exceptions.UndefinedError as e:
++                    raise RuntimeError(f'templates/{key}.j2: {e}') from None
+ 
+         return value[0]
+ 
 END
 fi
 
@@ -180,21 +220,7 @@ if dpkg --compare-versions "$KVER" ge "6.8"; then
 	# linux-*-arm64 to the version from Debian which will in turn pull
 	# in the wrong kernel. This will only not be a disaster at the point
 	# where *all* required patches were upstreamed (haha).
-	if dpkg --compare-versions "$KVER" ge "6.10"; then
-		# Since 1f3a3d27318a99feef7ffcdb4e302d164250af64
-		# extra.control.in is broken, so we use headers.meta.control.in
-		# instead. We cannot use sourcebin.meta.control.in because even
-		# though the entries in debian/control will be created as
-		# expected, no binary packages will get emitted. We cannot use
-		# docs.meta.control.in because we are building with docs =
-		# false.
-		# https://salsa.debian.org/kernel-team/linux/-/merge_requests/1152#note_513085
-		sed -i 's/assert len(packages_meta) == 2/assert len(packages_meta) == 4/' linux/debian/bin/gencontrol.py
-		control="linux/debian/templates/headers.meta.control.in"
-	else
-		control="linux/debian/templates/extra.control.in"
-	fi
-	cat <<'END' >>"$control"
+	cat <<'END' >>linux/debian/templates/extra.control.in
 
 Package: linux-image-arm64
 Architecture: arm64
