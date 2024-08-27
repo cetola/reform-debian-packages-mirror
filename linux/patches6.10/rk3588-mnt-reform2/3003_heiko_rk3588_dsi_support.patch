@@ -1,0 +1,50 @@
+commit 811485635d03e6877e4fa05da52ced88ac54e65b
+Author: Heiko Stuebner <heiko.stuebner@cherry.de>
+Date:   Wed May 29 12:11:16 2024 +0200
+
+    drm: bridge: dw-mipi-dsi: Allow sync-pulses to override the burst vid-mode
+    
+    The state right now is that if the panel has the burst-mode flag it
+    will take precedence over the sync-pulses mode.
+    
+    While sync-pulses are only relevant for the video-mode, the burst-mode
+    flag affects both the video-mode as well as the calculated lane_mbps.
+    
+    Looking at drivers like the nwl-dsi [0] it only enables burst mode when
+    the panel's flags do not contain the sync_pulse flag.
+    
+    So handle things similar for dw-dsi in that it selects the video-mode
+    with sync-pulses if that flag is set and only after that, checks for
+    the burst-mode. So panels selecting a combination of both burst and
+    sync-pulses get the sync-pulse mode.
+    
+    The case this fixes can be found on the ltk050h3148w . It does need the
+    lane-rate to be calculated according to burst formulas [1], but without
+    sync-pulses we see the output shifted around 20 pixels to the right,
+    meaning that the last 20 pixels from each line appear at the start of
+    the next display line.
+    
+    [0] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/drivers/gpu/drm/bridge/nwl-dsi.c#n301
+    [1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=6c9dbee84cd005bed5f9d07b3a2797ae6414b435
+    
+    Fixes: 93e82bb4de01 ("drm/bridge: synopsys: dw-mipi-dsi: Fix hcomponent lbcc for burst mode")
+    Signed-off-by: Heiko Stuebner <heiko.stuebner@cherry.de>
+
+diff --git a/drivers/gpu/drm/bridge/synopsys/dw-mipi-dsi.c b/drivers/gpu/drm/bridge/synopsys/dw-mipi-dsi.c
+index c4e9d96933dc..51317358e7a8 100644
+--- a/drivers/gpu/drm/bridge/synopsys/dw-mipi-dsi.c
++++ b/drivers/gpu/drm/bridge/synopsys/dw-mipi-dsi.c
+@@ -605,10 +605,10 @@ static void dw_mipi_dsi_video_mode_config(struct dw_mipi_dsi *dsi)
+ 	 */
+ 	val = ENABLE_LOW_POWER;
+ 
+-	if (dsi->mode_flags & MIPI_DSI_MODE_VIDEO_BURST)
+-		val |= VID_MODE_TYPE_BURST;
+-	else if (dsi->mode_flags & MIPI_DSI_MODE_VIDEO_SYNC_PULSE)
++	if (dsi->mode_flags & MIPI_DSI_MODE_VIDEO_SYNC_PULSE)
+ 		val |= VID_MODE_TYPE_NON_BURST_SYNC_PULSES;
++	else if (dsi->mode_flags & MIPI_DSI_MODE_VIDEO_BURST)
++		val |= VID_MODE_TYPE_BURST;
+ 	else
+ 		val |= VID_MODE_TYPE_NON_BURST_SYNC_EVENTS;
+ 
