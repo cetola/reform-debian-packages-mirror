@@ -159,7 +159,18 @@ build_linux:
       - linux/linux_*_arm64-*.build
   script: |
     set -x
-    runuser -u build -- sh -xc '. ./common.sh; cd linux; . ./build.sh' 2>&1 | ./filter-output
+    ret=0
+    # gitlab has pipefail turned on by default, so the below will fail if
+    # build.sh fails despite the command being piped to filter-output.
+    runuser -u build -- sh -xc '. ./common.sh; cd linux; . ./build.sh' 2>&1 | ./filter-output || ret=$?
+    if [ "$ret" -ne 0 ]; then
+      # The linux log is ~100 MB large so much too big to be stored by gitlab
+      # as the job log. To avoid having to manually browse the artifacts and
+      # download the log, grep for common error indicators in the log and
+      # display the result here.
+      grep -B1 -A3 --color -P '([^"]error:|Error|[^_W]ERROR|Waiting for unfinished jobs)' linux/linux_*_arm64-*.build
+      exit "$ret"
+    fi
     if ! dpkg-deb -c changes/linux-image-*-mnt-reform-arm64_*_arm64.deb | grep 'kernel/drivers/gpu/drm/imx\(/cdns\)\?/cdns_mhdp_imx.ko' \
       && ! dpkg-deb -c changes/linux-image-*-mnt-reform-arm64_*_arm64.deb | grep 'kernel/drivers/gpu/drm/bridge/cadence/cdns-mhdp8546.ko'; then
       echo "cdns missing" >&2
