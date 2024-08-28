@@ -338,9 +338,7 @@
 		reg = <0x18>;
 		clocks = <&cru I2S0_8CH_MCLKOUT>;
 		clock-names = "mclk";
-		assigned-clocks = <&cru I2S0_8CH_MCLKOUT>;
-		assigned-clock-rates = <12288000>;
-		ai31xx-micbias-vg = <2>; // 2.5V
+		ai31xx-micbias-vg = <2>;
 		#sound-dai-cells = <0>;
 
 		HPVDD-supply = <&vcc_3v3_s3>;
@@ -437,7 +435,7 @@
 &sdmmc {
 	bus-width = <4>;
 	//max-frequency = <48000000>;
-	max-frequency = <40000000>;
+	max-frequency = <20000000>;
 	no-sdio;
 	no-mmc;
 	no-1-8-v;
