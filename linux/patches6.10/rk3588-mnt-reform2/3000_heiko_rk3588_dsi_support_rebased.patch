@@ -1,28 +1,29 @@
-commit eff7de50b9f1f4910c5dbd1a7271855232a06c81
-Author: Heiko Stuebner <heiko@sntech.de>
-Date:   Sun Dec 24 18:00:48 2023 +0100
+commit cd9cdb13065adfb6ad429160e44fd2fb6ffc1ad6
+Author: Lukas F. Hartmann <lukas@mntre.com>
+Date:   Wed Aug 28 12:18:35 2024 +0200
 
     drm/rockchip: dw dsi support for rk3588
     
-    Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+    Author: Heiko Stuebner <heiko@sntech.de>
+    Date:   Sun Dec 24 18:00:48 2023 +0100
+    Co-authored-by: Lukas F. Hartmann <lukas@mntre.com>
 
 diff --git a/drivers/gpu/drm/rockchip/Makefile b/drivers/gpu/drm/rockchip/Makefile
-index 3eab662a5a1d..51ea7243b892 100644
+index 3ff7b21..ee0941c 100644
 --- a/drivers/gpu/drm/rockchip/Makefile
 +++ b/drivers/gpu/drm/rockchip/Makefile
-@@ -12,7 +12,8 @@ rockchipdrm-$(CONFIG_ROCKCHIP_ANALOGIX_DP) += analogix_dp-rockchip.o
+@@ -11,7 +11,7 @@ rockchipdrm-$(CONFIG_ROCKCHIP_VOP) += rockchip_drm_vop.o rockchip_vop_reg.o
+ rockchipdrm-$(CONFIG_ROCKCHIP_ANALOGIX_DP) += analogix_dp-rockchip.o
  rockchipdrm-$(CONFIG_ROCKCHIP_CDN_DP) += cdn-dp-core.o cdn-dp-reg.o
  rockchipdrm-$(CONFIG_ROCKCHIP_DW_HDMI) += dw_hdmi-rockchip.o
- rockchipdrm-$(CONFIG_ROCKCHIP_DW_HDMI_QP) += dw_hdmi_qp-rockchip.o
 -rockchipdrm-$(CONFIG_ROCKCHIP_DW_MIPI_DSI) += dw-mipi-dsi-rockchip.o
-+rockchipdrm-$(CONFIG_ROCKCHIP_DW_MIPI_DSI) += dw-mipi-dsi-rockchip.o \
-+					      dw-mipi-dsi2-rockchip.o
++rockchipdrm-$(CONFIG_ROCKCHIP_DW_MIPI_DSI) += dw-mipi-dsi-rockchip.o dw-mipi-dsi2-rockchip.o
  rockchipdrm-$(CONFIG_ROCKCHIP_INNO_HDMI) += inno_hdmi.o
  rockchipdrm-$(CONFIG_ROCKCHIP_LVDS) += rockchip_lvds.o
  rockchipdrm-$(CONFIG_ROCKCHIP_RGB) += rockchip_rgb.o
 diff --git a/drivers/gpu/drm/rockchip/dw-mipi-dsi2-rockchip.c b/drivers/gpu/drm/rockchip/dw-mipi-dsi2-rockchip.c
 new file mode 100644
-index 000000000000..2acc1ec0fd6c
+index 0000000..2acc1ec
 --- /dev/null
 +++ b/drivers/gpu/drm/rockchip/dw-mipi-dsi2-rockchip.c
 @@ -0,0 +1,1829 @@
@@ -1856,11 +1857,11 @@ index 000000000000..2acc1ec0fd6c
 +	},
 +};
 diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_drv.c b/drivers/gpu/drm/rockchip/rockchip_drm_drv.c
-index 04ef7a2c3833..789cfc390efb 100644
+index ab55d71..966b4eb 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_drm_drv.c
 +++ b/drivers/gpu/drm/rockchip/rockchip_drm_drv.c
-@@ -507,6 +507,8 @@ static int __init rockchip_drm_init(void)
- 				CONFIG_ROCKCHIP_DW_HDMI_QP);
+@@ -505,6 +505,8 @@ static int __init rockchip_drm_init(void)
+ 				CONFIG_ROCKCHIP_DW_HDMI);
  	ADD_ROCKCHIP_SUB_DRIVER(dw_mipi_dsi_rockchip_driver,
  				CONFIG_ROCKCHIP_DW_MIPI_DSI);
 +	ADD_ROCKCHIP_SUB_DRIVER(dw_mipi_dsi2_rockchip_driver,
@@ -1869,12 +1870,12 @@ index 04ef7a2c3833..789cfc390efb 100644
  	ADD_ROCKCHIP_SUB_DRIVER(rk3066_hdmi_driver,
  				CONFIG_ROCKCHIP_RK3066_HDMI);
 diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_drv.h b/drivers/gpu/drm/rockchip/rockchip_drm_drv.h
-index 24b4ce5ceaf1..9c9d38a06cdf 100644
+index bbb9e0b..efabfdd 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_drm_drv.h
 +++ b/drivers/gpu/drm/rockchip/rockchip_drm_drv.h
-@@ -90,6 +90,7 @@ extern struct platform_driver cdn_dp_driver;
+@@ -88,6 +88,7 @@ int rockchip_drm_endpoint_is_subdriver(struct device_node *ep);
+ extern struct platform_driver cdn_dp_driver;
  extern struct platform_driver dw_hdmi_rockchip_pltfm_driver;
- extern struct platform_driver dw_hdmi_qp_rockchip_pltfm_driver;
  extern struct platform_driver dw_mipi_dsi_rockchip_driver;
 +extern struct platform_driver dw_mipi_dsi2_rockchip_driver;
  extern struct platform_driver inno_hdmi_driver;

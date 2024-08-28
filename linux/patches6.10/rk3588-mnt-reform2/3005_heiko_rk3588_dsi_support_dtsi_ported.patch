@@ -1,16 +1,20 @@
-commit 8583f562e6fb4fce421bb92f3503305818a6f8da
-Author: Heiko Stuebner <heiko@sntech.de>
-Date:   Sun Dec 24 19:35:42 2023 +0100
+commit 0167fb79962b79bd4cbfadd436f4b3c25c37d7ca
+Author: Lukas F. Hartmann <lukas@mntre.com>
+Date:   Wed Aug 28 12:26:18 2024 +0200
 
     arm64: dts: rockchip: add dsi controller nodes on rk3588
     
-    Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+    Back ported to 6.10 before the change to rk3588-base.dtsi
+    
+    Author: Heiko Stuebner <heiko@sntech.de>
+    Date:   Sun Dec 24 19:35:42 2023 +0100
+    Co-authored-by: Lukas F. Hartmann <lukas@mntre.com>
 
-diff --git a/arch/arm64/boot/dts/rockchip/rk3588-base.dtsi b/arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
-index 3992a1beb031..41491a77f744 100644
---- a/arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
-+++ b/arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
-@@ -1403,6 +1403,66 @@ i2s9_8ch: i2s@fddfc000 {
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588s.dtsi b/arch/arm64/boot/dts/rockchip/rk3588s.dtsi
+index 751da20..277f7bf 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588s.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588s.dtsi
+@@ -1657,6 +1657,66 @@ i2s9_8ch: i2s@fddfc000 {
  		status = "disabled";
  	};
  
