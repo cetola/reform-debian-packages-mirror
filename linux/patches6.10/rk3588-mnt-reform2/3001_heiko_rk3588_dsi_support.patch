@@ -4,26 +4,6 @@ Date:   Wed Mar 20 11:43:08 2024 +0100
 
     clean up dsi2 driver
 
-diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
-index 285ed1ad8a37..b0f8284ce39b 100644
---- a/drivers/clk/clk.c
-+++ b/drivers/clk/clk.c
-@@ -1053,6 +1053,7 @@ static void clk_core_unprepare(struct clk_core *core)
- {
- 	lockdep_assert_held(&prepare_lock);
- 
-+return;
- 	if (!core)
- 		return;
- 
-@@ -1194,6 +1195,7 @@ static void clk_core_disable(struct clk_core *core)
- {
- 	lockdep_assert_held(&enable_lock);
- 
-+return;
- 	if (!core)
- 		return;
- 
 diff --git a/drivers/gpu/drm/rockchip/dw-mipi-dsi2-rockchip.c b/drivers/gpu/drm/rockchip/dw-mipi-dsi2-rockchip.c
 index 2acc1ec0fd6c..62fb9b559ed7 100644
 --- a/drivers/gpu/drm/rockchip/dw-mipi-dsi2-rockchip.c
@@ -135,7 +115,7 @@ index 2acc1ec0fd6c..62fb9b559ed7 100644
  	pm_runtime_disable(dsi2->dev);
  	if (dsi2->slave)
  		pm_runtime_disable(dsi2->slave->dev);
-@@ -1751,12 +1725,19 @@ static int dw_mipi_dsi2_probe(struct platform_device *pdev)
+@@ -1751,13 +1725,20 @@ static int dw_mipi_dsi2_probe(struct platform_device *pdev)
  		return ret;
  	}
  
@@ -148,13 +128,14 @@ index 2acc1ec0fd6c..62fb9b559ed7 100644
  }
  
 -static int dw_mipi_dsi2_remove(struct platform_device *pdev)
-+static void dw_mipi_dsi2_remove(struct platform_device *pdev)
++static int dw_mipi_dsi2_remove(struct platform_device *pdev)
  {
 -	return 0;
 +	struct dw_mipi_dsi2 *dsi2 = platform_get_drvdata(pdev);
 +
 +	component_del(&pdev->dev, &dw_mipi_dsi2_ops);
 +	mipi_dsi_host_unregister(&dsi2->host);
+  return 0;
  }
  
  static __maybe_unused int dw_mipi_dsi2_runtime_suspend(struct device *dev)
