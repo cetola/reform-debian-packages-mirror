@@ -195,8 +195,8 @@
 };
 
 &display_subsystem {
-	//clocks = <&hdptxphy_hdmi0>, <&hdptxphy_hdmi1>;
-	//clock-names = "hdmi0_phy_pll", "hdmi1_phy_pll";
+	clocks = <&hdptxphy_hdmi0>;
+	clock-names = "hdmi0_phy_pll";
 };
 
 &gmac0 {
@@ -226,22 +226,11 @@
 	status = "okay";
 };
 
-/*&hdmi0 {
-	enable-gpios = <&gpio4 RK_PA0 GPIO_ACTIVE_HIGH>;
+&hdptxphy_hdmi0 {
 	status = "okay";
 };
 
-&hdmi0_in {
-	hdmi0_in_vp2: endpoint {
-		remote-endpoint = <&vp2_out_hdmi0>;
-	};
-};*/
-
-/*&hdptxphy_hdmi0 {
-	status = "okay";
-};*/
-
-/*&hdmi1 {
+&hdmi1 {
 	//enable-gpios = <&gpio4 RK_PA1 GPIO_ACTIVE_HIGH>; // D-1
 	enable-gpios = <&gpio4 RK_PB4 GPIO_ACTIVE_HIGH>; // D-2
 	status = "okay";
@@ -251,11 +240,11 @@
 	hdmi1_in_vp0: endpoint {
 		remote-endpoint = <&vp0_out_hdmi1>;
 	};
-};*/
+};
 
-/*&hdptxphy_hdmi1 {
+&hdptxphy_hdmi1 {
 	status = "okay";
-};*/
+};
 
 &i2c0 {
 	pinctrl-names = "default";
@@ -967,22 +956,22 @@
 	status = "okay";
 };
 
-/*&vop_mmu {
+&vop_mmu {
 	status = "okay";
-};*/
+};
 
 &vop {
 	status = "okay";
 };
 
-/*&vp0 {
+&vp0 {
 	vp0_out_hdmi1: endpoint@ROCKCHIP_VOP2_EP_HDMI1 {
 		reg = <ROCKCHIP_VOP2_EP_HDMI1>;
 		remote-endpoint = <&hdmi1_in_vp0>;
 	};
 };
 
-&vp2 {
+/*&vp2 {
 	vp2_out_hdmi0: endpoint@ROCKCHIP_VOP2_EP_HDMI0 {
 		reg = <ROCKCHIP_VOP2_EP_HDMI0>;
 		remote-endpoint = <&hdmi0_in_vp2>;
