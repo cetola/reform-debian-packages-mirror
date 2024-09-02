@@ -35,9 +35,17 @@ if $USE_GIT; then
 	git -C linux reset --hard
 
 else
-	rm -rf linux_*.dsc linux
+	if [ -d linux ]; then
+		rm -r linux
+	fi
+	rm -r "$WORKDIR"
+	mkdir -p "$WORKDIR"
+	# we cannot use env --chdir=... because chdist_base is a shell function
+	cd "$WORKDIR"
 	chdist_base apt-get source --only-source --download-only -t "$BASESUITE" linux
-	dpkg-source -x linux_*.dsc linux
+	cd -
+	dpkg-source -x "$WORKDIR"/linux_*.dsc linux
+	rm -r "$WORKDIR"
 fi
 
 # we add a suffix based on SOURCE_DATE_EPOCH if it is set or "now" otherwise
