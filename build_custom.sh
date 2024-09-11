@@ -42,7 +42,7 @@ Description: Versatile typeface for code, from code
  .
  This package provides the "Term" subfamily of Iosevka as ttf.
 END
-	dpkg-deb --build "$WORKDIR" .
+	dpkg-deb --root-owner-group --build "$WORKDIR" .
 	rm -Rf "$WORKDIR"
 fi
 
