@@ -422,7 +422,7 @@ env --chdir=linux debian/rules source
 env --chdir=linux ../kernel-team/utils/kconfigeditor2/process.py .
 
 
-DEB_BUILD_PROFILES="nodoc pkg.linux.nokerneldbg pkg.linux.nokerneldbginfo"
+DEB_BUILD_PROFILES="pkg.linux.nokerneldbg pkg.linux.nokerneldbginfo"
 if [ "$BUILD_ARCH" != "$HOST_ARCH" ]; then
 	DEB_BUILD_PROFILES="cross $DEB_BUILD_PROFILES"
 fi
