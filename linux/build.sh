@@ -159,7 +159,7 @@ if true; then
 END
 fi
 
-if dpkg --compare-versions "$KVER" ge "6.10"; then
+if dpkg --compare-versions "$KVER" eq "6.10"; then
 	# patch oversight for extra control files when BinaryPackage
 	# was changed from dict to dataclass
 	#
