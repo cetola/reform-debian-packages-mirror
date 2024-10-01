@@ -94,49 +94,35 @@ Date:   Tue Mar 5 14:06:47 2024 +0100
  	ioc: syscon@fd5f0000 {
  		compatible = "rockchip,rk3588-ioc", "syscon";
  		reg = <0x0 0xfd5f0000 0x0 0x10000>;
-@@ -1576,6 +1585,61 @@
+@@ -1576,6 +1585,47 @@
  		};
  	};
  
 +	hdmi1: hdmi@fdea0000 {
-+		compatible = "rockchip,rk3588-dw-hdmi";
++		compatible = "rockchip,rk3588-dw-hdmi-qp";
 +		reg = <0x0 0xfdea0000 0x0 0x20000>;
-+		interrupts = <GIC_SPI 173 IRQ_TYPE_LEVEL_HIGH 0>,
-+			     <GIC_SPI 174 IRQ_TYPE_LEVEL_HIGH 0>,
-+			     <GIC_SPI 175 IRQ_TYPE_LEVEL_HIGH 0>,
-+			     <GIC_SPI 176 IRQ_TYPE_LEVEL_HIGH 0>,
-+			     <GIC_SPI 361 IRQ_TYPE_LEVEL_HIGH 0>;
 +		clocks = <&cru PCLK_HDMITX1>,
 +			 <&cru CLK_HDMIHDP1>,
 +			 <&cru CLK_HDMITX1_EARC>,
 +			 <&cru CLK_HDMITX1_REF>,
 +			 <&cru MCLK_I2S6_8CH_TX>,
-+			 <&cru DCLK_VOP0>,
-+			 <&cru DCLK_VOP1>,
-+			 <&cru DCLK_VOP2>,
-+			 <&cru DCLK_VOP3>,
 +			 <&cru HCLK_VO1>;
-+		clock-names = "pclk",
-+			      "hpd",
-+			      "earc",
-+			      "hdmitx_ref",
-+			      "aud",
-+			      "dclk_vp0",
-+			      "dclk_vp1",
-+			      "dclk_vp2",
-+			      "dclk_vp3",
-+		              "hclk_vo1";
-+
-+		resets = <&cru SRST_HDMITX1_REF>, <&cru SRST_HDMIHDP1>;
-+		reset-names = "ref", "hdp";
-+		power-domains = <&power RK3588_PD_VO1>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&hdmim2_tx1_cec &hdmim0_tx1_hpd &hdmim1_tx1_scl &hdmim1_tx1_sda>;
-+		reg-io-width = <4>;
-+		rockchip,grf = <&sys_grf>;
-+		rockchip,vo1_grf = <&vo1_grf>;
++		clock-names = "pclk", "hdp", "earc", "ref", "aud", "hclk_vo1";
++		interrupts = <GIC_SPI 173 IRQ_TYPE_LEVEL_HIGH 0>,
++			     <GIC_SPI 174 IRQ_TYPE_LEVEL_HIGH 0>,
++			     <GIC_SPI 175 IRQ_TYPE_LEVEL_HIGH 0>,
++			     <GIC_SPI 176 IRQ_TYPE_LEVEL_HIGH 0>,
++			     <GIC_SPI 361 IRQ_TYPE_LEVEL_HIGH 0>;
 +		phys = <&hdptxphy_hdmi1>;
 +		phy-names = "hdmi";
++		pinctrl-names = "default";
++		pinctrl-0 = <&hdmim2_tx1_cec &hdmim1_tx1_hpd
++			     &hdmim1_tx1_scl &hdmim1_tx1_sda>;
++		power-domains = <&power RK3588_PD_VO1>;
++		resets = <&cru SRST_HDMITX1_REF>, <&cru SRST_HDMIHDP1>;
++		reset-names = "ref", "hdp";
++		rockchip,grf = <&sys_grf>;
++		rockchip,vo1_grf = <&vo1_grf>;
 +		status = "disabled";
 +
 +		ports {
