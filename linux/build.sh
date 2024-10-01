@@ -35,9 +35,17 @@ if $USE_GIT; then
 	git -C linux reset --hard
 
 else
-	rm -rf linux_*.dsc linux
+	if [ -d linux ]; then
+		rm -r linux
+	fi
+	rm -r "$WORKDIR"
+	mkdir -p "$WORKDIR"
+	# we cannot use env --chdir=... because chdist_base is a shell function
+	cd "$WORKDIR"
 	chdist_base apt-get source --only-source --download-only -t "$BASESUITE" linux
-	dpkg-source -x linux_*.dsc linux
+	cd -
+	dpkg-source -x "$WORKDIR"/linux_*.dsc linux
+	rm -r "$WORKDIR"
 fi
 
 # we add a suffix based on SOURCE_DATE_EPOCH if it is set or "now" otherwise
@@ -72,6 +80,8 @@ else
 	maybe_faketime dch --local "+$VERSUFFIX$datesuffix" "apply mnt reform patch"
 fi
 maybe_faketime dch --force-distribution --distribution="$OURSUITE" --release ""
+
+curl https://salsa.debian.org/kernel-team/linux/-/merge_requests/1159.patch | env --chdir=linux patch -p1
 
 if dpkg --compare-versions "$KVER" lt "6.8"; then
 	cat << END | env --chdir=linux patch -p1
@@ -386,11 +396,14 @@ fi
 if dpkg --compare-versions "$KVER" ge "6.8"; then
 	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/rockchip/rk3588-mnt-reform2.dts
 	cp rk3588-mnt-reform2.dts linux/arch/arm64/boot/dts/rockchip/rk3588-mnt-reform2.dts
+	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/rockchip/rk3588-mnt-pocket-reform.dts
+	cp rk3588-mnt-pocket-reform.dts linux/arch/arm64/boot/dts/rockchip/rk3588-mnt-pocket-reform.dts
 	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/rockchip/rk3588-mnt-reform-next.dts
 	cp rk3588-mnt-reform-next.dts linux/arch/arm64/boot/dts/rockchip/rk3588-mnt-reform-next.dts
 	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/rockchip/Makefile
 	sed -i '/rk3588-rock-5b.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform2.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
 	sed -i '/rk3588-mnt-reform2.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform-next.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
+	sed -i '/rk3588-mnt-reform-next.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-pocket-reform.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
 fi
 # finalize dts.patch
 env --chdir=linux QUILT_PATCHES=debian/patches quilt refresh

@@ -277,8 +277,12 @@ index f9a69f347068..376d4e77728d 100644
  	drm_mode_set_name(mode);
  
  	drm_mode_probed_add(connector, mode);
-@@ -326,27 +257,19 @@ static int dsi_dcs_bl_get_brightness(struct backlight_device *bl)
- 	int ret;
+@@ -322,31 +254,20 @@ static int jdi_panel_get_modes(struct dr
+ 
+ static int dsi_dcs_bl_get_brightness(struct backlight_device *bl)
+ {
+-	struct mipi_dsi_device *dsi = bl_get_data(bl);
+-	int ret;
  	u16 brightness = bl->props.brightness;
  
 -	dsi->mode_flags &= ~MIPI_DSI_MODE_LPM;
@@ -296,9 +300,9 @@ index f9a69f347068..376d4e77728d 100644
  static int dsi_dcs_bl_update_status(struct backlight_device *bl)
  {
 -	struct mipi_dsi_device *dsi = bl_get_data(bl);
+-	int ret;
 +	struct jdi_panel *jdi = bl_get_data(bl);
 +	struct mipi_dsi_device *dsi = jdi->dsi;
- 	int ret;
  
  	dsi->mode_flags &= ~MIPI_DSI_MODE_LPM;
  

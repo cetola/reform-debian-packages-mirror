@@ -48,14 +48,6 @@
 		dais = <&i2s0_8ch_p0>;
 	};
 
-	/*backlight: backlight {
-		compatible = "pwm-backlight";
-		pwms = <&pwm8 0 10000 0>;
-		enable-gpios = <&gpio2 RK_PB5 GPIO_ACTIVE_HIGH>;
-		brightness-levels = <0 8 16 32 64 128 160 200 255>;
-		default-brightness-level = <128>;
-	};*/
-
 	gmac0_clkin: external-gmac0-clock {
 		compatible = "fixed-clock";
 		clock-frequency = <125000000>;
@@ -195,8 +187,8 @@
 };
 
 &display_subsystem {
-	clocks = <&hdptxphy_hdmi0>;
-	clock-names = "hdmi0_phy_pll";
+	clocks = <&hdptxphy_hdmi0>, <&hdptxphy_hdmi1>;
+	clock-names = "hdmi0_phy_pll", "hdmi1_phy_pll";
 };
 
 &gmac0 {
@@ -226,12 +218,25 @@
 	status = "okay";
 };
 
+// internal HDMI, currently unused on pocket,
+// but could be used for 3rd display
+/*&hdmi0 {
+	enable-gpios = <&gpio4 RK_PA0 GPIO_ACTIVE_HIGH>;
+	status = "okay";
+};
+
+&hdmi0_in {
+	hdmi0_in_vp1: endpoint {
+		remote-endpoint = <&vp1_out_hdmi0>;
+	};
+};*/
+
 &hdptxphy_hdmi0 {
 	status = "okay";
 };
 
 &hdmi1 {
-	//enable-gpios = <&gpio4 RK_PA1 GPIO_ACTIVE_HIGH>; // D-1
+	// external HDMI
 	enable-gpios = <&gpio4 RK_PB4 GPIO_ACTIVE_HIGH>; // D-2
 	status = "okay";
 };
@@ -423,7 +428,6 @@
 
 &sdmmc {
 	bus-width = <4>;
-	//max-frequency = <48000000>;
 	max-frequency = <20000000>;
 	no-sdio;
 	no-mmc;
