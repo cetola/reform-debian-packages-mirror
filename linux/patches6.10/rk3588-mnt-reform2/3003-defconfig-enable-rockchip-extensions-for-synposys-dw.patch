@@ -1,4 +1,4 @@
-From 33f5c56ef919fe08eb5e4ed4ab6e43f86a47f91c Mon Sep 17 00:00:00 2001
+From 0e3b37dba4ab1493fd4546661c20951e933002bc Mon Sep 17 00:00:00 2001
 From: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
 Date: Thu, 11 Jul 2024 14:48:43 +0300
 Subject: [PATCH] arm64: defconfig: Enable Rockchip extensions for Synopsys DW
@@ -15,10 +15,10 @@ Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/arm64/configs/defconfig b/arch/arm64/configs/defconfig
-index 5fdbfea7a5b29..2f904e8b3f845 100644
+index e1a44f78d79f7..23139a36ec0d2 100644
 --- a/arch/arm64/configs/defconfig
 +++ b/arch/arm64/configs/defconfig
-@@ -871,6 +871,7 @@ CONFIG_ROCKCHIP_VOP2=y
+@@ -865,6 +865,7 @@ CONFIG_ROCKCHIP_VOP2=y
  CONFIG_ROCKCHIP_ANALOGIX_DP=y
  CONFIG_ROCKCHIP_CDN_DP=y
  CONFIG_ROCKCHIP_DW_HDMI=y
