@@ -1,14 +1,12 @@
-From 97c7153eb82d8906c73356c831fe6f5547bf63d0 Mon Sep 17 00:00:00 2001
+From 15572b251495e8983126afe39d8bf5d92f98c524 Mon Sep 17 00:00:00 2001
 From: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
 Date: Mon, 20 May 2024 14:49:50 +0300
-Subject: [PATCH] drm/bridge: synopsys: Add DW HDMI QP TX Controller support
- library
+Subject: [PATCH] drm/bridge: synopsys: Add DW HDMI QP TX controller driver
 
-The Synopsys DesignWare HDMI 2.1 Quad-Pixel (QP) TX Controller IP
-supports the following features, among others:
+The Synopsys DesignWare HDMI 2.1 Quad-Pixel (QP) TX controller supports
+the following features, among others:
 
 * Fixed Rate Link (FRL)
-* Display Stream Compression (DSC)
 * 4K@120Hz and 8K@60Hz video modes
 * Variable Refresh Rate (VRR) including Quick Media Switching (QMS), aka
   Cinema VRR
@@ -19,21 +17,20 @@ supports the following features, among others:
 * Multi-stream audio
 * Enhanced Audio Return Channel (EARC)
 
-Add library containing common helpers to enable basic support, i.e. RGB
-output up to 4K@30Hz, without audio, CEC or any HDMI 2.1 specific
-features.
+Add driver to enable basic support, i.e. RGB output up to 4K@60Hz,
+without audio, CEC or any HDMI 2.1 specific features.
 
 Co-developed-by: Algea Cao <algea.cao@rock-chips.com>
 Signed-off-by: Algea Cao <algea.cao@rock-chips.com>
-Tested-by: Heiko Stuebner <heiko@sntech.de>
 Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
 ---
  drivers/gpu/drm/bridge/synopsys/Kconfig      |   8 +
  drivers/gpu/drm/bridge/synopsys/Makefile     |   2 +
- drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.c | 645 ++++++++++++++
+ drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.c | 726 ++++++++++++++++
  drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.h | 834 +++++++++++++++++++
- include/drm/bridge/dw_hdmi_qp.h              |  32 +
- 5 files changed, 1521 insertions(+)
+ include/drm/bridge/dw_hdmi.h                 |   8 +
+ include/drm/bridge/dw_hdmi_qp.h              |  37 +
+ 6 files changed, 1615 insertions(+)
  create mode 100644 drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.c
  create mode 100644 drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.h
  create mode 100644 include/drm/bridge/dw_hdmi_qp.h
@@ -70,10 +67,10 @@ index ce715562e9e52..9869d9651ed1f 100644
  obj-$(CONFIG_DRM_DW_MIPI_DSI) += dw-mipi-dsi.o
 diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.c
 new file mode 100644
-index 0000000000000..775617de1a644
+index 0000000000000..b878c4e23833c
 --- /dev/null
 +++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.c
-@@ -0,0 +1,645 @@
+@@ -0,0 +1,726 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +/*
 + * Copyright (c) 2021-2022 Rockchip Electronics Co., Ltd.
@@ -89,17 +86,16 @@ index 0000000000000..775617de1a644
 +#include <linux/module.h>
 +#include <linux/mutex.h>
 +#include <linux/of.h>
-+#include <linux/workqueue.h>
 +
 +#include <drm/bridge/dw_hdmi_qp.h>
 +#include <drm/display/drm_hdmi_state_helper.h>
++#include <drm/display/drm_scdc_helper.h>
 +
 +#include <drm/drm_atomic.h>
 +#include <drm/drm_atomic_helper.h>
 +#include <drm/drm_bridge.h>
 +#include <drm/drm_connector.h>
 +#include <drm/drm_edid.h>
-+#include <drm/drm_modes.h>
 +
 +#include <sound/hdmi-codec.h>
 +
@@ -108,9 +104,10 @@ index 0000000000000..775617de1a644
 +#define DDC_CI_ADDR		0x37
 +#define DDC_SEGMENT_ADDR	0x30
 +
-+#define HDMI14_MAX_TMDSCLK	340000000
++/* DW-HDMI Controller >= 0x200a are at least compliant with SCDC version 1 */
++#define SCDC_MIN_SOURCE_VERSION	0x1
 +
-+#define SCRAMB_POLL_DELAY_MS	3000
++#define HDMI14_MAX_TMDSCLK	340000000
 +
 +struct dw_hdmi_qp_i2c {
 +	struct i2c_adapter	adap;
@@ -135,8 +132,63 @@ index 0000000000000..775617de1a644
 +		void *data;
 +	} phy;
 +
++	//TODO: drop curr_conn and/or pix_clock
++	struct drm_connector *curr_conn;
++	unsigned long long pix_clock;
++
 +	struct regmap *regm;
 +};
++
++/* Filter out invalid setups to avoid configuring SCDC and scrambling */
++static bool dw_hdmi_qp_support_scdc(struct dw_hdmi_qp *hdmi,
++				    const struct drm_display_info *display)
++{
++	/* Disable if no DDC bus */
++	if (!hdmi->bridge.ddc)
++		return false;
++
++	/* Disable if SCDC is not supported, or if an HF-VSDB block is absent */
++	if (!display->hdmi.scdc.supported ||
++	    !display->hdmi.scdc.scrambling.supported)
++		return false;
++
++	/*
++	 * Disable if display only support low TMDS rates and scrambling
++	 * for low rates is not supported either
++	 */
++	if (!display->hdmi.scdc.scrambling.low_rates &&
++	    display->max_tmds_clock <= 340000)
++		return false;
++
++	return true;
++}
++
++/*
++ * HDMI2.0 Specifies the following procedure for High TMDS Bit Rates:
++ * - The Source shall suspend transmission of the TMDS clock and data
++ *
++ * - The Source shall write to the TMDS_Bit_Clock_Ratio bit to change it
++ *   from a 0 to a 1 or from a 1 to a 0
++ *
++ * - The Source shall allow a minimum of 1 ms and a maximum of 100 ms from
++ *   the time the TMDS_Bit_Clock_Ratio bit is written until resuming
++ *   transmission of TMDS clock and data
++ *
++ * To respect the 100ms max delay, the dw_hdmi_qp_set_high_tmds_clock_ratio()
++ * helper should be called right before enabling the TMDS Clock and Data in
++ * the PHY configuration callback.
++ */
++void dw_hdmi_qp_set_high_tmds_clock_ratio(struct dw_hdmi_qp *hdmi,
++					  const struct drm_display_info *display)
++{
++	bool set;
++
++	if (dw_hdmi_qp_support_scdc(hdmi, display)) {
++		set = (hdmi->pix_clock > HDMI14_MAX_TMDSCLK);
++		drm_scdc_set_high_tmds_clock_ratio(hdmi->curr_conn, set);
++	}
++}
++EXPORT_SYMBOL_GPL(dw_hdmi_qp_set_high_tmds_clock_ratio);
 +
 +static void dw_hdmi_qp_write(struct dw_hdmi_qp *hdmi, unsigned int val,
 +			     int offset)
@@ -276,7 +328,7 @@ index 0000000000000..775617de1a644
 +		}
 +	}
 +
-+	guard(mutex)(&i2c->lock);
++	mutex_lock(&i2c->lock);
 +
 +	/* Unmute DONE and ERROR interrupts */
 +	dw_hdmi_qp_mod(hdmi, I2CM_NACK_RCVD_MASK_N | I2CM_OP_DONE_MASK_N,
@@ -320,6 +372,8 @@ index 0000000000000..775617de1a644
 +	/* Mute DONE and ERROR interrupts */
 +	dw_hdmi_qp_mod(hdmi, 0, I2CM_OP_DONE_MASK_N | I2CM_NACK_RCVD_MASK_N,
 +		       MAINUNIT_1_INT_MASK_N);
++
++	mutex_unlock(&i2c->lock);
 +
 +	return ret;
 +}
@@ -437,6 +491,43 @@ index 0000000000000..775617de1a644
 +	return 0;
 +}
 +
++static void dw_hdmi_qp_setup(struct dw_hdmi_qp *hdmi,
++			     struct drm_connector *connector)
++{
++	bool scramb;
++	u8 ver;
++
++	if (!connector->display_info.is_hdmi) {
++		dev_dbg(hdmi->dev, "%s DVI mode\n", __func__);
++
++		dw_hdmi_qp_mod(hdmi, HDCP2_BYPASS, HDCP2_BYPASS,
++			       HDCP2LOGIC_CONFIG0);
++		dw_hdmi_qp_mod(hdmi, OPMODE_DVI, OPMODE_DVI, LINK_CONFIG0);
++
++		return;
++	}
++
++	dev_dbg(hdmi->dev, "%s HDMI mode\n", __func__);
++
++	dw_hdmi_qp_mod(hdmi, 0, OPMODE_DVI, LINK_CONFIG0);
++	dw_hdmi_qp_mod(hdmi, HDCP2_BYPASS, HDCP2_BYPASS, HDCP2LOGIC_CONFIG0);
++
++	scramb = (hdmi->pix_clock > HDMI14_MAX_TMDSCLK);
++
++	if (dw_hdmi_qp_support_scdc(hdmi, &connector->display_info)) {
++		if (scramb) {
++			drm_scdc_readb(hdmi->bridge.ddc, SCDC_SINK_VERSION, &ver);
++			drm_scdc_writeb(hdmi->bridge.ddc, SCDC_SOURCE_VERSION,
++					min_t(u8, ver, SCDC_MIN_SOURCE_VERSION));
++		}
++
++		drm_scdc_set_high_tmds_clock_ratio(connector, scramb);
++		drm_scdc_set_scrambling(connector, scramb);
++	}
++
++	dw_hdmi_qp_write(hdmi, scramb, SCRAMB_CONFIG0);
++}
++
 +static int dw_hdmi_qp_bridge_atomic_check(struct drm_bridge *bridge,
 +					  struct drm_bridge_state *bridge_state,
 +					  struct drm_crtc_state *crtc_state,
@@ -458,31 +549,19 @@ index 0000000000000..775617de1a644
 +{
 +	struct dw_hdmi_qp *hdmi = bridge->driver_private;
 +	struct drm_atomic_state *state = old_state->base.state;
-+	struct drm_connector_state *conn_state;
 +	struct drm_connector *connector;
-+	unsigned int op_mode;
++	struct drm_connector_state *conn_state;
 +
-+	connector = drm_atomic_get_new_connector_for_encoder(state, bridge->encoder);
-+	if (WARN_ON(!connector))
-+		return;
-+
++	connector = drm_atomic_get_new_connector_for_encoder(state,
++							     bridge->encoder);
 +	conn_state = drm_atomic_get_new_connector_state(state, connector);
-+	if (WARN_ON(!conn_state))
-+		return;
 +
-+	if (connector->display_info.is_hdmi) {
-+		dev_dbg(hdmi->dev, "%s mode=HDMI rate=%llu\n",
-+			__func__, conn_state->hdmi.tmds_char_rate);
-+		op_mode = 0;
-+	} else {
-+		dev_dbg(hdmi->dev, "%s mode=DVI\n", __func__);
-+		op_mode = OPMODE_DVI;
-+	}
++	hdmi->pix_clock = conn_state->hdmi.tmds_char_rate;
++	hdmi->curr_conn = connector;
 +
-+	hdmi->phy.ops->init(hdmi, hdmi->phy.data);
++	hdmi->phy.ops->init(hdmi, hdmi->phy.data, &connector->display_info);
 +
-+	dw_hdmi_qp_mod(hdmi, HDCP2_BYPASS, HDCP2_BYPASS, HDCP2LOGIC_CONFIG0);
-+	dw_hdmi_qp_mod(hdmi, op_mode, OPMODE_DVI, LINK_CONFIG0);
++	dw_hdmi_qp_setup(hdmi, connector);
 +
 +	drm_atomic_helper_connector_hdmi_update_infoframes(connector, state);
 +}
@@ -492,6 +571,7 @@ index 0000000000000..775617de1a644
 +{
 +	struct dw_hdmi_qp *hdmi = bridge->driver_private;
 +
++	hdmi->curr_conn = NULL;
 +	hdmi->phy.ops->disable(hdmi, hdmi->phy.data);
 +}
 +
@@ -510,26 +590,14 @@ index 0000000000000..775617de1a644
 +	struct dw_hdmi_qp *hdmi = bridge->driver_private;
 +	const struct drm_edid *drm_edid;
 +
++	if (!bridge->ddc)
++		return NULL;
++
 +	drm_edid = drm_edid_read_ddc(connector, bridge->ddc);
 +	if (!drm_edid)
 +		dev_dbg(hdmi->dev, "failed to get edid\n");
 +
 +	return drm_edid;
-+}
-+
-+static enum drm_mode_status
-+dw_hdmi_qp_bridge_mode_valid(struct drm_bridge *bridge,
-+			     const struct drm_display_info *info,
-+			     const struct drm_display_mode *mode)
-+{
-+	struct dw_hdmi_qp *hdmi = bridge->driver_private;
-+
-+	if (mode->clock > HDMI14_MAX_TMDSCLK / 1000) {
-+		dev_dbg(hdmi->dev, "Unsupported mode clock: %d\n", mode->clock);
-+		return MODE_CLOCK_HIGH;
-+	}
-+
-+	return MODE_OK;
 +}
 +
 +static int dw_hdmi_qp_bridge_clear_infoframe(struct drm_bridge *bridge,
@@ -584,7 +652,6 @@ index 0000000000000..775617de1a644
 +	.atomic_disable = dw_hdmi_qp_bridge_atomic_disable,
 +	.detect = dw_hdmi_qp_bridge_detect,
 +	.edid_read = dw_hdmi_qp_bridge_edid_read,
-+	.mode_valid = dw_hdmi_qp_bridge_mode_valid,
 +	.hdmi_clear_infoframe = dw_hdmi_qp_bridge_clear_infoframe,
 +	.hdmi_write_infoframe = dw_hdmi_qp_bridge_write_infoframe,
 +};
@@ -646,7 +713,7 @@ index 0000000000000..775617de1a644
 +	struct device *dev = &pdev->dev;
 +	struct dw_hdmi_qp *hdmi;
 +	void __iomem *regs;
-+	int ret;
++	int irq, ret;
 +
 +	if (!plat_data->phy_ops || !plat_data->phy_ops->init ||
 +	    !plat_data->phy_ops->disable || !plat_data->phy_ops->read_hpd) {
@@ -662,7 +729,7 @@ index 0000000000000..775617de1a644
 +
 +	regs = devm_platform_ioremap_resource(pdev, 0);
 +	if (IS_ERR(regs))
-+		return ERR_CAST(regs);
++		return regs;
 +
 +	hdmi->regm = devm_regmap_init_mmio(dev, regs, &dw_hdmi_qp_regmap_config);
 +	if (IS_ERR(hdmi->regm)) {
@@ -671,11 +738,16 @@ index 0000000000000..775617de1a644
 +	}
 +
 +	hdmi->phy.ops = plat_data->phy_ops;
-+	hdmi->phy.data = plat_data->phy_data;
++	hdmi->phy.data =plat_data->phy_data;
 +
 +	dw_hdmi_qp_init_hw(hdmi);
 +
-+	ret = devm_request_threaded_irq(dev, plat_data->main_irq,
++	/* Not handled for now: IRQ0 (AVP), IRQ1 (CEC), IRQ2 (EARC) */
++	irq = platform_get_irq(pdev, 3);
++	if (irq < 0)
++		return ERR_PTR(irq);
++
++	ret = devm_request_threaded_irq(dev, irq,
 +					dw_hdmi_qp_main_hardirq, NULL,
 +					IRQF_SHARED, dev_name(dev), hdmi);
 +	if (ret)
@@ -694,7 +766,7 @@ index 0000000000000..775617de1a644
 +
 +	hdmi->bridge.ddc = dw_hdmi_qp_i2c_adapter(hdmi);
 +	if (IS_ERR(hdmi->bridge.ddc))
-+		return ERR_CAST(hdmi->bridge.ddc);
++		hdmi->bridge.ddc = NULL;
 +
 +	ret = devm_drm_bridge_add(dev, &hdmi->bridge);
 +	if (ret)
@@ -709,6 +781,11 @@ index 0000000000000..775617de1a644
 +}
 +EXPORT_SYMBOL_GPL(dw_hdmi_qp_bind);
 +
++void dw_hdmi_qp_unbind(struct dw_hdmi_qp *hdmi)
++{
++}
++EXPORT_SYMBOL_GPL(dw_hdmi_qp_unbind);
++
 +void dw_hdmi_qp_resume(struct device *dev, struct dw_hdmi_qp *hdmi)
 +{
 +	dw_hdmi_qp_init_hw(hdmi);
@@ -717,8 +794,9 @@ index 0000000000000..775617de1a644
 +
 +MODULE_AUTHOR("Algea Cao <algea.cao@rock-chips.com>");
 +MODULE_AUTHOR("Cristian Ciocaltea <cristian.ciocaltea@collabora.com>");
-+MODULE_DESCRIPTION("DW HDMI QP transmitter library");
++MODULE_DESCRIPTION("DW HDMI QP transmitter driver");
 +MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:dw-hdmi-qp");
 diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.h b/drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.h
 new file mode 100644
 index 0000000000000..2115b8ef0bd68
@@ -1559,12 +1637,45 @@ index 0000000000000..2115b8ef0bd68
 +#define EARCRX_1_INT_FORCE				0x482c
 +
 +#endif /* __DW_HDMI_QP_H__ */
+diff --git a/include/drm/bridge/dw_hdmi.h b/include/drm/bridge/dw_hdmi.h
+index 6a46baa0737cd..a9cc4604222aa 100644
+--- a/include/drm/bridge/dw_hdmi.h
++++ b/include/drm/bridge/dw_hdmi.h
+@@ -131,6 +131,7 @@ struct dw_hdmi_plat_data {
+ 	unsigned long input_bus_encoding;
+ 	bool use_drm_infoframe;
+ 	bool ycbcr_420_allowed;
++	bool is_hdmi_qp;
+ 
+ 	/*
+ 	 * Private data passed to all the .mode_valid() and .configure_phy()
+@@ -162,6 +163,7 @@ struct dw_hdmi_plat_data {
+ 			     unsigned long mpixelclock);
+ 
+ 	unsigned int disable_cec : 1;
++
+ };
+ 
+ struct dw_hdmi *dw_hdmi_probe(struct platform_device *pdev,
+@@ -206,6 +208,12 @@ void dw_hdmi_phy_update_hpd(struct dw_hdmi *hdmi, void *data,
+ 			    bool force, bool disabled, bool rxsense);
+ void dw_hdmi_phy_setup_hpd(struct dw_hdmi *hdmi, void *data);
+ 
++void dw_hdmi_qp_unbind(struct dw_hdmi *hdmi);
++struct dw_hdmi *dw_hdmi_qp_bind(struct platform_device *pdev,
++				struct drm_encoder *encoder,
++				struct dw_hdmi_plat_data *plat_data);
++void dw_hdmi_qp_resume(struct device *dev, struct dw_hdmi *hdmi);
++
+ bool dw_hdmi_bus_fmt_is_420(struct dw_hdmi *hdmi);
+ 
+ #endif /* __IMX_HDMI_H__ */
 diff --git a/include/drm/bridge/dw_hdmi_qp.h b/include/drm/bridge/dw_hdmi_qp.h
 new file mode 100644
-index 0000000000000..e9be6d507ad9c
+index 0000000000000..0b9c7a88a765e
 --- /dev/null
 +++ b/include/drm/bridge/dw_hdmi_qp.h
-@@ -0,0 +1,32 @@
+@@ -0,0 +1,37 @@
 +/* SPDX-License-Identifier: GPL-2.0-or-later */
 +/*
 + * Copyright (c) 2021-2022 Rockchip Electronics Co., Ltd.
@@ -1575,12 +1686,14 @@ index 0000000000000..e9be6d507ad9c
 +#define __DW_HDMI_QP__
 +
 +struct device;
++struct drm_display_info;
 +struct drm_encoder;
 +struct dw_hdmi_qp;
 +struct platform_device;
 +
 +struct dw_hdmi_qp_phy_ops {
-+	int (*init)(struct dw_hdmi_qp *hdmi, void *data);
++	int (*init)(struct dw_hdmi_qp *hdmi, void *data,
++		    const struct drm_display_info *display);
 +	void (*disable)(struct dw_hdmi_qp *hdmi, void *data);
 +	enum drm_connector_status (*read_hpd)(struct dw_hdmi_qp *hdmi, void *data);
 +	void (*setup_hpd)(struct dw_hdmi_qp *hdmi, void *data);
@@ -1589,9 +1702,12 @@ index 0000000000000..e9be6d507ad9c
 +struct dw_hdmi_qp_plat_data {
 +	const struct dw_hdmi_qp_phy_ops *phy_ops;
 +	void *phy_data;
-+	int main_irq;
 +};
 +
++void dw_hdmi_qp_set_high_tmds_clock_ratio(struct dw_hdmi_qp *hdmi,
++					  const struct drm_display_info *display);
++
++void dw_hdmi_qp_unbind(struct dw_hdmi_qp *hdmi);
 +struct dw_hdmi_qp *dw_hdmi_qp_bind(struct platform_device *pdev,
 +				   struct drm_encoder *encoder,
 +				   const struct dw_hdmi_qp_plat_data *plat_data);
