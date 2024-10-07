@@ -26,7 +26,6 @@
 	};
 
 	chosen {
-		bootargs = "";
 		stdout-path = "serial2:1500000n8";
 	};
 
@@ -413,6 +412,10 @@
 
 &saradc {
 	vref-supply = <&avcc_1v8_s0>;
+	status = "okay";
+};
+
+&tsadc {
 	status = "okay";
 };
 
