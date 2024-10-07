@@ -992,12 +992,11 @@
 		compatible = "jdi,lt070me05000";
 		reg = <0>;
 
-		//pinctrl = <&pinctrl_panel>;
-
 		// reset is driven by rp2040
 		// dcdc en is also driven by rp2040
 		// actually backlight enable
 		enable-gpios = <&gpio2 RK_PB5 GPIO_ACTIVE_HIGH>;
+		no-eot-hfp-hbp-hsa;
 
 		port {
 			mipi_panel_in: endpoint {
