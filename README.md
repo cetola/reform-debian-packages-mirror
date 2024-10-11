@@ -1,6 +1,6 @@
 # reform-debian-packages
 
-The build sources for custom Debian packages which end up at https://mntre.com/reform-debian
+The build sources for custom Debian packages which end up at https://mntre.com/reform-debian-repo/
 
 You need to have the following packages installed to run all of this:
 
