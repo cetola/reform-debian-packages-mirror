@@ -199,9 +199,9 @@
 };
 
 &gmac0 {
-	clock_in_out = "input";
+	clock_in_out = "output";
 	phy-handle = <&rgmii_phy>;
-	phy-mode = "rgmii-rxid";
+	phy-mode = "rgmii-id";
 	pinctrl-0 = <&gmac0_miim
 		&gmac0_tx_bus2
 		&gmac0_rx_bus2
@@ -210,8 +210,6 @@
 		&gmac0_clkinout
 		&eth_phy_reset>;
 	pinctrl-names = "default";
-	rx_delay = <0x00>;
-	tx_delay = <0x47>;
 
 	/* resetting in the driver is not reliable,
 	   so we do it in reform-hw-setup
