@@ -1,5 +1,5 @@
 diff --git a/drivers/phy/rockchip/phy-rockchip-samsung-hdptx.c b/drivers/phy/rockchip/phy-rockchip-samsung-hdptx.c
-index 5dbc1a4..a80bf7c 100644
+index 5dbc1a4..786db1f 100644
 --- a/drivers/phy/rockchip/phy-rockchip-samsung-hdptx.c
 +++ b/drivers/phy/rockchip/phy-rockchip-samsung-hdptx.c
 @@ -1482,7 +1482,10 @@ static int rk_hdptx_phy_runtime_suspend(struct device *dev)
@@ -14,11 +14,13 @@ index 5dbc1a4..a80bf7c 100644
  
  	clk_bulk_disable_unprepare(hdptx->nr_clks, hdptx->clks);
  
-@@ -1494,7 +1497,10 @@ static int rk_hdptx_phy_runtime_resume(struct device *dev)
+@@ -1494,7 +1497,12 @@ static int rk_hdptx_phy_runtime_resume(struct device *dev)
  	struct rk_hdptx_phy *hdptx = dev_get_drvdata(dev);
  	int ret;
  
 -	dev_dbg(hdptx->dev, "resume\n");
++	dev_err(dev, "[DEBUG rk_hdptx_phy_runtime_resume] called\n");
++
 +	if (WARN_ON(!hdptx))
 +		return -EBUSY;
 +	if (WARN_ON(!hdptx->dev))
@@ -26,3 +28,27 @@ index 5dbc1a4..a80bf7c 100644
  
  	ret = clk_bulk_prepare_enable(hdptx->nr_clks, hdptx->clks);
  	if (ret)
+@@ -1554,10 +1562,6 @@ static int rk_hdptx_phy_probe(struct platform_device *pdev)
+ 		return dev_err_probe(dev, PTR_ERR(hdptx->grf),
+ 				     "Could not get GRF syscon\n");
+ 
+-	ret = devm_pm_runtime_enable(dev);
+-	if (ret)
+-		return dev_err_probe(dev, ret, "Failed to enable runtime PM\n");
+-
+ 	hdptx->phy = devm_phy_create(dev, NULL, &rk_hdptx_phy_ops);
+ 	if (IS_ERR(hdptx->phy))
+ 		return dev_err_probe(dev, PTR_ERR(hdptx->phy),
+@@ -1565,6 +1569,12 @@ static int rk_hdptx_phy_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, hdptx);
+ 	phy_set_drvdata(hdptx->phy, hdptx);
++
++	dev_err(dev, "[DEBUG rk_hdptx_phy_probe] phy_set_drvdata done, about to devm_pm_runtime_enable\n");
++	ret = devm_pm_runtime_enable(dev);
++	if (ret)
++		return dev_err_probe(dev, ret, "Failed to enable runtime PM\n");
++
+ 	phy_set_bus_width(hdptx->phy, 8);
+ 
+ 	phy_provider = devm_of_phy_provider_register(dev, of_phy_simple_xlate);
