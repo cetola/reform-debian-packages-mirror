@@ -86,7 +86,7 @@ fi
 done
 
 our_version=$(reprepro --list-format '${version}\n' -T deb listfilter "$OURSUITE" "\$Source (== reform-branding)" | uniq)
-their_version=$(curl --silent https://salsa.debian.org/reform-team/reform-tools/-/raw/main/debian/changelog | dpkg-parsechangelog --show-field Version --file -)
+their_version=$(curl --silent https://salsa.debian.org/reform-team/reform-branding/-/raw/main/debian/changelog | dpkg-parsechangelog --show-field Version --file -)
 if [ -z "$our_version" ] || dpkg --compare-versions "$our_version" lt "$their_version"; then
 	rm -Rf "$WORKDIR"
 	mkdir --mode=0777 "$WORKDIR"
