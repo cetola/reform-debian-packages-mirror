@@ -84,3 +84,19 @@ if [ -z "$our_version" ] || dpkg --compare-versions "$our_version" lt "$their_ve
 	rm -Rf "$WORKDIR"
 fi
 done
+
+our_version=$(reprepro --list-format '${version}\n' -T deb listfilter "$OURSUITE" "\$Source (== reform-branding)" | uniq)
+their_version=$(curl --silent https://salsa.debian.org/reform-team/reform-tools/-/raw/main/debian/changelog | dpkg-parsechangelog --show-field Version --file -)
+if [ -z "$our_version" ] || dpkg --compare-versions "$our_version" lt "$their_version"; then
+	rm -Rf "$WORKDIR"
+	mkdir --mode=0777 "$WORKDIR"
+	(
+		cd "$WORKDIR"
+		git clone https://salsa.debian.org/reform-team/reform-branding.git
+		cd reform-branding
+		sbuild -d "$OURSUITE" --arch-all --arch-any --chroot $BASESUITE-$BUILD_ARCH $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
+		dcmd mv -v ../reform-branding_*"_${BUILD_ARCH}.changes" "$ROOTDIR/changes"
+		cd ..
+	)
+	rm -Rf "$WORKDIR"
+fi
