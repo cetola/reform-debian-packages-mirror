@@ -121,6 +121,38 @@ END
 done
 
 
+if dpkg --compare-versions "$KVER" ge "6.11"; then
+  # see https://salsa.debian.org/kernel-team/linux/-/merge_requests/1260
+  cat << 'END' | env --chdir=linux patch -p1
+--- a/debian/patches/debian/fixdep-allow-overriding-hostcc-and-hostld.patch
++++ b/debian/patches/debian/fixdep-allow-overriding-hostcc-and-hostld.patch
+@@ -18,7 +18,7 @@ override HOSTCC and HOSTLD for fixdep only.
+  fixdep:
+ -	$(SILENT_MAKE) -C $(srctree)/tools/build $(OUTPUT)fixdep
+ +	$(SILENT_MAKE) -C $(srctree)/tools/build \
+-+		$(if $(REALHOSTCC),HOSTCC=$(REALHOSTCC) HOSTCFLAGS=) \
+++		$(if $(REALHOSTCC),HOSTCC=$(REALHOSTCC) KBUILD_HOSTCFLAGS=) \
+ +		$(if $(REALHOSTLD),HOSTLD=$(REALHOSTLD) KBUILD_HOSTLDFLAGS=) \
+ +		$(OUTPUT)fixdep
+  
+END
+  # the patch above changed a quilt patch, so we have to adjust the unpacked
+  # files to the new reality the patch stack advertises
+  cat << 'END' | env --chdir=linux patch -p1
+--- a/tools/build/Makefile.include
++++ b/tools/build/Makefile.include
+@@ -13,7 +13,7 @@ endif
+
+ fixdep:
+ 	$(SILENT_MAKE) -C $(srctree)/tools/build \
+-		$(if $(REALHOSTCC),HOSTCC=$(REALHOSTCC) HOSTCFLAGS=) \
++		$(if $(REALHOSTCC),HOSTCC=$(REALHOSTCC) KBUILD_HOSTCFLAGS=) \
+ 		$(if $(REALHOSTLD),HOSTLD=$(REALHOSTLD) KBUILD_HOSTLDFLAGS=) \
+ 		$(OUTPUT)fixdep
+ 
+END
+fi
+
 if dpkg --compare-versions "$KVER" lt "6.8"; then
 	cat << END | env --chdir=linux patch -p1
 --- a/debian/bin/gencontrol.py
