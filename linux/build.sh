@@ -81,7 +81,34 @@ else
 fi
 maybe_faketime dch --force-distribution --distribution="$OURSUITE" --release ""
 
-curl https://salsa.debian.org/kernel-team/linux/-/merge_requests/1159.patch | env --chdir=linux patch -p1
+# https://salsa.debian.org/kernel-team/linux/-/merge_requests/1159
+sed -i 's/ ${misc:Depends}/ ${misc:Depends}, debianutils (>= 5.21)/' linux/debian/templates/headers.control.in linux/debian/templates/image.control.in
+grep --quiet 'debianutils (>= 5.21)' linux/debian/templates/headers.control.in linux/debian/templates/image.control.in
+cat << 'END' | env --chdir=linux patch -p1
+--- a/debian/templates/headers.postinst.in
++++ b/debian/templates/headers.postinst.in
+@@ -10,5 +10,5 @@
+ if (-d "/etc/kernel/header_postinst.d") {
+   system ("run-parts --report --exit-on-error --arg=$version " .
+-          "/etc/kernel/header_postinst.d") &&
++          "/etc/kernel/header_postinst.d /usr/share/kernel/header_postinst.d") &&
+             die "Failed to process /etc/kernel/header_postinst.d";
+ }
+END
+for maint in postinst postrm preinst prerm; do
+  cat << END | env --chdir=linux patch -p1
+--- a/debian/templates/image.$maint.in
++++ b/debian/templates/image.$maint.in
+@@ -15,5 +15,5 @@
+ if [ -d /etc/kernel/$maint.d ]; then
+     DEB_MAINT_PARAMS="\$*" run-parts --report --exit-on-error --arg=\$version \\
+-	      --arg=\$image_path /etc/kernel/$maint.d
++	      --arg=\$image_path /etc/kernel/$maint.d /usr/share/kernel/$maint.d
+ fi
+ 
+END
+done
+
 
 if dpkg --compare-versions "$KVER" lt "6.8"; then
 	cat << END | env --chdir=linux patch -p1
