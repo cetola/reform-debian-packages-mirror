@@ -83,6 +83,16 @@ maybe_faketime dch --force-distribution --distribution="$OURSUITE" --release ""
 
 # https://salsa.debian.org/kernel-team/linux/-/merge_requests/1159
 # Do not require run-parts 5.21 or otherwise this would not work on bookworm
+#  - check whether either /etc or /usr directories exist
+#  - since the /etc directory is now allowed to be missing, do not pass it if
+#    it does not exist
+#  - use --help output of run-parts to determine whether more than one argument
+#    can be passed
+#  - in debianutils 5.14, run-parts --help output changed from stderr to stdout
+#    so we have to check both
+#  - this will fail if /etc does not exist *and* run-parts is too old (because
+#    then no directory will be passed) -- we assume that /etc can only
+#    be missing on new systems which will thus also have new run-parts
 cat << 'END' | env --chdir=linux patch -p1
 --- a/debian/templates/headers.postinst.in
 +++ b/debian/templates/headers.postinst.in
@@ -91,7 +101,7 @@ cat << 'END' | env --chdir=linux patch -p1
 +if (-d "/etc/kernel/header_postinst.d" || -d "/usr/share/kernel/header_postinst.d") {
    system ("run-parts --report --exit-on-error --arg=$version " .
 -          "/etc/kernel/header_postinst.d") &&
-+          '$(test -d /etc/kernel/header_postinst.d && echo /etc/kernel/header_postinst.d) $(test -d /usr/share/kernel/header_postinst.d && run-parts --help | grep -Fxq "Usage: run-parts [OPTION]... DIRECTORY [DIRECTORY ...]" && echo /usr/share/kernel/header_postinst.d)') &&
++          '$(test -d /etc/kernel/header_postinst.d && echo /etc/kernel/header_postinst.d) $(test -d /usr/share/kernel/header_postinst.d && run-parts --help 2>&1 | grep -Fxq "Usage: run-parts [OPTION]... DIRECTORY [DIRECTORY ...]" && echo /usr/share/kernel/header_postinst.d)') &&
              die "Failed to process /etc/kernel/header_postinst.d";
  }
 END
@@ -104,7 +114,7 @@ for maint in postinst postrm preinst prerm; do
 +if [ -d /etc/kernel/$maint.d ] || [ -d /usr/share/kernel/$maint.d ]; then
      DEB_MAINT_PARAMS="\$*" run-parts --report --exit-on-error --arg=\$version \\
 -	      --arg=\$image_path /etc/kernel/$maint.d
-+	      --arg=\$image_path \$(test -d /etc/kernel/$maint.d && echo /etc/kernel/$maint.d) \$(test -d /usr/share/kernel/$maint.d && run-parts --help | grep -Fxq "Usage: run-parts [OPTION]... DIRECTORY [DIRECTORY ...]" && echo /usr/share/kernel/$maint.d)
++	      --arg=\$image_path \$(test -d /etc/kernel/$maint.d && echo /etc/kernel/$maint.d) \$(test -d /usr/share/kernel/$maint.d && run-parts --help 2>&1 | grep -Fxq "Usage: run-parts [OPTION]... DIRECTORY [DIRECTORY ...]" && echo /usr/share/kernel/$maint.d)
  fi
  
 END
