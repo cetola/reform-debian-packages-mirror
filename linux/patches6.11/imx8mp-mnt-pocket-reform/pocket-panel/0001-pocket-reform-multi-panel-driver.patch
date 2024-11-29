@@ -1,16 +1,16 @@
-commit 319c590c48fe93ce463fb733269f6612d4fa32a2
+commit b17bf5d77aebeb6ee1af8a3b187f443b0747622f
 Author: Lukas F. Hartmann <lukas@mntre.com>
-Date:   Fri Nov 29 13:26:24 2024 +0100
+Date:   Fri Nov 29 14:48:42 2024 +0100
 
     Add multi display panel driver for MNT Pocket Reform based on old JDI driver
 
 diff --git a/drivers/gpu/drm/panel/Kconfig b/drivers/gpu/drm/panel/Kconfig
-index 99e14dc212ec..e4cca6826bdc 100644
+index 9f49b01..6a80933 100644
 --- a/drivers/gpu/drm/panel/Kconfig
 +++ b/drivers/gpu/drm/panel/Kconfig
-@@ -350,6 +350,17 @@ config DRM_PANEL_MAGNACHIP_D53E6EA8966
- 	  with the Magnachip D53E6EA8966 panel IC. This panel receives
- 	  video data via DSI but commands via 9-bit SPI using DBI.
+@@ -399,6 +399,17 @@ config DRM_PANEL_MANTIX_MLAF057WE51
+ 	  has a resolution of 720x1440 pixels, a built in backlight and touch
+ 	  controller.
  
 +config DRM_PANEL_MNT_POCKET_REFORM
 +	tristate "MNT Pocket Reform WUXGA DSI panel"
@@ -18,7 +18,7 @@ index 99e14dc212ec..e4cca6826bdc 100644
 +	depends on DRM_MIPI_DSI
 +	depends on BACKLIGHT_CLASS_DEVICE
 +	help
-+	  Say Y here if you want to enable support for the DSI 
++	  Say Y here if you want to enable support for the DSI
 +	  panel as found in MNT Pocket Reform.
 +	  The panel has a 1200(RGB)×1920 (WUXGA) resolution and uses
 +	  24 bit per pixel.
@@ -27,12 +27,12 @@ index 99e14dc212ec..e4cca6826bdc 100644
  	tristate "NEC NL8048HL11 RGB panel"
  	depends on GPIOLIB && OF && SPI
 diff --git a/drivers/gpu/drm/panel/Makefile b/drivers/gpu/drm/panel/Makefile
-index d10c3de51c6d..b8ce4da1e8ae 100644
+index 5581387..9058011 100644
 --- a/drivers/gpu/drm/panel/Makefile
 +++ b/drivers/gpu/drm/panel/Makefile
-@@ -32,6 +32,7 @@ obj-$(CONFIG_DRM_PANEL_LEADTEK_LTK500HD1829) += panel-leadtek-ltk500hd1829.o
- obj-$(CONFIG_DRM_PANEL_LG_LB035Q02) += panel-lg-lb035q02.o
+@@ -39,6 +39,7 @@ obj-$(CONFIG_DRM_PANEL_LG_LB035Q02) += panel-lg-lb035q02.o
  obj-$(CONFIG_DRM_PANEL_LG_LG4573) += panel-lg-lg4573.o
+ obj-$(CONFIG_DRM_PANEL_LG_SW43408) += panel-lg-sw43408.o
  obj-$(CONFIG_DRM_PANEL_MAGNACHIP_D53E6EA8966) += panel-magnachip-d53e6ea8966.o
 +obj-$(CONFIG_DRM_PANEL_MNT_POCKET_REFORM) += panel-mnt-pocket-reform.o
  obj-$(CONFIG_DRM_PANEL_NEC_NL8048HL11) += panel-nec-nl8048hl11.o
@@ -40,7 +40,7 @@ index d10c3de51c6d..b8ce4da1e8ae 100644
  obj-$(CONFIG_DRM_PANEL_NEWVISION_NV3052C) += panel-newvision-nv3052c.o
 diff --git a/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c b/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c
 new file mode 100644
-index 000000000000..675313a55459
+index 0000000..675313a
 --- /dev/null
 +++ b/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c
 @@ -0,0 +1,778 @@
