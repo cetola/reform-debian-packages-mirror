@@ -811,7 +811,7 @@
 	#address-cells = <1>;
 	#size-cells = <0>;
 	samsung,burst-clock-frequency = <972000000>;
-	samsung,esc-clock-frequency = <48000000>;
+	samsung,esc-clock-frequency = <24000000>;
 	status = "okay";
 
 	panel@0 {

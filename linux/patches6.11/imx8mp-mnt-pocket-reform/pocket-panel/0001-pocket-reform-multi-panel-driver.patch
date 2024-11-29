@@ -1,4 +1,4 @@
-commit b17bf5d77aebeb6ee1af8a3b187f443b0747622f
+commit 756b9cc53f10c5e2b179a11c032c09155ffd20dc
 Author: Lukas F. Hartmann <lukas@mntre.com>
 Date:   Fri Nov 29 14:48:42 2024 +0100
 
@@ -40,10 +40,10 @@ index 5581387..9058011 100644
  obj-$(CONFIG_DRM_PANEL_NEWVISION_NV3052C) += panel-newvision-nv3052c.o
 diff --git a/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c b/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c
 new file mode 100644
-index 0000000..675313a
+index 0000000..4f3ba3c
 --- /dev/null
 +++ b/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c
-@@ -0,0 +1,778 @@
+@@ -0,0 +1,779 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
 + * Copyright (C) 2016 InforceComputing
@@ -506,6 +506,8 @@ index 0000000..675313a
 +	if (readval == 0x84e8) {
 +		jdi->panel_version = 2;
 +		__global_mnt_pocket_reform_panel_version = 2;
++		// panel v2 doesn't like HSE
++		dsi->mode_flags &= ~MIPI_DSI_MODE_VIDEO_HSE;
 +		pocket_display_v2_init(jdi);
 +	} else {
 +		jdi->panel_version = 1;
@@ -751,7 +753,6 @@ index 0000000..675313a
 +	// on a311d it works only without burst, but imx8mplus needs burst mode
 +	if (of_property_present(dsi->dev.of_node, "burst-mode")) {
 +		dsi->mode_flags |= MIPI_DSI_MODE_VIDEO_BURST;
-+		dsi->mode_flags &= ~MIPI_DSI_MODE_VIDEO_HSE;
 +		dev_warn(&dsi->dev, "DSI burst mode enabled via device tree\n");
 +	}
 +	if (of_property_present(dsi->dev.of_node, "no-eot-hfp-hbp-hsa")) {
