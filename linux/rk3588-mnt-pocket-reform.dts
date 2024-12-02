@@ -988,6 +988,7 @@
 
 &dsi1 {
 	status = "okay";
+  rockchip,lane-rate = <972000>;
 
 	panel {
 		compatible = "jdi,lt070me05000";

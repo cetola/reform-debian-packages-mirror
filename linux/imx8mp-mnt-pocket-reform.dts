@@ -825,6 +825,9 @@
 		// actually backlight enable
 		enable-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
 		burst-mode;
+    // the dsi mode for this controller while
+    // recognizing display v1 vs v2
+		probe-mode-lpm;
 
 		port {
 			panel_in: endpoint {
