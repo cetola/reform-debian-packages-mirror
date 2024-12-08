@@ -1,7 +1,7 @@
-From 598952f0d43f3ea891b359e378f24094fed21e19 Mon Sep 17 00:00:00 2001
+From 67992ad1e5f60075253698030e552034ab8a3c5e Mon Sep 17 00:00:00 2001
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 Date: Tue, 2 Jan 2024 09:35:43 +0100
-Subject: [PATCH 13/61] arm64: dts: rockchip: rk3588-evb1: add bluetooth rfkill
+Subject: [PATCH 13/63] arm64: dts: rockchip: rk3588-evb1: add bluetooth rfkill
 
 Add rfkill support for bluetooth. Bluetooth support itself is still
 missing, but this ensures bluetooth can be powered off properly.
@@ -12,7 +12,7 @@ Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
  1 file changed, 15 insertions(+)
 
 diff --git a/arch/arm64/boot/dts/rockchip/rk3588-evb1-v10.dts b/arch/arm64/boot/dts/rockchip/rk3588-evb1-v10.dts
-index 8deb0c7f6c27..024accfc9cbe 100644
+index 00f660d50127..6cedcb8eabc9 100644
 --- a/arch/arm64/boot/dts/rockchip/rk3588-evb1-v10.dts
 +++ b/arch/arm64/boot/dts/rockchip/rk3588-evb1-v10.dts
 @@ -120,6 +120,15 @@ backlight: backlight {
@@ -28,10 +28,10 @@ index 8deb0c7f6c27..024accfc9cbe 100644
 +		pinctrl-0 = <&bluetooth_pwren>;
 +	};
 +
- 	wlan-rfkill {
- 		compatible = "rfkill-gpio";
- 		label = "rfkill-pcie-wlan";
-@@ -481,6 +490,12 @@ speaker_amplifier_en: speaker-amplifier-en {
+ 	pcie20_avdd0v85: pcie20-avdd0v85-regulator {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "pcie20_avdd0v85";
+@@ -442,6 +451,12 @@ speaker_amplifier_en: speaker-amplifier-en {
  		};
  	};
  

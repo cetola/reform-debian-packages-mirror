@@ -1,7 +1,7 @@
-From 4ed773fc07a1d26b1288bfb3a0c1552dcd52c8db Mon Sep 17 00:00:00 2001
+From ef7f6a0eee989648b6983278ddb463f43b9869ac Mon Sep 17 00:00:00 2001
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 Date: Fri, 8 Mar 2024 23:32:05 +0100
-Subject: [PATCH 12/61] clk: rockchip: rk3588: drop RK3588_LINKED_CLK
+Subject: [PATCH 12/63] clk: rockchip: rk3588: drop RK3588_LINKED_CLK
 
 With the proper GATE_LINK support, we no longer need to keep the
 linked clocks always on. Thus it's time to drop the CLK_IS_CRITICAL
@@ -13,7 +13,7 @@ Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
  1 file changed, 12 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/clk/rockchip/clk-rk3588.c b/drivers/clk/rockchip/clk-rk3588.c
-index 1bf84ac44e85..42579b6f74b4 100644
+index d76ab27dd1b8..46dcbbcee54e 100644
 --- a/drivers/clk/rockchip/clk-rk3588.c
 +++ b/drivers/clk/rockchip/clk-rk3588.c
 @@ -12,9 +12,6 @@

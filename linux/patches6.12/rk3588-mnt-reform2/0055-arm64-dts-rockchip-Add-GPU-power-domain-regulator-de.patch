@@ -1,0 +1,426 @@
+From ca97aa217e5cc8d617d677c48ca7eeac69e9e18d Mon Sep 17 00:00:00 2001
+From: Sebastian Reichel <sebastian.reichel@collabora.com>
+Date: Fri, 6 Sep 2024 19:24:03 +0200
+Subject: [PATCH 55/63] arm64: dts: rockchip: Add GPU power domain regulator
+ dependency for RK3588
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Enabling the GPU power domain requires that the GPU regulator is
+enabled. The regulator is enabled at boot time, but automatically
+gets disabled when there are no users.
+
+If the GPU driver is not probed at boot time or rebound while
+the system is running the system will try to enable the power
+domain before the regulator is enabled resulting in a failure
+hanging the whole system. Avoid this by adding an explicit
+dependency.
+
+Reported-by: Adrián Martínez Larumbe <adrian.larumbe@collabora.com>
+Tested-by: Adrian Larumbe <adrian.larumbe@collabora.com> # On Rock 5B
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3588-armsom-sige7.dts          | 4 ++++
+ arch/arm64/boot/dts/rockchip/rk3588-base.dtsi                 | 2 +-
+ arch/arm64/boot/dts/rockchip/rk3588-coolpi-cm5.dtsi           | 4 ++++
+ arch/arm64/boot/dts/rockchip/rk3588-edgeble-neu6a-common.dtsi | 4 ++++
+ arch/arm64/boot/dts/rockchip/rk3588-evb1-v10.dts              | 4 ++++
+ arch/arm64/boot/dts/rockchip/rk3588-fet3588-c.dtsi            | 4 ++++
+ arch/arm64/boot/dts/rockchip/rk3588-friendlyelec-cm3588.dtsi  | 4 ++++
+ arch/arm64/boot/dts/rockchip/rk3588-jaguar.dts                | 4 ++++
+ arch/arm64/boot/dts/rockchip/rk3588-nanopc-t6.dtsi            | 4 ++++
+ arch/arm64/boot/dts/rockchip/rk3588-ok3588-c.dts              | 4 ++++
+ arch/arm64/boot/dts/rockchip/rk3588-orangepi-5-plus.dts       | 4 ++++
+ arch/arm64/boot/dts/rockchip/rk3588-quartzpro64.dts           | 4 ++++
+ arch/arm64/boot/dts/rockchip/rk3588-rock-5-itx.dts            | 4 ++++
+ arch/arm64/boot/dts/rockchip/rk3588-rock-5b.dts               | 4 ++++
+ arch/arm64/boot/dts/rockchip/rk3588-tiger.dtsi                | 4 ++++
+ arch/arm64/boot/dts/rockchip/rk3588-toybrick-x0.dts           | 4 ++++
+ arch/arm64/boot/dts/rockchip/rk3588-turing-rk1.dtsi           | 4 ++++
+ arch/arm64/boot/dts/rockchip/rk3588s-coolpi-4b.dts            | 4 ++++
+ arch/arm64/boot/dts/rockchip/rk3588s-gameforce-ace.dts        | 4 ++++
+ arch/arm64/boot/dts/rockchip/rk3588s-indiedroid-nova.dts      | 4 ++++
+ arch/arm64/boot/dts/rockchip/rk3588s-khadas-edge2.dts         | 4 ++++
+ arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6s.dts           | 4 ++++
+ arch/arm64/boot/dts/rockchip/rk3588s-odroid-m2.dts            | 4 ++++
+ arch/arm64/boot/dts/rockchip/rk3588s-orangepi-5.dts           | 4 ++++
+ arch/arm64/boot/dts/rockchip/rk3588s-rock-5a.dts              | 4 ++++
+ 25 files changed, 97 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-armsom-sige7.dts b/arch/arm64/boot/dts/rockchip/rk3588-armsom-sige7.dts
+index c667704ba985..00a1cd96781d 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588-armsom-sige7.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588-armsom-sige7.dts
+@@ -286,6 +286,10 @@ &pcie3x4 {
+ 	status = "okay";
+ };
+ 
++&pd_gpu {
++	domain-supply = <&vdd_gpu_s0>;
++};
++
+ &pinctrl {
+ 	hym8563 {
+ 		hym8563_int: hym8563-int {
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-base.dtsi b/arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+index ab07e3deff69..81e0e4dd8c3d 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+@@ -865,7 +865,7 @@ power-domain@RK3588_PD_NPU2 {
+ 				};
+ 			};
+ 			/* These power domains are grouped by VD_GPU */
+-			power-domain@RK3588_PD_GPU {
++			pd_gpu: power-domain@RK3588_PD_GPU {
+ 				reg = <RK3588_PD_GPU>;
+ 				clocks = <&cru CLK_GPU>,
+ 					 <&cru CLK_GPU_COREGROUP>,
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-coolpi-cm5.dtsi b/arch/arm64/boot/dts/rockchip/rk3588-coolpi-cm5.dtsi
+index fde8b228f2c7..cf9d75159ba6 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588-coolpi-cm5.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588-coolpi-cm5.dtsi
+@@ -277,6 +277,10 @@ &pcie2x1l2 {
+ 	status = "okay";
+ };
+ 
++&pd_gpu {
++	domain-supply = <&vdd_gpu_s0>;
++};
++
+ &pinctrl {
+ 	hym8563 {
+ 		hym8563_int: hym8563-int {
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-edgeble-neu6a-common.dtsi b/arch/arm64/boot/dts/rockchip/rk3588-edgeble-neu6a-common.dtsi
+index 03fd193be253..381242c8d6db 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588-edgeble-neu6a-common.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588-edgeble-neu6a-common.dtsi
+@@ -126,6 +126,10 @@ regulator-state-mem {
+ 	};
+ };
+ 
++&pd_gpu {
++	domain-supply = <&vdd_gpu_s0>;
++};
++
+ &pinctrl {
+ 	leds {
+ 		led_user_en: led_user_en {
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-evb1-v10.dts b/arch/arm64/boot/dts/rockchip/rk3588-evb1-v10.dts
+index 7dc3ee6e7eb4..142e685ae513 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588-evb1-v10.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588-evb1-v10.dts
+@@ -485,6 +485,10 @@ &pcie3x4 {
+ 	status = "okay";
+ };
+ 
++&pd_gpu {
++	domain-supply = <&vdd_gpu_s0>;
++};
++
+ &pinctrl {
+ 	audio {
+ 		hp_detect: headphone-detect {
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-fet3588-c.dtsi b/arch/arm64/boot/dts/rockchip/rk3588-fet3588-c.dtsi
+index 47e64d547ea9..799a71da7157 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588-fet3588-c.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588-fet3588-c.dtsi
+@@ -205,6 +205,10 @@ regulator-state-mem {
+ 	};
+ };
+ 
++&pd_gpu {
++	domain-supply = <&vdd_gpu_s0>;
++};
++
+ &pinctrl {
+ 	leds {
+ 		led_rgb_b: led-rgb-b {
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-friendlyelec-cm3588.dtsi b/arch/arm64/boot/dts/rockchip/rk3588-friendlyelec-cm3588.dtsi
+index e3a9598b99fc..1af0a30866f6 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588-friendlyelec-cm3588.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588-friendlyelec-cm3588.dtsi
+@@ -256,6 +256,10 @@ &pcie2x1l2 {
+ 	status = "okay";
+ };
+ 
++&pd_gpu {
++	domain-supply = <&vdd_gpu_s0>;
++};
++
+ &pinctrl {
+ 	gpio-leds {
+ 		led_sys_pin: led-sys-pin {
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-jaguar.dts b/arch/arm64/boot/dts/rockchip/rk3588-jaguar.dts
+index 31d2f8994f85..3cefaf830229 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588-jaguar.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588-jaguar.dts
+@@ -403,6 +403,10 @@ &pcie3x4 {
+ 	status = "okay";
+ };
+ 
++&pd_gpu {
++	domain-supply = <&vdd_gpu_s0>;
++};
++
+ &pinctrl {
+ 	emmc {
+ 		emmc_reset: emmc-reset {
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-nanopc-t6.dtsi b/arch/arm64/boot/dts/rockchip/rk3588-nanopc-t6.dtsi
+index fc131789b4c3..30a5e4e9e844 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588-nanopc-t6.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588-nanopc-t6.dtsi
+@@ -519,6 +519,10 @@ &pcie3x4 {
+ 	status = "okay";
+ };
+ 
++&pd_gpu {
++	domain-supply = <&vdd_gpu_s0>;
++};
++
+ &pinctrl {
+ 	gpio-leds {
+ 		sys_led_pin: sys-led-pin {
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-ok3588-c.dts b/arch/arm64/boot/dts/rockchip/rk3588-ok3588-c.dts
+index c2a08bdf09e8..a9c1fed929fd 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588-ok3588-c.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588-ok3588-c.dts
+@@ -312,6 +312,10 @@ &pcie3x4 {
+ 	status = "okay";
+ };
+ 
++&pd_gpu {
++	domain-supply = <&vdd_gpu_s0>;
++};
++
+ &pinctrl {
+ 	pcie2 {
+ 		pcie2_0_rst: pcie2-0-rst {
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-orangepi-5-plus.dts b/arch/arm64/boot/dts/rockchip/rk3588-orangepi-5-plus.dts
+index dd4c79bcad87..b6ce6cb233f3 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588-orangepi-5-plus.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588-orangepi-5-plus.dts
+@@ -388,6 +388,10 @@ &pcie3x4 {
+ 	status = "okay";
+ };
+ 
++&pd_gpu {
++	domain-supply = <&vdd_gpu_s0>;
++};
++
+ &pinctrl {
+ 	hym8563 {
+ 		hym8563_int: hym8563-int {
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-quartzpro64.dts b/arch/arm64/boot/dts/rockchip/rk3588-quartzpro64.dts
+index b38dab009ccc..1f5676be768f 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588-quartzpro64.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588-quartzpro64.dts
+@@ -347,6 +347,10 @@ rgmii_phy: ethernet-phy@1 {
+ 	};
+ };
+ 
++&pd_gpu {
++	domain-supply = <&vdd_gpu_s0>;
++};
++
+ &pinctrl {
+ 	hym8563 {
+ 		hym8563_int: hym8563-int {
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-rock-5-itx.dts b/arch/arm64/boot/dts/rockchip/rk3588-rock-5-itx.dts
+index d0b922b8d67e..0eadf4fb4ba4 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588-rock-5-itx.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588-rock-5-itx.dts
+@@ -530,6 +530,10 @@ &pcie3x4 {
+ 	status = "okay";
+ };
+ 
++&pd_gpu {
++	domain-supply = <&vdd_gpu_s0>;
++};
++
+ &pinctrl {
+ 	hym8563 {
+ 		rtc_int: rtc-int {
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-rock-5b.dts b/arch/arm64/boot/dts/rockchip/rk3588-rock-5b.dts
+index 903066a23757..101e71d8cc9e 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588-rock-5b.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588-rock-5b.dts
+@@ -465,6 +465,10 @@ &pcie3x4 {
+ 	status = "okay";
+ };
+ 
++&pd_gpu {
++	domain-supply = <&vdd_gpu_s0>;
++};
++
+ &pinctrl {
+ 	hdmirx {
+ 		hdmirx_hpd: hdmirx-5v-detection {
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-tiger.dtsi b/arch/arm64/boot/dts/rockchip/rk3588-tiger.dtsi
+index 615094bb8ba3..1b5c4a7fd5c6 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588-tiger.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588-tiger.dtsi
+@@ -317,6 +317,10 @@ &pcie3x4 {
+ 	reset-gpios = <&gpio3 RK_PB6 GPIO_ACTIVE_HIGH>;
+ };
+ 
++&pd_gpu {
++	domain-supply = <&vdd_gpu_s0>;
++};
++
+ &pinctrl {
+ 	emmc {
+ 		emmc_reset: emmc-reset {
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-toybrick-x0.dts b/arch/arm64/boot/dts/rockchip/rk3588-toybrick-x0.dts
+index 328dcb894ccb..7558e3663c8a 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588-toybrick-x0.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588-toybrick-x0.dts
+@@ -289,6 +289,10 @@ rgmii_phy: ethernet-phy@1 {
+ 	};
+ };
+ 
++&pd_gpu {
++	domain-supply = <&vdd_gpu_s0>;
++};
++
+ &pinctrl {
+ 	rtl8211f {
+ 		rtl8211f_rst: rtl8211f-rst {
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-turing-rk1.dtsi b/arch/arm64/boot/dts/rockchip/rk3588-turing-rk1.dtsi
+index 432133251e31..f98c7ed422a2 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588-turing-rk1.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588-turing-rk1.dtsi
+@@ -229,6 +229,10 @@ &pcie3x4 {
+ 	status = "okay";
+ };
+ 
++&pd_gpu {
++	domain-supply = <&vdd_gpu_s0>;
++};
++
+ &pinctrl {
+ 	fan {
+ 		fan_int: fan-int {
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588s-coolpi-4b.dts b/arch/arm64/boot/dts/rockchip/rk3588s-coolpi-4b.dts
+index 074c316a9a69..d938db0e2239 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-coolpi-4b.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-coolpi-4b.dts
+@@ -329,6 +329,10 @@ &pcie2x1l2 {
+ 	status = "okay";
+ };
+ 
++&pd_gpu {
++	domain-supply = <&vdd_gpu_s0>;
++};
++
+ &pinctrl {
+ 	hym8563 {
+ 		hym8563_int: hym8563-int {
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588s-gameforce-ace.dts b/arch/arm64/boot/dts/rockchip/rk3588s-gameforce-ace.dts
+index 467f69594089..9b02cea96cdb 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-gameforce-ace.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-gameforce-ace.dts
+@@ -675,6 +675,10 @@ &pcie2x1l1 {
+ 	status = "okay";
+ };
+ 
++&pd_gpu {
++	domain-supply = <&vdd_gpu_s0>;
++};
++
+ &pinctrl {
+ 	audio-amplifier {
+ 		headphone_amplifier_en: headphone-amplifier-en {
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588s-indiedroid-nova.dts b/arch/arm64/boot/dts/rockchip/rk3588s-indiedroid-nova.dts
+index 8ba111d9283f..817c0bb28b6e 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-indiedroid-nova.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-indiedroid-nova.dts
+@@ -415,6 +415,10 @@ &pcie2x1l2 {
+ 	status = "okay";
+ };
+ 
++&pd_gpu {
++	domain-supply = <&vdd_gpu_s0>;
++};
++
+ &pinctrl {
+ 	bluetooth-pins {
+ 		bt_reset: bt-reset {
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588s-khadas-edge2.dts b/arch/arm64/boot/dts/rockchip/rk3588s-khadas-edge2.dts
+index dbddfc3bb464..d29d404417ee 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-khadas-edge2.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-khadas-edge2.dts
+@@ -233,6 +233,10 @@ hym8563: rtc@51 {
+ 	};
+ };
+ 
++&pd_gpu {
++	domain-supply = <&vdd_gpu_s0>;
++};
++
+ &pinctrl {
+ 	vdd_sd {
+ 		vdd_sd_en: vdd-sd-en {
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6s.dts b/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6s.dts
+index 4fa644ae510c..3dd8372b2578 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6s.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6s.dts
+@@ -326,6 +326,10 @@ &pcie2x1l2 {
+ 	status = "okay";
+ };
+ 
++&pd_gpu {
++	domain-supply = <&vdd_gpu_s0>;
++};
++
+ &pinctrl {
+ 	gpio-key {
+ 		key1_pin: key1-pin {
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588s-odroid-m2.dts b/arch/arm64/boot/dts/rockchip/rk3588s-odroid-m2.dts
+index 63d91236ba9f..5f32a339f5c9 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-odroid-m2.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-odroid-m2.dts
+@@ -401,6 +401,10 @@ &pcie2x1l2 {
+ 	status = "okay";
+ };
+ 
++&pd_gpu {
++	domain-supply = <&vdd_gpu_s0>;
++};
++
+ &pinctrl {
+ 	lcd {
+ 		lcd_pwren: lcd-pwren {
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588s-orangepi-5.dts b/arch/arm64/boot/dts/rockchip/rk3588s-orangepi-5.dts
+index feea6b20a6bf..ef3a721d1fc7 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-orangepi-5.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-orangepi-5.dts
+@@ -297,6 +297,10 @@ &pcie2x1l2 {
+ 	status = "okay";
+ };
+ 
++&pd_gpu {
++	domain-supply = <&vdd_gpu_s0>;
++};
++
+ &pinctrl {
+ 	gpio-func {
+ 		leds_gpio: leds-gpio {
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588s-rock-5a.dts b/arch/arm64/boot/dts/rockchip/rk3588s-rock-5a.dts
+index 294b99dd50da..a61864482f1f 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-rock-5a.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-rock-5a.dts
+@@ -317,6 +317,10 @@ &pcie2x1l2 {
+ 	status = "okay";
+ };
+ 
++&pd_gpu {
++	domain-supply = <&vdd_gpu_s0>;
++};
++
+ &pinctrl {
+ 	leds {
+ 		io_led: io-led {
+-- 
+2.39.2
+

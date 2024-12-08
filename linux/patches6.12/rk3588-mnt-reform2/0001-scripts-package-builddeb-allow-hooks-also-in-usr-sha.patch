@@ -1,0 +1,90 @@
+From 2c0854790dd4b72b691f72e59ade824ff6176d07 Mon Sep 17 00:00:00 2001
+From: Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
+Date: Wed, 27 Nov 2024 10:22:50 +0100
+Subject: [PATCH] scripts/package/builddeb: allow hooks also in
+ /usr/share/kernel
+
+By passing an additional directory to run-parts, allow Debian and its
+derivatives to ship maintainer scripts in /usr while at the same time
+allowing the local admin to override or disable them by placing hooks of
+the same name in /etc. This adds support for the mechanism described in
+the UAPI Configuration Files Specification for kernel hooks. The same
+idea is also used by udev, systemd or modprobe for their config files.
+https://uapi-group.org/specifications/specs/configuration_files_specification/
+
+This functionality relies on run-parts 5.21 or later.  It is the
+responsibility of packages installing hooks into /usr/share/kernel to
+also declare a Depends: debianutils (>= 5.21).
+
+KDEB_HOOKDIR can be used to change the list of directories that is
+searched. By default, /etc/kernel and /usr/share/kernel are hook
+directories.
+
+Signed-off-by: Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
+---
+ scripts/package/builddeb | 33 +++++++++++++++++++++++++--------
+ 1 file changed, 25 insertions(+), 8 deletions(-)
+
+diff --git a/scripts/package/builddeb b/scripts/package/builddeb
+index 441b0bb66e0d..6e83f6f3ec6d 100755
+--- a/scripts/package/builddeb
++++ b/scripts/package/builddeb
+@@ -5,10 +5,12 @@
+ #
+ # Simple script to generate a deb package for a Linux kernel. All the
+ # complexity of what to do with a kernel after it is installed or removed
+-# is left to other scripts and packages: they can install scripts in the
+-# /etc/kernel/{pre,post}{inst,rm}.d/ directories (or an alternative location
+-# specified in KDEB_HOOKDIR) that will be called on package install and
+-# removal.
++# is left to other scripts and packages. Scripts can be placed into the
++# preinst, postinst, prerm and postrm directories in /etc/kernel or
++# /usr/share/kernel. A different list of search directories can be given
++# via KDEB_HOOKDIR. Scripts in directories earlier in the list will
++# override scripts of the same name in later directories.  The script will
++# be called on package installation and removal.
+ 
+ set -eu
+ 
+@@ -68,11 +70,18 @@ install_linux_image () {
+ 	# kernel packages, as well as kernel packages built using make-kpkg.
+ 	# make-kpkg sets $INITRD to indicate whether an initramfs is wanted, and
+ 	# so do we; recent versions of dracut and initramfs-tools will obey this.
+-	debhookdir=${KDEB_HOOKDIR:-/etc/kernel}
++	debhookdir=${KDEB_HOOKDIR:-/etc/kernel /usr/share/kernel}
++
++	# Only pre-create the first hook directory. Support for more than one hook
++	# directory requires run-parts 5.21 and it is the responsibility of packages
++	# creating additional hook directories to declare that dependency.
++	firsthookdir=${debhookdir%% *}
+ 	for script in postinst postrm preinst prerm; do
+-		mkdir -p "${pdir}${debhookdir}/${script}.d"
++		mkdir -p "${pdir}${firsthookdir}/${script}.d"
++	done
+ 
+-		mkdir -p "${pdir}/DEBIAN"
++	mkdir -p "${pdir}/DEBIAN"
++	for script in postinst postrm preinst prerm; do
+ 		cat <<-EOF > "${pdir}/DEBIAN/${script}"
+ 		#!/bin/sh
+ 
+@@ -84,7 +93,15 @@ install_linux_image () {
+ 		# Tell initramfs builder whether it's wanted
+ 		export INITRD=$(if_enabled_echo CONFIG_BLK_DEV_INITRD Yes No)
+ 
+-		test -d ${debhookdir}/${script}.d && run-parts --arg="${KERNELRELEASE}" --arg="/${installed_image_path}" ${debhookdir}/${script}.d
++		# run-parts will error out if one of its directory arguments does not
++		# exist, so filter the list of hook directories accordingly.
++		hookdirs=
++		for dir in ${debhookdir}; do
++			test -d "\$dir/${script}.d" || continue
++			hookdirs="\$hookdirs \$dir/${script}.d"
++		done
++		hookdirs="\${hookdirs# }"
++		test -n "\$hookdirs" && run-parts --arg="${KERNELRELEASE}" --arg="/${installed_image_path}" \$hookdirs
+ 		exit 0
+ 		EOF
+ 		chmod 755 "${pdir}/DEBIAN/${script}"
+-- 
+2.39.2
+

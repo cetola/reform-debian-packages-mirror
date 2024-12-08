@@ -1,7 +1,7 @@
-From d0cd4afdc11b30c82078907ea51092a0d5e1ff17 Mon Sep 17 00:00:00 2001
+From e40869fb0fd88749826d833468b66bd625662e89 Mon Sep 17 00:00:00 2001
 From: Detlev Casanova <detlev.casanova@collabora.com>
 Date: Fri, 3 May 2024 14:27:39 -0400
-Subject: [PATCH 16/61] vop2: Add clock resets support
+Subject: [PATCH 16/63] vop2: Add clock resets support
 
 At the end of initialization, each VP clock needs to be reset before
 they can be used.

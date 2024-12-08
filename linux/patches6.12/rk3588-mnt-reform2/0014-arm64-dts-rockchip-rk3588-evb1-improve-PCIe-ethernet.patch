@@ -1,7 +1,7 @@
-From d807788df55540cc3e8c6fa0aaf113eb2479d483 Mon Sep 17 00:00:00 2001
+From 6b7aae0bf361c8f1d4013acf2b848a628489d926 Mon Sep 17 00:00:00 2001
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 Date: Tue, 2 Jan 2024 09:39:11 +0100
-Subject: [PATCH 14/61] arm64: dts: rockchip: rk3588-evb1: improve PCIe
+Subject: [PATCH 14/63] arm64: dts: rockchip: rk3588-evb1: improve PCIe
  ethernet pin muxing
 
 Also describe clkreq and wake signals in the PCIe pinmux used
@@ -13,10 +13,10 @@ Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
  1 file changed, 9 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm64/boot/dts/rockchip/rk3588-evb1-v10.dts b/arch/arm64/boot/dts/rockchip/rk3588-evb1-v10.dts
-index 024accfc9cbe..cf41553cde30 100644
+index 6cedcb8eabc9..6f6af801e7f3 100644
 --- a/arch/arm64/boot/dts/rockchip/rk3588-evb1-v10.dts
 +++ b/arch/arm64/boot/dts/rockchip/rk3588-evb1-v10.dts
-@@ -459,7 +459,7 @@ &pcie2x1l0 {
+@@ -420,7 +420,7 @@ rgmii_phy: ethernet-phy@1 {
  &pcie2x1l1 {
  	reset-gpios = <&gpio4 RK_PA2 GPIO_ACTIVE_HIGH>;
  	pinctrl-names = "default";
@@ -25,7 +25,7 @@ index 024accfc9cbe..cf41553cde30 100644
  	status = "okay";
  };
  
-@@ -531,6 +531,14 @@ pcie2_0_clkreq: pcie2-0-clkreq {
+@@ -480,6 +480,14 @@ pcie2 {
  		pcie2_1_rst: pcie2-1-rst {
  			rockchip,pins = <4 RK_PA2 RK_FUNC_GPIO &pcfg_pull_none>;
  		};
