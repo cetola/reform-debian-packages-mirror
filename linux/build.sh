@@ -121,7 +121,7 @@ END
 done
 
 
-if dpkg --compare-versions "$KVER" ge "6.11"; then
+if [ "$KVER" = "6.11" ]; then
   # see https://salsa.debian.org/kernel-team/linux/-/merge_requests/1260
   cat << 'END' | env --chdir=linux patch -p1
 --- a/debian/patches/debian/fixdep-allow-overriding-hostcc-and-hostld.patch
