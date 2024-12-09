@@ -245,6 +245,7 @@
 		// on A311D, we shift the vsync by one line to counteract VIU_OSD_HOLD_FIFO_LINES
 		// (which can't be less than 1)
 		vsync-shift = <1>;
+		probe-mode-lpm;
 
 		port {
 			panel_in: endpoint {
