@@ -828,6 +828,7 @@
     // the dsi mode for this controller while
     // recognizing display v1 vs v2
 		probe-mode-lpm;
+		init-in-enable;
 
 		port {
 			panel_in: endpoint {
