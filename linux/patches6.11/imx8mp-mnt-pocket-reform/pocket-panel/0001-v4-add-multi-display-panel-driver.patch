@@ -1,4 +1,4 @@
-commit 27c9eb952955fddc7834f806a5279c71f70ba3fd
+commit 8bafc8d4b33565dd9499001543d0225941bb248c
 Author: Lukas F. Hartmann <lukas@mntre.com>
 Date:   Mon Dec 9 19:28:36 2024 +0100
 
@@ -40,10 +40,10 @@ index 5581387..9058011 100644
  obj-$(CONFIG_DRM_PANEL_NEWVISION_NV3052C) += panel-newvision-nv3052c.o
 diff --git a/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c b/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c
 new file mode 100644
-index 0000000..ef582b3
+index 0000000..f14ce91
 --- /dev/null
 +++ b/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c
-@@ -0,0 +1,816 @@
+@@ -0,0 +1,818 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
 + * Copyright (C) 2016 InforceComputing
@@ -598,8 +598,10 @@ index 0000000..ef582b3
 +	struct device *dev = &jdi->dsi->dev;
 +	int ret;
 +
-+	if (jdi->prepared)
-+		return 0;
++	if (!of_property_present(dev->of_node, "init-in-enable")) {
++		if (jdi->prepared)
++			return 0;
++	}
 +
 +	ret = regulator_bulk_enable(ARRAY_SIZE(jdi->supplies), jdi->supplies);
 +	if (ret < 0) {
@@ -620,7 +622,7 @@ index 0000000..ef582b3
 +
 +	if (!of_property_present(dev->of_node, "init-in-enable")) {
 +		// on a311d the panels only work
-+		// if init is done in prepare, not here
++		// if init is done in here, not in enable
 +		dev_info(dev, "[display] init in prepare...\n");
 +		ret = jdi_panel_init(jdi);
 +		if (ret < 0) {
