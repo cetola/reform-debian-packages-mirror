@@ -13,7 +13,7 @@
 #include "imx8mq.dtsi"
 
 / {
-	model = "MNT Reform 2 HDMI";
+	model = "MNT Reform 2";
 	compatible = "boundary,imx8mq-nitrogen8m_som", "fsl,imx8mq";
 	chassis-type = "laptop";
 
@@ -94,7 +94,6 @@
 	backlight: backlight {
 		compatible = "pwm-backlight";
 		pwms = <&pwm2 0 10000 0>;
-		power-supply = <&reg_vref_5v>;
 		enable-gpios = <&gpio1 10 GPIO_ACTIVE_HIGH>;
 		brightness-levels = <0 8 16 32 64 128 160 200 255>;
 		default-brightness-level = <8>;
@@ -157,35 +156,6 @@
 / {
 	soc@0 {
 		bus@32c00000 {
-
-			hdmi: hdmi@32c00000 {
-				status = "okay";
-
-				compatible = "cdn,imx8mq-hdmi";
-				reg = <0x32c00000 0x100000>,
-					<0x32e40000 0x40000>;
-				interrupts = <GIC_SPI 16 IRQ_TYPE_LEVEL_HIGH>,
-							 <GIC_SPI 25 IRQ_TYPE_LEVEL_HIGH>;
-				interrupt-names = "plug_in", "plug_out";
-
-				lane-mapping = <0xe4>; // 0=0, 1=1, 2=2, 3=3 (no swapping)
-
-				ports {
-					#address-cells = <1>;
-					#size-cells = <0>;
-
-					port@0 {
-						reg = <0>;
-						#address-cells = <1>;
-						#size-cells = <0>;
-						hdmi_in: endpoint@0 {
-							reg = <0>;
-							remote-endpoint = <&dcss_hdmi_out>;
-						};
-					};
-				};
-			};
-
 			dcss: display-controller@32e00000 {
 				status = "okay";
 
@@ -197,7 +167,7 @@
 				clocks = <&clk IMX8MQ_CLK_DISP_APB_ROOT>,
 					<&clk IMX8MQ_CLK_DISP_AXI_ROOT>,
 					<&clk IMX8MQ_CLK_DISP_RTRM_ROOT>,
-					<&clk IMX8MQ_VIDEO2_PLL_OUT>,
+					<&clk IMX8MQ_CLK_DC_PIXEL>,
 					<&clk IMX8MQ_CLK_DISP_DTRC>,
 					<&clk IMX8MQ_VIDEO2_PLL1_REF_SEL>,
 					<&hdmi_phy_27m>;
@@ -218,7 +188,7 @@
 					<25000000>,
 					<594000000>;
 
-				// external display (HDMI)
+				// internal display (MIPI-DSI/eDP)
 				ports {
 					#address-cells = <1>;
 					#size-cells = <0>;
@@ -227,24 +197,21 @@
 						reg = <0>;
 						#address-cells = <1>;
 						#size-cells = <0>;
-						dcss_hdmi_out: endpoint@0 {
+						dcss_dsi_out: endpoint@0 {
 							reg = <0>;
-							remote-endpoint = <&hdmi_in>;
+						  remote-endpoint = <&mipi_dsi_in>;
 						};
 					};
 				};
-
 			};
 		};
 	};
 };
 
-// internal display
+// LCDIF is not used, but has to be active or DCSS won't work
 &lcdif {
 	status = "okay";
-	assigned-clocks = <&clk IMX8MQ_CLK_LCDIF_PIXEL>;
-	assigned-clock-parents = <&clk IMX8MQ_SYS1_PLL_800M>;
-	/delete-property/assigned-clock-rates;
+	/delete-node/ port;
 };
 
 &dphy {
@@ -514,6 +481,7 @@
 		>;
 	};
 
+	// Backlight
 	pinctrl_pwm4: pwm4grp {
 		fsl,pins = <
 		MX8MQ_IOMUXC_SAI3_MCLK_PWM4_OUT			0x16
@@ -673,17 +641,8 @@
 
 &mipi_dsi {
 	status = "okay";
-  ports {
-		port@1 {
-			reg = <1>;
 
-			mipi_dsi_out: endpoint {
-				remote-endpoint = <&edp_bridge_in>;
-			};
-		};
-	};
-
-/*	ports {
+	ports {
 		#address-cells = <1>;
 		#size-cells = <0>;
 
@@ -692,9 +651,12 @@
 			#size-cells = <0>;
 			reg = <0>;
 
-			mipi_dsi_in: endpoint@0 {
-				reg = <0>;
-				remote-endpoint = <&lcdif_mipi_dsi>;
+			// We don't want input from LCDIF
+			/delete-node/ endpoint@0;
+
+			mipi_dsi_in: endpoint@1 {
+				reg = <1>;
+				remote-endpoint = <&dcss_dsi_out>;
 			};
 		};
 		port@1 {
@@ -703,7 +665,7 @@
 				remote-endpoint = <&edp_bridge_in>;
 			};
 		};
-	};*/
+	};
 };
 
 &pcie0 {
@@ -756,6 +718,7 @@
 	status = "okay";
 };
 
+// Backlight control
 &pwm4 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_pwm4>;
@@ -766,8 +729,8 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_sai2>;
 	assigned-clocks = <&clk IMX8MQ_CLK_SAI2>;
-	assigned-clock-parents = <&clk IMX8MQ_AUDIO_PLL1_OUT>;
-	assigned-clock-rates = <12288000>;
+	assigned-clock-parents = <&clk IMX8MQ_CLK_25M>;
+	assigned-clock-rates = <25000000>;
 	status = "okay";
 };
 
