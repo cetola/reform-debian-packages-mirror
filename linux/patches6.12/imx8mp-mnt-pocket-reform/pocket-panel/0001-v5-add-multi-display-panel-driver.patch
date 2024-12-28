@@ -40,10 +40,10 @@ index 5581387..9058011 100644
  obj-$(CONFIG_DRM_PANEL_NEWVISION_NV3052C) += panel-newvision-nv3052c.o
 diff --git a/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c b/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c
 new file mode 100644
-index 0000000..90988a2
+index 000000000000..3e945397bac5
 --- /dev/null
 +++ b/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c
-@@ -0,0 +1,837 @@
+@@ -0,0 +1,842 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
 + * Copyright (C) 2016 InforceComputing
@@ -62,6 +62,7 @@ index 0000000..90988a2
 +#include <linux/module.h>
 +#include <linux/of.h>
 +#include <linux/regulator/consumer.h>
++#include <linux/panel-mnt-pocket-reform.h>
 +
 +#include <video/mipi_display.h>
 +
@@ -803,6 +804,7 @@ index 0000000..90988a2
 +{
 +	struct jdi_panel *jdi;
 +	int ret;
++	int err;
 +
 +	dsi->lanes = 4;
 +	dsi->format = MIPI_DSI_FMT_RGB888;
@@ -836,7 +838,10 @@ index 0000000..90988a2
 +		return ret;
 +	}
 +
-+	sysfs_create_group(&dsi->dev.kobj, &mnt_pocket_reform_panel_attr_group);
++	err = sysfs_create_group(&dsi->dev.kobj, &mnt_pocket_reform_panel_attr_group);
++	if (err) {
++		pr_err("failed to register pocket reform panel attr group\n");
++	}
 +
 +	return 0;
 +}
@@ -881,3 +886,15 @@ index 0000000..90988a2
 +MODULE_AUTHOR("Lukas Hartmann <lukas@mntre.com>");
 +MODULE_DESCRIPTION("MNT Pocket Reform Display WUXGA");
 +MODULE_LICENSE("GPL v2");
+diff --git a/include/linux/panel-mnt-pocket-reform.h b/include/linux/panel-mnt-pocket-reform.h
+new file mode 100644
+index 000000000000..1a4d487d9d6c
+--- /dev/null
++++ b/include/linux/panel-mnt-pocket-reform.h
+@@ -0,0 +1,6 @@
++#ifndef PANEL_MNT_POCKET_REFORM_H
++#define PANEL_MNT_POCKET_REFORM_H
++
++int mnt_pocket_reform_get_panel_version(void);
++
++#endif
