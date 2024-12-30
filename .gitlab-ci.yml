@@ -78,10 +78,8 @@ setup:
     chown build -R .
     rm -rvf changes buildlogs chdist repo chroot-*.tar
     runuser -u build -- mmdebstrap --architecture=$(dpkg --print-architecture) --variant=buildd --mode=unshare \
-      --setup-hook="printf 'Package: src:binutils:any\\nPin: release testing\\nPin-Priority: 999\\n' > \"\$1\"/etc/apt/preferences.d/binutils.pref" \
-      --setup-hook='echo "deb http://deb.debian.org/debian testing main" > "$1"/etc/apt/sources.list.d/testing.list' \
       --chrooted-customize-hook='rm /usr/bin/ischroot && ln -s /bin/true /usr/bin/ischroot' ${IFS# DebianBug:1056385} \
-      "$([ "$BASESUITE" = "experimental" ] && echo unstable || echo unstable)" chroot-$(dpkg --print-architecture).tar
+      "$([ "$BASESUITE" = "experimental" ] && echo unstable || echo "$BASESUITE")" chroot-$(dpkg --print-architecture).tar
     #runuser -u build -- mmdebstrap --architecture=arm64 --variant=buildd --mode=unshare \
     #  --chrooted-customize-hook='rm /usr/bin/ischroot && ln -s /bin/true /usr/bin/ischroot' ${IFS# DebianBug:1056385} \
     #  "$([ "$BASESUITE" = "experimental" ] && echo unstable || echo "$BASESUITE")" chroot-arm64.tar
