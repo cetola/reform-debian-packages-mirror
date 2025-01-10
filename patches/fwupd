@@ -1,0 +1,38 @@
+#!/bin/sh
+set -e
+patch -p1 << 'EOF'
+From ffd63d861e0e023756a5f49b82d2bae394ce9cfe Mon Sep 17 00:00:00 2001
+From: Chris Hofstaedtler <chris.hofstaedtler@deduktiva.com>
+Date: Sat, 4 Jan 2025 14:59:48 +0100
+Subject: [PATCH] Probe sd_mod before starting
+
+Necessary for "DeviceAllow=block-sd rw" to be resolved by systemd at unit
+startup. rp2040 and other UF2 devices will present an USB Storage (which
+uses the sd_mod kernel module), and some of them (notably rp2040) only show up
+in a replug sequence.
+
+See systemd.resource-control(5) for documentation.
+https://www.freedesktop.org/software/systemd/man/latest/systemd.resource-control.html#DeviceAllow=
+
+Signed-off-by: Chris Hofstaedtler <chris.hofstaedtler@deduktiva.com>
+
+Fixes: fwupd/fwupd#8265
+---
+ data/fwupd.service.in | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/data/fwupd.service.in b/data/fwupd.service.in
+index ebc8cb037eaa..cb72c6618294 100644
+--- a/data/fwupd.service.in
++++ b/data/fwupd.service.in
+@@ -1,7 +1,8 @@
+ [Unit]
+ Description=Firmware update daemon
+ Documentation=https://fwupd.org/
+-After=dbus.service
++Wants=modprobe@sd_mod.service
++After=modprobe@sd_mod.service dbus.service
+ Before=display-manager.service
+ ConditionVirtualization=!container
+ 
+END
