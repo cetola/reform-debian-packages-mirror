@@ -1,0 +1,31 @@
+From 86244770a41702268e38118417b55d2163d2eb9b Mon Sep 17 00:00:00 2001
+From: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
+Date: Thu, 11 Jul 2024 14:48:43 +0300
+Subject: [PATCH 20/46] arm64: defconfig: Enable Rockchip extensions for
+ Synopsys DW HDMI QP
+
+Enable Rockchip specific extensions for the Synopsys DesignWare HDMI QP
+driver.
+
+This is needed for the HDMI output support on RK3588 SoC based boards.
+
+Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
+---
+ arch/arm64/configs/defconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm64/configs/defconfig b/arch/arm64/configs/defconfig
+index 8937576e8a8c..45db5acc1353 100644
+--- a/arch/arm64/configs/defconfig
++++ b/arch/arm64/configs/defconfig
+@@ -873,6 +873,7 @@ CONFIG_ROCKCHIP_VOP2=y
+ CONFIG_ROCKCHIP_ANALOGIX_DP=y
+ CONFIG_ROCKCHIP_CDN_DP=y
+ CONFIG_ROCKCHIP_DW_HDMI=y
++CONFIG_ROCKCHIP_DW_HDMI_QP=y
+ CONFIG_ROCKCHIP_DW_MIPI_DSI=y
+ CONFIG_ROCKCHIP_INNO_HDMI=y
+ CONFIG_ROCKCHIP_LVDS=y
+-- 
+2.39.5
+

@@ -1,0 +1,37 @@
+From 44d3d0a76957b5385a2e8836fefd9f5370583d4b Mon Sep 17 00:00:00 2001
+From: Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
+Date: Sun, 26 Jan 2025 12:50:31 +0100
+Subject: [PATCH] Revert "pm: cpupower: Makefile: Allow overriding
+ cross-compiling env params"
+
+This reverts commit f79473ed922023942407da25cb00843ac28b981c.
+---
+ tools/power/cpupower/Makefile | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/tools/power/cpupower/Makefile b/tools/power/cpupower/Makefile
+index 175004ce44b2..b31d5d9e9e14 100644
+--- a/tools/power/cpupower/Makefile
++++ b/tools/power/cpupower/Makefile
+@@ -86,12 +86,12 @@ INSTALL_SCRIPT = ${INSTALL} -m 644
+ # If you are running a cross compiler, you may want to set this
+ # to something more interesting, like "arm-linux-".  If you want
+ # to compile vs uClibc, that can be done here as well.
+-CROSS ?= #/usr/i386-linux-uclibc/usr/bin/i386-uclibc-
+-CC ?= $(CROSS)gcc
+-LD ?= $(CROSS)gcc
+-AR ?= $(CROSS)ar
+-STRIP ?= $(CROSS)strip
+-RANLIB ?= $(CROSS)ranlib
++CROSS = #/usr/i386-linux-uclibc/usr/bin/i386-uclibc-
++CC = $(CROSS)gcc
++LD = $(CROSS)gcc
++AR = $(CROSS)ar
++STRIP = $(CROSS)strip
++RANLIB = $(CROSS)ranlib
+ HOSTCC = gcc
+ MKDIR = mkdir
+ 
+-- 
+2.39.5
+
