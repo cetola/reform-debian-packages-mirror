@@ -1,0 +1,167 @@
+#!/bin/sh
+# https://github.com/yoctoproject/bmaptool/pull/41
+# needed for reform-flash-rescue to avoid --nobmap option and to be able to
+# detect compression
+set -e
+patch -p1 << 'EOF'
+diff -Nru bmap-tools-3.8.0/debian/patches/Respect-query-part-of-the-url-when-operating-on-the-path.patch bmap-tools-3.8.0/debian/patches/Respect-query-part-of-the-url-when-operating-on-the-path.patch
+--- bmap-tools-3.8.0/debian/patches/Respect-query-part-of-the-url-when-operating-on-the-path.patch	1970-01-01 01:00:00.000000000 +0100
++++ bmap-tools-3.8.0/debian/patches/Respect-query-part-of-the-url-when-operating-on-the-path.patch	2025-01-29 00:04:55.000000000 +0100
+@@ -0,0 +1,151 @@
++From: Johannes Schauer Marin Rodrigues <josch@debian.org>
++Date: Wed, 29 Jan 2025 00:04:31 +0100
++Subject: Respect query part of the url when operating on the path
++
++This allows one to use bmaptool, with artifacts from gitlab CI which
++have a ?job=... query parameter at the end of the URL:
++
++ - ignore the query part of the URL when determining the compression
++   type
++ - ignore the query part of the URL when computing the basename and
++   stripping off the filename extension
++ - first strip off and then re-apply the query part of the URL when
++   adding the .bmap extension to the path
++---
++ bmaptool/CLI.py       | 46 +++++++++++++++++++++++++++++++++++-----------
++ bmaptool/TransRead.py |  4 ++++
++ 2 files changed, 39 insertions(+), 11 deletions(-)
++
++diff --git a/bmaptool/CLI.py b/bmaptool/CLI.py
++index 91f53ad..a286ce8 100644
++--- a/bmaptool/CLI.py
+++++ b/bmaptool/CLI.py
++@@ -38,6 +38,7 @@ import tempfile
++ import traceback
++ import shutil
++ import io
+++import urllib.parse
++ from . import BmapCreate, BmapCopy, BmapHelpers, TransRead
++ 
++ VERSION = "3.8.0"
++@@ -172,13 +173,18 @@ def verify_detached_bmap_signature(args, bmap_obj, bmap_path):
++         sig_path = args.bmap_sig
++     else:
++         # Check if there is a stand-alone signature file
+++        def _add_ext(p, ext):
+++            if not is_url:
+++                return p + ext
+++            # if the image is a url, add the extension to the 'path' part
+++            # before the query string and url fragment
+++            o = urllib.parse.urlparse(p)
+++            return o._replace(path=o.path + ext).geturl()
++         try:
++-            sig_path = bmap_path + ".asc"
++-            sig_obj = TransRead.TransRead(sig_path)
+++            sig_obj = TransRead.TransRead(_add_ext(bmap_path, ".asc"))
++         except TransRead.Error:
++             try:
++-                sig_path = bmap_path + ".sig"
++-                sig_obj = TransRead.TransRead(sig_path)
+++                sig_obj = TransRead.TransRead(_add_ext(bmap_path, ".sig"))
++             except TransRead.Error:
++                 # No signatures found
++                 return None
++@@ -289,7 +295,7 @@ def verify_clearsign_bmap_signature(args, bmap_obj):
++     return tmp_obj
++ 
++ 
++-def verify_bmap_signature(args, bmap_obj, bmap_path):
+++def verify_bmap_signature(args, bmap_obj, bmap_path, is_url):
++     """
++     Verify GPG signature of the bmap file if it is present. The signature may
++     be in a separate file (detached) or it may be inside the bmap file itself
++@@ -325,7 +331,7 @@ def verify_bmap_signature(args, bmap_obj, bmap_path):
++         return verify_detached_bmap_signature(args, bmap_obj, bmap_path)
++ 
++ 
++-def find_and_open_bmap(args):
+++def find_and_open_bmap(args, is_url):
++     """
++     This is a helper function for 'open_files()' which discovers and opens the
++     bmap file, then returns the corresponding file object and the bmap file
++@@ -357,7 +363,13 @@ def find_and_open_bmap(args):
++         # Automatically discover the bmap file
++         image_path = args.image
++         while True:
++-            bmap_path = image_path + ".bmap"
+++            if is_url:
+++                # if the image is a url, add the extention to the 'path' part
+++                # before the query string and url fragment
+++                o = urllib.parse.urlparse(image_path)
+++                bmap_path = o._replace(path=o.path + ".bmap").geturl()
+++            else:
+++                bmap_path = image_path + ".bmap"
++             try:
++                 bmap_obj = TransRead.TransRead(bmap_path)
++                 log.info("discovered bmap file '%s'" % bmap_path)
++@@ -365,7 +377,13 @@ def find_and_open_bmap(args):
++             except TransRead.Error:
++                 pass
++ 
++-            image_path, ext = os.path.splitext(image_path)
+++            if is_url:
+++                # if the image is a url, split the extension from the 'path'
+++                o = urllib.parse.urlparse(image_path)
+++                p, ext = os.path.splitext(o.path)
+++                image_path = o._replace(path=p).geturl()
+++            else:
+++                image_path, ext = os.path.splitext(image_path)
++             if ext == "":
++                 return (None, None)
++ 
++@@ -407,7 +425,7 @@ def open_files(args):
++ 
++     # Open the bmap file. Try to discover the bmap file automatically if it
++     # was not specified.
++-    (bmap_obj, bmap_path) = find_and_open_bmap(args)
+++    (bmap_obj, bmap_path) = find_and_open_bmap(args, image_obj.is_url)
++ 
++     if bmap_path == args.image:
++         # Most probably the user specified the bmap file instead of the image
++@@ -472,7 +490,7 @@ def copy_command(args):
++             "the bmap signature file was specified, but bmap file was " "not found"
++         )
++ 
++-    f_obj = verify_bmap_signature(args, bmap_obj, bmap_path)
+++    f_obj = verify_bmap_signature(args, bmap_obj, bmap_path, image_obj.is_url)
++     if f_obj:
++         bmap_obj.close()
++         bmap_obj = f_obj
++@@ -522,9 +540,15 @@ def copy_command(args):
++                 writer.mapped_percent,
++             )
++         )
+++        def _get_basename(p):
+++            if image_obj.is_url:
+++                # if this is a url, strip off potential query string and
+++                # fragment from the end
+++                p = urllib.parse.urlparse(p).path
+++            return os.path.basename(p)
++         log.info(
++             "copying image '%s' to %s using bmap file '%s'"
++-            % (os.path.basename(args.image), dest_str, os.path.basename(bmap_path))
+++            % (_get_basename(args.image), dest_str, _get_basename(bmap_path))
++         )
++ 
++     if args.psplash_pipe:
++diff --git a/bmaptool/TransRead.py b/bmaptool/TransRead.py
++index 657e66b..d0ce838 100644
++--- a/bmaptool/TransRead.py
+++++ b/bmaptool/TransRead.py
++@@ -586,6 +586,10 @@ class TransRead(object):
++ 
++         parsed_url = urlparse.urlparse(url)
++ 
+++        # figuring out the decompression program to use relies on the
+++        # extension, so strip off any potential query parts
+++        self.name = parsed_url.path
+++
++         if parsed_url.scheme == "ssh":
++             # Unfortunately, urllib2 does not handle "ssh://" URLs
++             self._open_url_ssh(parsed_url)
+diff -Nru bmap-tools-3.8.0/debian/patches/series bmap-tools-3.8.0/debian/patches/series
+--- bmap-tools-3.8.0/debian/patches/series	2024-06-17 14:35:37.000000000 +0200
++++ bmap-tools-3.8.0/debian/patches/series	2025-01-29 00:04:55.000000000 +0100
+@@ -0,0 +1 @@
++Respect-query-part-of-the-url-when-operating-on-the-path.patch
+EOF
