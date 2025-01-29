@@ -5,9 +5,9 @@
 set -e
 patch -p1 << 'EOF'
 diff -Nru bmap-tools-3.8.0/debian/patches/Respect-query-part-of-the-url-when-operating-on-the-path.patch bmap-tools-3.8.0/debian/patches/Respect-query-part-of-the-url-when-operating-on-the-path.patch
---- bmap-tools-3.8.0/debian/patches/Respect-query-part-of-the-url-when-operating-on-the-path.patch	1970-01-01 01:00:00.000000000 +0100
+--- bmap-tools-3.8.0/debian/patches/Respect-query-part-of-the-url-when-operating-on-the-path.patch	2024-06-17 14:35:37.000000000 +0200
 +++ bmap-tools-3.8.0/debian/patches/Respect-query-part-of-the-url-when-operating-on-the-path.patch	2025-01-29 00:04:55.000000000 +0100
-@@ -0,0 +1,151 @@
+@@ -0,0 +1,164 @@
 +From: Johannes Schauer Marin Rodrigues <josch@debian.org>
 +Date: Wed, 29 Jan 2025 00:04:31 +0100
 +Subject: Respect query part of the url when operating on the path
@@ -22,12 +22,12 @@ diff -Nru bmap-tools-3.8.0/debian/patches/Respect-query-part-of-the-url-when-ope
 + - first strip off and then re-apply the query part of the URL when
 +   adding the .bmap extension to the path
 +---
-+ bmaptool/CLI.py       | 46 +++++++++++++++++++++++++++++++++++-----------
++ bmaptool/CLI.py       | 50 +++++++++++++++++++++++++++++++++++++-------------
 + bmaptool/TransRead.py |  4 ++++
-+ 2 files changed, 39 insertions(+), 11 deletions(-)
++ 2 files changed, 41 insertions(+), 13 deletions(-)
 +
 +diff --git a/bmaptool/CLI.py b/bmaptool/CLI.py
-+index 91f53ad..a286ce8 100644
++index 91f53ad..9d2ecca 100644
 +--- a/bmaptool/CLI.py
 ++++ b/bmaptool/CLI.py
 +@@ -38,6 +38,7 @@ import tempfile
@@ -38,6 +38,15 @@ diff -Nru bmap-tools-3.8.0/debian/patches/Respect-query-part-of-the-url-when-ope
 + from . import BmapCreate, BmapCopy, BmapHelpers, TransRead
 + 
 + VERSION = "3.8.0"
++@@ -155,7 +156,7 @@ def report_verification_results(context, sigs):
++             )
++ 
++ 
++-def verify_detached_bmap_signature(args, bmap_obj, bmap_path):
+++def verify_detached_bmap_signature(args, bmap_obj, bmap_path, is_url):
++     """
++     This is a helper function for 'verify_bmap_signature()' which handles the
++     detached signature case.
 +@@ -172,13 +173,18 @@ def verify_detached_bmap_signature(args, bmap_obj, bmap_path):
 +         sig_path = args.bmap_sig
 +     else:
@@ -70,8 +79,12 @@ diff -Nru bmap-tools-3.8.0/debian/patches/Respect-query-part-of-the-url-when-ope
 +     """
 +     Verify GPG signature of the bmap file if it is present. The signature may
 +     be in a separate file (detached) or it may be inside the bmap file itself
-+@@ -325,7 +331,7 @@ def verify_bmap_signature(args, bmap_obj, bmap_path):
-+         return verify_detached_bmap_signature(args, bmap_obj, bmap_path)
++@@ -322,10 +328,10 @@ def verify_bmap_signature(args, bmap_obj, bmap_path):
++     if buf == clearsign_marker:
++         return verify_clearsign_bmap_signature(args, bmap_obj)
++     else:
++-        return verify_detached_bmap_signature(args, bmap_obj, bmap_path)
+++        return verify_detached_bmap_signature(args, bmap_obj, bmap_path, is_url)
 + 
 + 
 +-def find_and_open_bmap(args):
