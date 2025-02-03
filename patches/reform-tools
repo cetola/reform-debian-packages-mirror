@@ -1,0 +1,90 @@
+#!/bin/sh
+cat << 'END' > debian/reform-tools.conffiles
+remove-on-upgrade /etc/flash-kernel/ubootenv.d/00reform2_ubootenv
+remove-on-upgrade /etc/modprobe.d/reform.conf
+END
+cat << 'END' > debian/reform-tools.postinst
+#!/bin/sh
+
+action="$1"
+last_ver="$2"
+
+set -e
+
+for f in mntre reform_bookworm reform_bookworm-backports; do
+  file="/etc/apt/sources.list.d/${f}.sources"
+  if [ ! -e "$file" ]; then
+    continue
+  fi
+  if [ "$(stat -c %a "$file")" != "666" ]; then
+    # nothing to do
+    continue
+  fi
+  echo "E: $file has insecure permissions 0666 -- setting it to 644..." >&2
+  chmod 644 "$file"
+done
+for f in . firefox firefox/syspref.js motd-full motd-rescue profile.d profile.d/reform.sh profile.d/reform-setup.sh; do
+  file="/etc/$f"
+  if [ ! -e "$file" ]; then
+    continue
+  fi
+  # only process world-writable files
+  if [ -z "$(find "$file" -maxdepth 0 \( \! -type l \) -perm /o+w)" ]; then
+    continue
+  fi
+  echo "E: fixing insecure write permissions of $file" >&2
+  chmod go-w "$file"
+done
+
+if [ -e /etc/skel ] && [ "$(stat -c %a /etc/skel)" = "777" ]; then
+  echo "E: fixing insecure read/write permisions of /etc/skel" >&2
+  chmod -R go-w /etc/skel
+fi
+
+#DEBHELPER#
+
+[ -n "$last_ver" ] || exit 0        # fresh install
+[ "$action" = configure ] || exit 0 # unknown action
+
+# only run on upgrade from 1.59 and earlier
+dpkg --compare-versions "$last_ver" le-nl 1.59 || exit 0
+
+# only run on Pocket Reform
+MACHINE="$(cat /proc/device-tree/model)"
+case "$MACHINE" in
+  "MNT Pocket Reform"*) : ;;
+  *)
+    exit 0
+    ;;
+esac
+
+config=/etc/default/console-setup
+# shellcheck disable=SC1090
+oldfont="$(
+  . $config
+  echo "$FONTFACE"
+)"
+[ "$oldfont" = "Fixed" ] || exit 0 # do nothing if font is customized
+# shellcheck disable=SC1090
+oldsize="$(
+  . $config
+  echo "$FONTSIZE"
+)"
+[ "$oldsize" = "8x16" ] || exit 0 # do nothing if font is customized
+
+cmdline="$(cat /proc/cmdline)"
+case "$cmdline" in
+  *fbcon=font:*)
+    font=""
+    size=""
+    ;;
+  *)
+    font="TerminusBold" # no font set by kernel parameter
+    size="16x32"
+    ;;
+esac
+
+sed -i -e "s/^FONTFACE=.*/FONTFACE=$font/" -e "s/FONTSIZE=.*/FONTSIZE=$size/" $config
+dpkg-reconfigure -f noninteractive console-setup
+END
+chmod +x debian/reform-tools.postinst
