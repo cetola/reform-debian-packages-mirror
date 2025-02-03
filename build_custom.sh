@@ -46,39 +46,6 @@ END
 	rm -Rf "$WORKDIR"
 fi
 
-# simplified version of $our_version from build_patched.sh because the binary
-# version is always equal to the source version here
-our_version=$(reprepro --list-format '${version}\n' -T deb listfilter "$OURSUITE" "\$Source (== reform-tools)" | uniq)
-their_version=$(curl --silent https://source.mnt.re/reform/reform-tools/-/raw/main/debian/changelog | dpkg-parsechangelog --show-field Version --file -)
-if [ -z "$our_version" ] || dpkg --compare-versions "$our_version" lt "$their_version"; then
-	rm -Rf "$WORKDIR"
-	mkdir --mode=0777 "$WORKDIR"
-	(
-		cd "$WORKDIR"
-		git clone https://source.mnt.re/reform/reform-tools.git
-		cd reform-tools
-		if [ -n "${REFORM_TOOLS_BRANCH:-}" ]; then
-			git switch "$REFORM_TOOLS_BRANCH"
-		fi
-		sbuild -d "$OURSUITE" --arch-all --arch-any --chroot $BASESUITE-$BUILD_ARCH $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
-		dcmd mv -v ../reform-tools_*"_${BUILD_ARCH}.changes" "$ROOTDIR/changes"
-		cd ..
-	)
-	rm -Rf "$WORKDIR"
-fi
-
-# use the version of reform-handbook as it was uploaded to the NEW queue
-for f in "all.deb" "arm64.buildinfo" "arm64.changes"; do
-  curl --remote-name --remote-header-name --location "https://mister-muffin.de/reform/reform-handbook/reform-handbook_2024-08-19+dfsg-1_$f"
-done
-cat << END | sha1sum --check
-eb6133aafa05e7a5b099c3303322d8a065b57037  reform-handbook_2024-08-19+dfsg-1_all.deb
-aa40d9601eac4d4901e475f1e54788c746aba6f9  reform-handbook_2024-08-19+dfsg-1_arm64.buildinfo
-146de4bf02b6a819137508cce399c4d3889b7459  reform-handbook_2024-08-19+dfsg-1_arm64.changes
-END
-sed -i "s/^Distribution: unstable\$/Distribution: $OURSUITE/" "reform-handbook_2024-08-19+dfsg-1_arm64.changes"
-dcmd mv -v reform-handbook_2024-08-19+dfsg-1_arm64.changes "$ROOTDIR/changes"
-
 for HB in pocket-reform-handbook; do
 our_version=$(reprepro --list-format '${version}\n' -T deb listfilter "$OURSUITE" "\$Source (== $HB)" | uniq)
 their_version=$(curl --silent "https://source.mnt.re/reform/$HB/-/raw/main/debian/changelog" | dpkg-parsechangelog --show-field Version --file -)
@@ -96,19 +63,3 @@ if [ -z "$our_version" ] || dpkg --compare-versions "$our_version" lt "$their_ve
 	rm -Rf "$WORKDIR"
 fi
 done
-
-our_version=$(reprepro --list-format '${version}\n' -T deb listfilter "$OURSUITE" "\$Source (== reform-branding)" | uniq)
-their_version=$(curl --silent https://salsa.debian.org/reform-team/reform-branding/-/raw/main/debian/changelog | dpkg-parsechangelog --show-field Version --file -)
-if [ -z "$our_version" ] || dpkg --compare-versions "$our_version" lt "$their_version"; then
-	rm -Rf "$WORKDIR"
-	mkdir --mode=0777 "$WORKDIR"
-	(
-		cd "$WORKDIR"
-		git clone https://salsa.debian.org/reform-team/reform-branding.git
-		cd reform-branding
-		sbuild -d "$OURSUITE" --arch-all --arch-any --chroot $BASESUITE-$BUILD_ARCH $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
-		dcmd mv -v ../reform-branding_*"_${BUILD_ARCH}.changes" "$ROOTDIR/changes"
-		cd ..
-	)
-	rm -Rf "$WORKDIR"
-fi
