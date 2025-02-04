@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 cat << 'END' > debian/reform-tools.conffiles
 remove-on-upgrade /etc/flash-kernel/ubootenv.d/00reform2_ubootenv
 remove-on-upgrade /etc/modprobe.d/reform.conf
@@ -88,3 +89,15 @@ sed -i -e "s/^FONTFACE=.*/FONTFACE=$font/" -e "s/FONTSIZE=.*/FONTSIZE=$size/" $c
 dpkg-reconfigure -f noninteractive console-setup
 END
 chmod +x debian/reform-tools.postinst
+patch -p1 << 'END'
+--- a/debian/control
++++ b/debian/control
+@@ -24,6 +24,7 @@ Depends:
+  alsa-utils,
+  console-setup,
+  debconf,
++ fonts-reform-iosevka-term (= 2.3.0-1),
+  gpiod,
+  keyboard-configuration,
+  mount,
+END
