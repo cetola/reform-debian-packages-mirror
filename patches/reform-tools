@@ -101,3 +101,113 @@ patch -p1 << 'END'
   keyboard-configuration,
   mount,
 END
+patch -p1 << 'END'
+--- /dev/null
++++ b/debian/patches/0001-run-lsblk-with-nodeps-where-appropriate.patch
+@@ -0,0 +1,98 @@
++From f39e7fae2ecace6b4f1e5c5b40e8f04e895b33a1 Mon Sep 17 00:00:00 2001
++From: Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
++Date: Tue, 4 Feb 2025 23:07:18 +0100
++Subject: [PATCH] run lsblk with --nodeps where appropriate
++
++---
++ sbin/reform-boot-config          | 8 +++++---
++ sbin/reform-emmc-bootstrap       | 4 ++--
++ sbin/reform-flash-rescue         | 2 +-
++ sbin/reform-setup-encrypted-nvme | 6 +++---
++ 4 files changed, 11 insertions(+), 9 deletions(-)
++
++diff --git a/sbin/reform-boot-config b/sbin/reform-boot-config
++index b9ff006..2bd7ab4 100755
++--- a/sbin/reform-boot-config
+++++ b/sbin/reform-boot-config
++@@ -265,8 +265,10 @@ mount "/dev/$BOOTPART" "$MOUNTROOT/boot"
++ if [ "$OLDBOOTPART" = "/dev/$BOOTPART" ]; then
++   echo "the /boot partition /dev/$BOOTPART referenced by the rootfs at /dev/$ROOTPART remains the same" >&2
++ else
+++  # FIXME: delete the old content?
+++
++   # copy the contents of the old /boot to the new /boot
++-  OLDMOUNTBOOT="$(lsblk --noheadings --output=MOUNTPOINT "$OLDBOOTPART")"
+++  OLDMOUNTBOOT="$(lsblk --nodeps --noheadings --output=MOUNTPOINT "$OLDBOOTPART")"
++   needumount="no"
++   if [ "$OLDMOUNTBOOT" = "" ]; then
++     OLDMOUNTBOOT="$(mktemp --tmpdir --directory reform-boot-config.XXXXXXXXXX)"
++@@ -347,12 +349,12 @@ trap - EXIT INT TERM
++ # rescue system on sd-card or emmc, respectively
++ case "$BOOTPART" in
++   "${DEV_SD}p1")
++-    if [ "$(lsblk --noheadings --output=LABEL "/dev/$BOOTPART")" = "reformsdboot" ]; then
+++    if [ "$(lsblk --nodeps --noheadings --output=LABEL "/dev/$BOOTPART")" = "reformsdboot" ]; then
++       e2label "/dev/$BOOTPART" ""
++     fi
++     ;;
++   "${DEV_MMC}p1")
++-    if [ "$(lsblk --noheadings --output=LABEL "/dev/$BOOTPART")" = "reformemmcboot" ]; then
+++    if [ "$(lsblk --nodeps --noheadings --output=LABEL "/dev/$BOOTPART")" = "reformemmcboot" ]; then
++       e2label "/dev/$BOOTPART" ""
++     fi
++     ;;
++diff --git a/sbin/reform-emmc-bootstrap b/sbin/reform-emmc-bootstrap
++index 603d29d..82c2d4b 100755
++--- a/sbin/reform-emmc-bootstrap
+++++ b/sbin/reform-emmc-bootstrap
++@@ -160,8 +160,8 @@ case $disk_label in
++       1) main "/dev/${DEV_SSD}p1" ;;
++       2)
++         # assume one partition to be swap and the other to be the rootfs
++-        part1type=$(lsblk --noheadings --output=FSTYPE "/dev/${DEV_SSD}p1")
++-        part2type=$(lsblk --noheadings --output=FSTYPE "/dev/${DEV_SSD}p2")
+++        part1type=$(lsblk --nodeps --noheadings --output=FSTYPE "/dev/${DEV_SSD}p1")
+++        part2type=$(lsblk --nodeps --noheadings --output=FSTYPE "/dev/${DEV_SSD}p2")
++         case "${part1type}_${part2type}" in
++           swap_ext4) main "/dev/${DEV_SSD}p2" ;;
++           ext4_swap) main "/dev/${DEV_SSD}p1" ;;
++diff --git a/sbin/reform-flash-rescue b/sbin/reform-flash-rescue
++index 3ae764c..66b719f 100755
++--- a/sbin/reform-flash-rescue
+++++ b/sbin/reform-flash-rescue
++@@ -65,7 +65,7 @@ if [ "$EMMC_BOOT" != false ]; then
++ 
++   for p in $(lsblk --list --noheadings --output=NAME "/dev/$DEV_MMC") "${DEV_MMC}boot0" "${DEV_MMC}boot1"; do
++     [ -b "/dev/$p" ] || continue
++-    if [ -n "$(lsblk --noheadings --output=MOUNTPOINT "/dev/$p")" ]; then
+++    if [ -n "$(lsblk --nodeps --noheadings --output=MOUNTPOINT "/dev/$p")" ]; then
++       echo "/dev/$p is still in use" >&2
++       exit 1
++     fi
++diff --git a/sbin/reform-setup-encrypted-nvme b/sbin/reform-setup-encrypted-nvme
++index 362edf1..9aa4371 100755
++--- a/sbin/reform-setup-encrypted-nvme
+++++ b/sbin/reform-setup-encrypted-nvme
++@@ -95,7 +95,7 @@ if [ "$mem" -lt 4 ]; then
++   mem=4
++ fi
++ 
++-disksize=$(lsblk -bno SIZE "/dev/$DEV_SSD" | head -1)
+++disksize=$(lsblk --nodeps --bytes --noheadings --output=SIZE "/dev/$DEV_SSD")
++ case "$disksize" in *[!0123456789]* | 0?* | "")
++   echo "E: unable to acquire disk size of /dev/$DEV_SSD" >&2
++   exit 1
++@@ -124,8 +124,8 @@ lvcreate --name swap --size "${mem}G" reformvg
++ mkswap /dev/reformvg/swap
++ lvcreate --name root --extents 100%FREE reformvg
++ mkfs.ext4 /dev/reformvg/root
++-SWAPUUID=$(lsblk --noheadings --output=UUID /dev/reformvg/swap)
++-CRYPTUUID=$(lsblk --noheadings --output=UUID "/dev/$DEV_SSD")
+++SWAPUUID=$(lsblk --nodeps --noheadings --output=UUID /dev/reformvg/swap)
+++CRYPTUUID=$(lsblk --nodeps --noheadings --output=UUID "/dev/$DEV_SSD")
++ 
++ echo ""
++ printf "The encrypted %s is now set up. Do you want me to run reform-migrate now as well? [y/N] " "$HUMAN"
++-- 
++2.39.5
++
+diff --git a/debian/patches/series b/debian/patches/series
+new file mode 100644
+index 0000000..69fa3d3
+--- /dev/null
++++ b/debian/patches/series
+@@ -0,0 +1 @@
++0001-run-lsblk-with-nodeps-where-appropriate.patch
+END
