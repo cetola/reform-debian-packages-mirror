@@ -3,6 +3,10 @@
 # needed for reform-flash-rescue to avoid --nobmap option and to be able to
 # detect compression
 set -e
+# do not patch stable version of bmap-tools
+if test -L bmaptool && test -d bmaptools; then
+  exit 0
+fi
 patch -p1 << 'EOF'
 diff -Nru bmap-tools-3.8.0/debian/patches/Respect-query-part-of-the-url-when-operating-on-the-path.patch bmap-tools-3.8.0/debian/patches/Respect-query-part-of-the-url-when-operating-on-the-path.patch
 --- bmap-tools-3.8.0/debian/patches/Respect-query-part-of-the-url-when-operating-on-the-path.patch	2024-06-17 14:35:37.000000000 +0200
