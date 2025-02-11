@@ -1651,34 +1651,6 @@ index d7f2f0f..d49e93f 100644
  extern struct platform_driver inno_hdmi_driver;
  extern struct platform_driver rockchip_dp_driver;
  extern struct platform_driver rockchip_lvds_driver;
-diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c b/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
-index 9c79126..9d36d35 100644
---- a/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
-+++ b/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
-@@ -1864,9 +1864,9 @@ static unsigned long rk3588_calc_cru_cfg(struct vop2_video_port *vp, int id,
- 		else
- 			dclk_out_rate = v_pixclk >> 2;
- 
--		dclk_rate = rk3588_calc_dclk(dclk_out_rate, 600000);
-+		dclk_rate = rk3588_calc_dclk(dclk_out_rate, 600000000);
- 		if (!dclk_rate) {
--			drm_err(vop2->drm, "DP dclk_out_rate out of range, dclk_out_rate: %ld KHZ\n",
-+			drm_err(vop2->drm, "DP dclk_out_rate out of range, dclk_out_rate: %ld Hz\n",
- 				dclk_out_rate);
- 			return 0;
- 		}
-@@ -1881,9 +1881,9 @@ static unsigned long rk3588_calc_cru_cfg(struct vop2_video_port *vp, int id,
- 		 * dclk_rate = N * dclk_core_rate N = (1,2,4 ),
- 		 * we get a little factor here
- 		 */
--		dclk_rate = rk3588_calc_dclk(dclk_out_rate, 600000);
-+		dclk_rate = rk3588_calc_dclk(dclk_out_rate, 600000000);
- 		if (!dclk_rate) {
--			drm_err(vop2->drm, "MIPI dclk out of range, dclk_out_rate: %ld KHZ\n",
-+			drm_err(vop2->drm, "MIPI dclk out of range, dclk_out_rate: %ld Hz\n",
- 				dclk_out_rate);
- 			return 0;
- 		}
 diff --git a/drivers/phy/rockchip/Kconfig b/drivers/phy/rockchip/Kconfig
 index 4902633..e0be883 100644
 --- a/drivers/phy/rockchip/Kconfig
