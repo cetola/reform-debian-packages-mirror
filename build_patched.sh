@@ -28,8 +28,8 @@ for p in patches/*; do
 	our_version=$(reprepro --list-format '${version}_${source}\n' -T deb listfilter "$OURSUITE" "\$Source (== $p)" | sed 's/.*_.*(\(.*\))$/\1/;s/_.*//' | uniq)
 	their_version=$(chdist_base apt-get source --only-source -t "$BASESUITE" --no-act "$p" | sed "s/^Selected version '\\([^']*\\)' ($BASESUITE) for .*/\\1/;t;d")
 	if test -z "$their_version"; then
-		echo "cannot determine source version for $p"
-		exit 1
+		echo "W: cannot determine source version for $p -- skipping..." >&2
+		continue
 	fi
 	if test -n "$our_version" && dpkg --compare-versions "$our_version" gt "$their_version"; then
 		if [ -e repo/dists/$OURSUITE/Release ] && [ repo/dists/$OURSUITE/Release -ot "patches/$p" ]; then
