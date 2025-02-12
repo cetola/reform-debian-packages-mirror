@@ -432,7 +432,7 @@ cp -a "patches${KVER}"/* linux/debian/patches/reform
 
 find "patches${KVER}/" -type f -name "*.patch" | env LC_ALL=C sort | sed 's/^patches'"$KVER"'\//reform\//' >> linux/debian/patches/series
 
-env --chdir=linux QUILT_PATCHES=debian/patches quilt push -a
+env --chdir=linux QUILT_PATCHES=debian/patches quilt push -a --fuzz=0
 
 
 # The next few dozen lines create a new quilt patch containing all the device
