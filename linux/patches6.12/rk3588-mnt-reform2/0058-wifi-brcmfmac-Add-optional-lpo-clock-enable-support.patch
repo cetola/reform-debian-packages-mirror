@@ -85,7 +85,7 @@ index fe4f65756105..6d90be952901 100644
  	int irq;
  	int err;
 @@ -106,15 +108,22 @@ void brcmf_of_probe(struct device *dev,
- 		board_type = devm_kstrdup(dev, tmp, GFP_KERNEL);
+ 
  		if (!board_type) {
  			of_node_put(root);
 -			return;
