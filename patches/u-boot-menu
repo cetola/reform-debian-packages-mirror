@@ -1,0 +1,17 @@
+#!/bin/sh
+# #1091979
+set -e
+patch -p1 << 'EOF'
+diff -Nru u-boot-menu-4.2.3/read-config u-boot-menu-4.2.3+nmu1/read-config
+--- u-boot-menu-4.2.3/read-config	2024-01-16 21:51:46.000000000 +0100
++++ u-boot-menu-4.2.3+nmu1/read-config	2025-03-03 09:52:10.000000000 +0100
+@@ -48,6 +48,8 @@
+ 	if [ "${U_BOOT_SYNC_DTBS}" = "true" ]
+ 	then
+ 		_FDT_DIR="/dtb-"
++	else
++		_FDT_DIR="/dtbs/"
+ 	fi
+ else
+ 	# / and /boot are on the same filesystem
+EOF
