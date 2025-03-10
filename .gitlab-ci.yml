@@ -7,9 +7,6 @@ variables:
   OURSUITE:
     description: Suite name of the repository we create
     value: reform
-  REFORM_TOOLS_BRANCH:
-    description: The git branch name from which reform-tools should be built
-    value: main
 
 stages:
   - setup
@@ -143,7 +140,6 @@ build_custom:
   after_script: |
     echo "BASESUITE: $BASESUITE"
     echo "OURSUITE: $OURSUITE"
-    echo "REFORM_TOOLS_BRANCH: $REFORM_TOOLS_BRANCH"
 
 build_linux:
   stage: build
@@ -191,7 +187,6 @@ build_linux:
     fi
     echo "BASESUITE: $BASESUITE"
     echo "OURSUITE: $OURSUITE"
-    echo "REFORM_TOOLS_BRANCH: $REFORM_TOOLS_BRANCH"
 
 build_qcacld:
   stage: build
@@ -304,5 +299,4 @@ reprepro:
       echo "CI_COMMIT_REF_NAME=\"$CI_COMMIT_REF_NAME\"";
       echo "BASESUITE=\"$BASESUITE\"";
       echo "OURSUITE=\"$OURSUITE\"";
-      echo "REFORM_TOOLS_BRANCH=\"$REFORM_TOOLS_BRANCH\"";
     } | tee variables.sh
