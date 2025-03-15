@@ -76,6 +76,11 @@ for p in patches/*; do
 			dcmd mv -v ../*.changes "$ROOTDIR/changes/"
 			mv -v ../*_$HOST_ARCH-*.build "$ROOTDIR/buildlogs"
 		fi
+		# if arm64 is *not* the host arch and if the package only builds
+		# arch:all packages, then nothing is to be done
+		if [ "$HOST_ARCH" != "arm64" ] && [ -z "$(env DEB_HOST_ARCH=$BUILD_ARCH DEB_BUILD_PROFILES="$(echo $COMMON_BUILD_PROFILES | tr ',' ' ')" dh_listpackages -a)" ]; then
+			continue
+		fi
 		# natively build arch:all packages and build-arch packages
 		# just building arch:all packages is not enough in case later
 		# packages need to install native arch versions of m-a:same
@@ -84,7 +89,9 @@ for p in patches/*; do
 		|| [ -n "$(env DEB_HOST_ARCH=$BUILD_ARCH DEB_BUILD_PROFILES="$(echo $COMMON_BUILD_PROFILES | tr ',' ' ')" dh_listpackages -a)" ]; then
 			rm -f ../*.changes
 			sbuild --chroot $BASESUITE-$BUILD_ARCH \
-				--arch-all --arch-any \
+				--build="$BUILD_ARCH" --host="$BUILD_ARCH" \
+				"$([ "$HOST_ARCH" = "arm64" ] && echo --arch-all || echo --no-arch-all)" \
+				--arch-any \
 				--profiles="$COMMON_BUILD_PROFILES" \
 				$COMMON_SBUILD_OPTS \
 				--extra-repository="$SRC_LIST_PATCHED"
