@@ -49,7 +49,7 @@ for p in patches/*; do
 		chdist_base apt-get source --only-source -t "$BASESUITE" "$p"
 		cd "$p-"*
 		dch --local "+$VERSUFFIX" "apply mnt reform patch"
-		dch --force-distribution --distribution="$OURSUITE" --release ""
+		maybe_faketime dch --force-distribution --distribution="$OURSUITE" --release ""
 		"$PATCHDIR/$p"
 		# cross build foreign arch:any packages
 		if [ "$BUILD_ARCH" != "$HOST_ARCH" ] && [ -n "$(env DEB_HOST_ARCH=$HOST_ARCH DEB_BUILD_PROFILES="cross nodoc $(echo $COMMON_BUILD_PROFILES | tr ',' ' ')" dh_listpackages -a)" ]; then

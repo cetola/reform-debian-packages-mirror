@@ -58,6 +58,18 @@ chdist_base() {
 	chdist "--data-dir=$chdistdata" "$cmd" base "$@"
 }
 
+# If we have the faketime utility and if SOURCE_DATE_EPOCH is set, set a
+# reproducible d/changelog timestamp using faketime.
+# This is no longer necessary with dch --date
+# https://salsa.debian.org/debian/devscripts/-/merge_requests/357
+maybe_faketime() {
+  if command -v faketime >/dev/null && [ -n "${SOURCE_DATE_EPOCH:+x}" ]; then
+    env TZ=UTC faketime "@$SOURCE_DATE_EPOCH" "$@"
+  else
+    env TZ=UTC "$@"
+  fi
+}
+
 COMMON_SBUILD_OPTS="--verbose --no-clean-source --no-source-only-changes --no-run-lintian --no-run-autopkgtest --no-apt-upgrade --no-apt-distupgrade"
 COMMON_BUILD_PROFILES="nobiarch,nocheck,noudeb"
 
