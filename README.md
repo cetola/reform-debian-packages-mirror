@@ -2,11 +2,13 @@
 
 The build sources for custom Debian packages which end up at https://mntre.com/reform-debian-repo/
 
-You need to have the following packages installed to run all of this:
+To run all the scripts in this repository, the following apt-get command will
+install all required dependencies (on Bookworm) for you:
 
-curl debhelper debian-archive-keyring debian-keyring devscripts faketime git
-mmdebstrap pristine-tar python3 python3-debian python3-jinja2 quilt reprepro
-rsync sbuild uidmap
+    $ sudo apt --no-install-recommends curl debhelper debian-archive-keyring \
+        debian-keyring devscripts dh-python faketime git kernel-wedge \
+        mmdebstrap pristine-tar python3 python3-dacite python3-debian \
+        python3-jinja2 quilt reprepro rsync sbuild uidmap unzip
 
 You need to have sbuild set up to build packages (including linux). If you have
 never set up sbuild before, the easiest way is to set it up to use unshare
