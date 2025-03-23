@@ -1,4 +1,7 @@
 #!/bin/sh
+# SPDX-License-Identifier: MIT
+#
+# Copyright 2023-2025 Johannes Schauer Marin Rodrigues
 
 set -eu
 
