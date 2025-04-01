@@ -1,0 +1,16 @@
+diff --git a/drivers/pci/controller/dwc/pcie-dw-rockchip.c b/drivers/pci/controller/dwc/pcie-dw-rockchip.c
+index 1170e11..1723047 100644
+--- a/drivers/pci/controller/dwc/pcie-dw-rockchip.c
++++ b/drivers/pci/controller/dwc/pcie-dw-rockchip.c
+@@ -233,6 +233,11 @@ static int rockchip_pcie_host_init(struct dw_pcie_rp *pp)
+ 	irq_set_chained_handler_and_data(irq, rockchip_pcie_intx_handler,
+ 					 rockchip);
+ 
++	/* Disable BAR 0 and 1 of root port to avoid wasting space */
++	/* via https://github.com/HeyMeco/Rockchip-pcie-devices/blob/main/RK3588/_cards_gpu/Nvidia_RTX-3090-Founders-Edition.md#the-pcie-patch-for-mainline-that-brought-us-so-far */
++	dw_pcie_writel_dbi(pci, PCIE_TYPE0_HDR_DBI2_OFFSET + PCI_BASE_ADDRESS_0, 0);
++	dw_pcie_writel_dbi(pci, PCIE_TYPE0_HDR_DBI2_OFFSET + PCI_BASE_ADDRESS_1, 0);
++
+ 	return 0;
+ }
+ 
