@@ -251,11 +251,12 @@ build_custom:
     when: always
     paths:
       - output.log
-      - changes
+      - changes-custom
       - buildlogs
       - fonts-reform-iosevka-term_2.3.0-1_all.deb
   script: |
     runuser -u build -- sh -x ./build_custom.sh 2>&1 | ./filter-output
+    mv changes changes-custom
   after_script: |
     echo "BASESUITE: $BASESUITE"
     echo "OURSUITE: $OURSUITE"

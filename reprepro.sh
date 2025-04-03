@@ -7,6 +7,11 @@ set -eu
 
 . ./common.sh
 
+for c in changes-custom/*.changes; do
+  echo "including $c..." >&2
+  reprepro include "$OURSUITE" "$c"
+done
+
 for ARCH in arm64 armhf i386 amd64; do
 	for c in "changes-$ARCH"/*.changes; do
 		[ -e "$c" ] || continue
