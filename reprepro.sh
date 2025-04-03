@@ -27,8 +27,10 @@ for d in reform-qcacld2*.deb fonts-reform-iosevka-term_2.3.0-1_all.deb; do
 done
 
 for p in $(reprepro --list-format '${source}\n' -T deb list "$OURSUITE" | sed 's/^\([^ (]\+\).*/\1/' | sort -u); do
+	# source packages built in build_custom.sh or linux/build.sh must not get
+	# removed, even if there is no file in ./patches
 	case $p in
-		linux|box64|reform-tools|reform-handbook|pocket-reform-handbook|wayfire|wayfire-dev|libwf-touch-dev|libwf-utils-dev|libwf-utils0|firedecor) continue;;
+		linux) continue;;
 	esac
 
 	if [ ! -e "patches/$p" ]; then
