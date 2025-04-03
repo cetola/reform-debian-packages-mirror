@@ -45,21 +45,3 @@ END
 	dpkg-deb --root-owner-group --build "$WORKDIR" .
 	rm -Rf "$WORKDIR"
 fi
-
-for HB in pocket-reform-handbook; do
-our_version=$(reprepro --list-format '${version}\n' -T deb listfilter "$OURSUITE" "\$Source (== $HB)" | uniq)
-their_version=$(curl --silent "https://source.mnt.re/reform/$HB/-/raw/main/debian/changelog" | dpkg-parsechangelog --show-field Version --file -)
-if [ -z "$our_version" ] || dpkg --compare-versions "$our_version" lt "$their_version"; then
-	rm -Rf "$WORKDIR"
-	mkdir --mode=0777 "$WORKDIR"
-	(
-		cd "$WORKDIR"
-		git clone "https://source.mnt.re/reform/$HB.git"
-		cd "$HB"
-		sbuild -d "$OURSUITE" --arch-all --arch-any --chroot "$BASESUITE-$BUILD_ARCH" $COMMON_SBUILD_OPTS --extra-repository="$SRC_LIST_PATCHED"
-		dcmd mv -v "../${HB}_"*"_${BUILD_ARCH}.changes" "$ROOTDIR/changes"
-		cd ..
-	)
-	rm -Rf "$WORKDIR"
-fi
-done
