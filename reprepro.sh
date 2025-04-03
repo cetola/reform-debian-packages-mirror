@@ -8,6 +8,7 @@ set -eu
 . ./common.sh
 
 for c in changes-custom/*.changes; do
+  [ -e "$c" ] || continue
   echo "including $c..." >&2
   reprepro include "$OURSUITE" "$c"
 done
