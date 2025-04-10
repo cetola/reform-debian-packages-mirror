@@ -1,3 +1,9 @@
+From 5a35b0f35c628f6db3441e46c2c2748219efead1 Sun Dec 8 22:40:28 2024 +0100
+From: Lukas F. Hartmann <lukas@mntre.com>
+Subject: 5110-hdptx-crash-workaround.patch
+Date:   Sun Dec 8 22:40:28 2024 +0100
+
+
 --- a/drivers/phy/rockchip/phy-rockchip-samsung-hdptx.c
 +++ b/drivers/phy/rockchip/phy-rockchip-samsung-hdptx.c
 @@ -1482,7 +1482,10 @@ static int rk_hdptx_phy_runtime_suspend(

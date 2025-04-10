@@ -1,3 +1,8 @@
+From a38d90dab271fd9911cf338e2693fd608744d9f7 Tue Nov 12 03:00:14 2024 +0100
+From: Lukas F. Hartmann <lukas@mntre.com>
+Subject: mnt-rk3588-dual-hdmi-qp-rockchip
+Date:   Tue Nov 12 03:00:14 2024 +0100
+
 diff --git a/drivers/gpu/drm/rockchip/dw_hdmi_qp-rockchip.c b/drivers/gpu/drm/rockchip/dw_hdmi_qp-rockchip.c
 index 353c9e3d5051..9b75bed731ae 100644
 --- a/drivers/gpu/drm/rockchip/dw_hdmi_qp-rockchip.c

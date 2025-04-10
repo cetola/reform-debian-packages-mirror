@@ -1,5 +1,5 @@
-commit 6d1a6296f7fdbb4ebe27b45d041ff60aa906cc7b
-Author: Lukas F. Hartmann <lukas@mntre.com>
+From 6d1a6296f7fdbb4ebe27b45d041ff60aa906cc7b Wed Oct 2 18:20:44 2024 +0200
+From: Lukas F. Hartmann <lukas@mntre.com>
 Date:   Wed Oct 2 18:20:44 2024 +0200
 
     rk3588: add rockchip dsi2 WIP driver and dsi phy driver
