@@ -55,8 +55,22 @@
 		compatible = "pwm-backlight";
 		pwms = <&pwm8 0 10000 0>;
 		enable-gpios = <&gpio2 RK_PB5 GPIO_ACTIVE_HIGH>;
-		brightness-levels = <0 8 16 32 64 128 160 200 255>;
+		// FIXME temporary hack to make sure the backlight doesn't go off
+		brightness-levels = <128 160 200 255>;
 		default-brightness-level = <128>;
+	};
+
+	panel {
+		compatible = "innolux,n125hce-gn1", "simple-panel";
+		power-supply = <&vcc3v3_pcie30>;
+		backlight = <&backlight>;
+		no-hpd;
+
+		port {
+			panel_in: endpoint {
+				remote-endpoint = <&edp_bridge_out>;
+			};
+		};
 	};
 
 	gmac0_clkin: external-gmac0-clock {
@@ -233,6 +247,7 @@
 	status = "okay";
 };
 
+// internal HDMI
 &hdmi0 {
 	enable-gpios = <&gpio4 RK_PA0 GPIO_ACTIVE_HIGH>;
 	status = "okay";
@@ -249,6 +264,7 @@
 };
 
 &hdmi1 {
+	// external HDMI
 	enable-gpios = <&gpio4 RK_PB4 GPIO_ACTIVE_HIGH>;
 	status = "okay";
 };
@@ -338,6 +354,41 @@
 	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&i2c6m0_xfer>;
+
+	edp_bridge: bridge@2c {
+		compatible = "ti,sn65dsi86";
+		reg = <0x2c>;
+		/* not actually connected on RCORE R1, will be fixed in RCORE R2. */
+		/* for RCORE R1, remove resistor R82 from MREF motherboard (it pulls down the reset). */
+		enable-gpios = <&gpio0 RK_PD0 GPIO_ACTIVE_LOW>;
+		vccio-supply = <&vcc_1v8_s3>;
+		vpll-supply = <&vcc_1v8_s3>;
+		vcca-supply = <&avdd_1v2_s0>;
+		vcc-supply = <&avdd_1v2_s0>;
+		burst-mode;
+		status = "okay";
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+
+				edp_bridge_in: endpoint {
+					remote-endpoint = <&dsi1_out_panel>;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+
+				edp_bridge_out: endpoint {
+					remote-endpoint = <&panel_in>;
+				};
+			};
+		};
+	};
 
 	wm8960: codec@1a {
 		compatible = "wlf,wm8960";
@@ -984,5 +1035,37 @@
 	vp2_out_hdmi0: endpoint@ROCKCHIP_VOP2_EP_HDMI0 {
 		reg = <ROCKCHIP_VOP2_EP_HDMI0>;
 		remote-endpoint = <&hdmi0_in_vp2>;
+	};
+};
+
+&dsi1 {
+	//rockchip,lane-rate = <936000>;
+	status = "okay";
+	rockchip,lane-rate = <972000>;
+};
+
+&dsi1_in {
+	dsi1_in_vp: endpoint {
+		remote-endpoint = <&vp_out_dsi1>;
+	};
+};
+
+&dsi1_out {
+	dsi1_out_panel: endpoint {
+		remote-endpoint = <&edp_bridge_in>;
+	};
+};
+
+&mipidcphy1 {
+	status = "okay";
+};
+
+&vp3 {
+	assigned-clocks = <&cru DCLK_VOP2_SRC>;
+	assigned-clock-parents = <&cru PLL_V0PLL>;
+
+	vp_out_dsi1: endpoint@ROCKCHIP_VOP2_EP_MIPI1 {
+		reg = <ROCKCHIP_VOP2_EP_MIPI1>;
+		remote-endpoint = <&dsi1_in_vp>;
 	};
 };
