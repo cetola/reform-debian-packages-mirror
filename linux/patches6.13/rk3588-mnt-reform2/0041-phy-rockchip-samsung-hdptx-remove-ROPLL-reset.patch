@@ -1,0 +1,27 @@
+From c6e9548faa0e2ccafdff1c90a8c3b39e33c44c55 Mon Sep 17 00:00:00 2001
+From: "Lukas F. Hartmann" <lukas@mntre.com>
+Date: Fri, 18 Apr 2025 22:15:15 +0200
+Subject: [PATCH 41/41] phy-rockchip-samsung-hdptx: remove ROPLL reset
+
+---
+ drivers/phy/rockchip/phy-rockchip-samsung-hdptx.c | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/drivers/phy/rockchip/phy-rockchip-samsung-hdptx.c b/drivers/phy/rockchip/phy-rockchip-samsung-hdptx.c
+index 457776dd16f0..37ac46a5742f 100644
+--- a/drivers/phy/rockchip/phy-rockchip-samsung-hdptx.c
++++ b/drivers/phy/rockchip/phy-rockchip-samsung-hdptx.c
+@@ -1154,10 +1154,6 @@ static int rk_hdptx_ropll_frl_mode_config(struct rk_hdptx_phy *hdptx,
+ 
+ 	rk_hdptx_pre_power_up(hdptx);
+ 
+-	reset_control_assert(hdptx->rsts[RST_ROPLL].rstc);
+-	usleep_range(10, 20);
+-	reset_control_deassert(hdptx->rsts[RST_ROPLL].rstc);
+-
+ 	rk_hdptx_multi_reg_write(hdptx, rk_hdtpx_common_cmn_init_seq);
+ 	rk_hdptx_multi_reg_write(hdptx, rk_hdtpx_frl_cmn_init_seq);
+ 	rk_hdptx_multi_reg_write(hdptx, rk_hdtpx_frl_ropll_cmn_init_seq);
+-- 
+2.49.0
+
