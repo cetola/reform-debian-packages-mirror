@@ -331,11 +331,6 @@ name = 'none'
 [[featureset.flavour]]
 name = '$flavour'
 
-# https://bugs.debian.org/1077827
-[[featureset]]
-name = 'rt'
-enable = false
-
 [build]
 enable_signed = false
 END
