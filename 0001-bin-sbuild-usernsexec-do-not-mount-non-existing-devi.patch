@@ -1,0 +1,24 @@
+From 8699a1e5f72aa66fef303b80cc0139e22c9fc619 Mon Sep 17 00:00:00 2001
+From: Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
+Date: Sat, 19 Apr 2025 18:33:45 +0200
+Subject: [PATCH] bin/sbuild-usernsexec: do not mount non-existing device nodes
+
+---
+ bin/sbuild-usernsexec | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/usr/libexec/sbuild-usernsexec b/bin/sbuild-usernsexec
+index 33627e9a..8ceaa9ed 100755
+--- a/usr/libexec/sbuild-usernsexec
++++ b/usr/libexec/sbuild-usernsexec
+@@ -434,6 +434,7 @@ foreach my $f ("null", "zero", "full", "random", "urandom", "tty", "console") {
+ 	if (!-e "/dev/$f") {
+ 		warn
+ 		  "cannot bind-mount /dev/$f as it does not exist outside the chroot";
++		next;
+ 	}
+ 	if (!-e "$rootdir/dev/$f") {
+ 		open my $fh, '>', "$rootdir/dev/$f"
+-- 
+2.49.0
+

@@ -1,4 +1,4 @@
-image: debian:bookworm-slim
+image: debian:unstable-slim
 
 variables:
   BASESUITE:
@@ -9,19 +9,11 @@ variables:
     value: reform
 
 stages:
-  - setup
   - build
   - reprepro
 
-setup:
-  stage: setup
-  tags:
-    - arm64
-  artifacts:
-    paths:
-      - repo
-      - chdist
-  script: |
+.setup:
+  before_script: |
     set -x
     # Do not allow custom builds in the 'reform' namespace as those can
     # potentially taint the repository at https://mntre.com/reform-debian-repo/
@@ -40,82 +32,17 @@ setup:
       fi
     fi
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
-    apt-get --no-install-recommends -y install reprepro python3 devscripts
+    apt-get --no-install-recommends -y install python3 devscripts reprepro sbuild mmdebstrap uidmap mount debhelper debian-keyring quilt pristine-tar rsync git python3-debian faketime python3-jinja2 python3-dacite uidmap debian-archive-keyring curl kernel-wedge unzip build-essential dh-python iproute2 arch-test
     adduser --comment build --disabled-password build
     chown build -R .
     rm -rvf changes buildlogs chdist repo chroot-*.tar
     runuser -u build -- sh -x ./setup.sh
     runuser -u build -- sed -i 's/^Architectures: .*/Architectures: arm64 armhf i386 amd64/' ./repo/conf/distributions
     runuser -u build -- reprepro --basedir ./repo export
-
-.chroot:
-  script: |
-    set -x
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
-    apt-get --no-install-recommends -y install mmdebstrap uidmap
-    adduser --comment build --disabled-password build
-    chown build -R .
-    runuser -u build -- mmdebstrap --architecture="$ARCH" --variant=buildd --mode=unshare --skip=check/qemu \
-      --chrooted-customize-hook='rm /usr/bin/ischroot && ln -s /bin/true /usr/bin/ischroot' ${IFS# DebianBug:1056385} \
-      "$([ "$BASESUITE" = "experimental" ] && echo unstable || echo "$BASESUITE")" "chroot-$ARCH.tar"
-
-chroot_arm64:
-  stage: setup
-  tags:
-    - arm64
-  artifacts:
-    paths:
-      - chroot-arm64.tar
-  variables:
-    ARCH: arm64
-  extends: .chroot
-
-chroot_armhf:
-  stage: setup
-  tags:
-    - armhf
-  artifacts:
-    paths:
-      - chroot-armhf.tar
-  variables:
-    ARCH: armhf
-  extends: .chroot
-
-chroot_i386:
-  stage: setup
-  tags:
-    - i386
-  artifacts:
-    paths:
-      - chroot-i386.tar
-  variables:
-    ARCH: i386
-  extends: .chroot
-
-chroot_amd64:
-  stage: setup
-  tags:
-    - amd64
-  artifacts:
-    paths:
-      - chroot-amd64.tar
-  variables:
-    ARCH: amd64
-  extends: .chroot
-
-.setup:
-  before_script: |
-    set -x
-    apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
-    apt-get --no-install-recommends -y install devscripts reprepro sbuild debhelper debian-keyring quilt pristine-tar rsync git python3-debian faketime python3-jinja2 python3-dacite uidmap debian-archive-keyring curl kernel-wedge unzip
-    adduser --comment build --disabled-password build
-    runuser -u build -- sh -c 'echo "\$chroot_mode = \"unshare\";1;" > ~/.sbuildrc'
-    runuser -u build -- sh -c 'mkdir -p changes buildlogs ~/.cache/sbuild'
-    if [ "$BASESUITE" = "experimental" ]; then
-      runuser -u build -- sh -c "ln -s unstable-$BUILD_ARCH.tar ~/.cache/sbuild/experimental-$BUILD_ARCH.tar"
-    fi
-    # running in a runuser sub-shell to properly expand ~
-    runuser -u build -- sh -c "cp chroot-$BUILD_ARCH.tar ~/.cache/sbuild/$([ "$BASESUITE" = "experimental" ] && echo unstable || echo "$BASESUITE")-$BUILD_ARCH.tar"
+    runuser -u build -- sh -c 'mkdir -p ~/.config/sbuild'
+    runuser -u build -- sh -c 'echo "\$chroot_mode = \"unshare\";\$unshare_mmdebstrap_keep_tarball=1;\$chroot_aliases->{reform} = \"unstable\";push @{\$unshare_mmdebstrap_distro_mangle}, qr/^reform\$/, \"unstable\";1;" > ~/.config/sbuild/config.pl'
+    runuser -u build -- sh -c 'mkdir -p changes buildlogs'
     chown build -R .
 
 .build_patched:
@@ -148,6 +75,8 @@ chroot_amd64:
     if [ "$BASESUITE" = "experimental" ]; then
       BASESUITE=unstable
     fi
+    # https://salsa.debian.org/debian/sbuild/-/merge_requests/172
+    env --chdir=/ patch -p1 < 0001-bin-sbuild-usernsexec-do-not-mount-non-existing-devi.patch
     runuser -u build -- sh -x ./build_patched.sh 2>&1 | ./filter-output
     # move to arch-qualified path
     mv changes "changes-$HOST_ARCH"
@@ -159,12 +88,6 @@ build_patched_arm64:
   extends: .build_patched
   tags:
     - arm64
-  dependencies:
-    - setup
-    - chroot_arm64
-  needs:
-    - setup
-    - chroot_arm64
   artifacts:
     when: always
     paths:
@@ -179,12 +102,6 @@ build_patched_armhf:
   extends: .build_patched
   tags:
     - armhf
-  dependencies:
-    - setup
-    - chroot_armhf
-  needs:
-    - setup
-    - chroot_armhf
   artifacts:
     when: always
     paths:
@@ -199,12 +116,6 @@ build_patched_i386:
   extends: .build_patched
   tags:
     - i386
-  dependencies:
-    - setup
-    - chroot_i386
-  needs:
-    - setup
-    - chroot_i386
   artifacts:
     when: always
     paths:
@@ -219,12 +130,6 @@ build_patched_amd64:
   extends: .build_patched
   tags:
     - amd64
-  dependencies:
-    - setup
-    - chroot_amd64
-  needs:
-    - setup
-    - chroot_amd64
   artifacts:
     when: always
     paths:
@@ -241,12 +146,6 @@ build_custom:
   extends: .setup
   tags:
     - arm64
-  dependencies:
-    - setup
-    - chroot_arm64
-  needs:
-    - setup
-    - chroot_arm64
   artifacts:
     when: always
     paths:
@@ -267,6 +166,8 @@ build_custom:
   extends: .setup
   script: |
     set -x
+    # https://salsa.debian.org/debian/sbuild/-/merge_requests/172
+    env --chdir=/ patch -p1 < 0001-bin-sbuild-usernsexec-do-not-mount-non-existing-devi.patch
     # gitlab has pipefail turned on by default, so the below will fail if
     # build.sh fails despite the command being piped to filter-output.
     runuser -u build -- sh -xc '. ./common.sh; cd linux; . ./build.sh' 2>&1 | ./filter-output
@@ -313,12 +214,6 @@ build_linux_arm64:
   extends: .build_linux
   tags:
     - arm64
-  dependencies:
-    - setup
-    - chroot_arm64
-  needs:
-    - setup
-    - chroot_arm64
   artifacts:
     when: always
     paths:
@@ -333,12 +228,6 @@ build_linux_armhf:
   extends: .build_linux
   tags:
     - armhf
-  dependencies:
-    - setup
-    - chroot_armhf
-  needs:
-    - setup
-    - chroot_armhf
   artifacts:
     when: always
     paths:
@@ -353,12 +242,6 @@ build_linux_i386:
   extends: .build_linux
   tags:
     - i386
-  dependencies:
-    - setup
-    - chroot_i386
-  needs:
-    - setup
-    - chroot_i386
   artifacts:
     when: always
     paths:
@@ -373,12 +256,6 @@ build_linux_amd64:
   extends: .build_linux
   tags:
     - amd64
-  dependencies:
-    - setup
-    - chroot_amd64
-  needs:
-    - setup
-    - chroot_amd64
   artifacts:
     when: always
     paths:
@@ -476,10 +353,10 @@ build_qcacld:
 
 reprepro:
   stage: reprepro
+  extends: .setup
   tags:
     - arm64
   dependencies:
-    - setup
     - build_patched_arm64
     - build_patched_armhf
     - build_patched_amd64
@@ -499,7 +376,6 @@ reprepro:
     set -x
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
     apt-get --no-install-recommends -y install reprepro python3 devscripts
-    adduser --comment build --disabled-password build
     runuser -u build -- sh -x ./reprepro.sh
     {
       echo "CI_PROJECT_NAMESPACE=\"$CI_PROJECT_NAMESPACE\"";

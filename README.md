@@ -3,27 +3,28 @@
 The build sources for custom Debian packages which end up at https://mntre.com/reform-debian-repo/
 
 To run all the scripts in this repository, the following apt-get command will
-install all required dependencies (on Bookworm) for you:
+install all required dependencies (on Trixie) for you:
 
     $ sudo apt --no-install-recommends curl debhelper debian-archive-keyring \
         debian-keyring devscripts dh-python faketime git kernel-wedge \
         mmdebstrap pristine-tar python3 python3-dacite python3-debian \
         python3-jinja2 quilt reprepro rsync sbuild uidmap unzip
 
+If you are building this on an amd64 box, then you also need to install
+binfmt-support, arch-test and qemu-user-static.
+
 You need to have sbuild set up to build packages (including linux). If you have
 never set up sbuild before, the easiest way is to set it up to use unshare
 mode like this (assuming you run this on the Reform):
 
-    echo '$chroot_mode = "unshare";' > ~/.sbuildrc
-    mkdir -p ~/.cache/sbuild
-    mmdebstrap --variant=buildd unstable ~/.cache/sbuild/unstable-arm64.tar
-
-If you are building this on an amd64 box, then you also need to install
-binfmt-support, arch-test, qemu-user-static and create the chroots a bit
-differently for both amd64 as well as for arm64.
-
-    mmdebstrap --variant=buildd --arch=arm64 unstable ~/.cache/sbuild/unstable-arm64.tar
-    mmdebstrap --variant=buildd --arch=amd64 unstable ~/.cache/sbuild/unstable-amd64.tar
+    mkdir -p ~/.config/sbuild
+    cat << END > ~/.config/sbuild/config.pl
+    $chroot_mode = "unshare";
+    $unshare_mmdebstrap_keep_tarball = 1;
+    $chroot_aliases->{reform} = 'unstable';
+    push @{$unshare_mmdebstrap_distro_mangle}, qr/^reform$/, 'unstable';
+    1;
+    END
 
 # linux
 
