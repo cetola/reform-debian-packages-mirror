@@ -495,8 +495,10 @@ if [ "$BUILD_ARCH" != "$HOST_ARCH" ]; then
 	DEB_BUILD_PROFILES="cross $DEB_BUILD_PROFILES"
 fi
 
+# FIXME just a test
+BUILDSUITE=unstable
 env --chdir=linux DEB_BUILD_PROFILES="$DEB_BUILD_PROFILES" \
-	sbuild --chroot="$BASESUITE-$BUILD_ARCH" --arch-any --arch-all --host="$HOST_ARCH" \
+	sbuild --chroot="$BUILDSUITE-$BUILD_ARCH" --arch-any --arch-all --host="$HOST_ARCH" \
 		--verbose --no-source-only-changes --no-run-lintian --no-run-autopkgtest
 
 mv "./linux_$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog)_arm64.changes" "./linux.changes"
