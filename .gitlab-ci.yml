@@ -1,4 +1,4 @@
-image: debian:testing-slim
+image: debian:unstable-slim
 
 variables:
   BASESUITE:
