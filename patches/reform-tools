@@ -92,12 +92,30 @@ chmod +x debian/reform-tools.postinst
 patch -p1 << 'END'
 --- a/debian/control
 +++ b/debian/control
-@@ -24,6 +24,7 @@ Depends:
+@@ -23,6 +23,7 @@ Depends:
   alsa-utils,
   console-setup,
   debconf,
 + fonts-reform-iosevka-term (= 2.3.0-1),
   gpiod,
+  jq,
   keyboard-configuration,
-  mount,
+@@ -78,7 +79,7 @@ Depends:
+  dunst,
+  engrampa,
+  evince,
+- firefox-esr,
++ firefox,
+  fonts-font-awesome,
+  fonts-inter,
+  fonts-jetbrains-mono,
+@@ -235,7 +236,7 @@ Depends:
+  zstd,
+  ${misc:Depends},
+ Recommends:
+- ezurio-qcacld-2.0-dkms,
++ reform-qcacld2,
+  flash-kernel,
+  linux-headers-mnt-reform-arm64,
+  linux-image-mnt-reform-arm64,
 END
