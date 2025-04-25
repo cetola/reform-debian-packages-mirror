@@ -44,6 +44,14 @@ for p in patches/*; do
 	# the latest change to the patch
 	datesuffix=
 	if git -C . rev-parse 2>/dev/null; then
+		# The date suffix based on the last modification of the patch is an attempt
+		# at bumping the package version when the underlying patch changes. In
+		# practice, every rebuild can change the package when build dependencies
+		# change. It would thus be "safer" (avoid different hashes for the same
+		# version) to *always* bump the version on each rebuild. We don't do this
+		# as a compromise. Bumping the version too often is also disruptive on
+		# user's platforms due to long kernel installation times (initramfs, dkms)
+		# and large download size etc...
 		SOURCE_DATE_EPOCH=$(git log -1 --format=%ct "patches/$p")
 		datesuffix="$(date --utc --date=@$SOURCE_DATE_EPOCH +%Y%m%dT%H%M%SZ)"
 	fi
