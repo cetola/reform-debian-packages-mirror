@@ -40,6 +40,14 @@ for p in patches/*; do
 		fi
 	fi
 
+	# if we are in a git repository, set SOURCE_DATE_EPOCH to the timestamp of
+	# the latest change to the patch
+	datesuffix=
+	if git -C . rev-parse 2>/dev/null; then
+		SOURCE_DATE_EPOCH=$(git log -1 --format=%ct "patches/$p")
+		datesuffix="$(date --utc --date=@$SOURCE_DATE_EPOCH +%Y%m%dT%H%M%SZ)"
+	fi
+
 	reprepro removesrc "$OURSUITE" "$p"
 
 	rm -Rf "$WORKDIR"
@@ -48,8 +56,8 @@ for p in patches/*; do
 		cd "$WORKDIR"
 		chdist_base apt-get source --only-source -t "$BASESUITE" "$p"
 		cd "$p-"*
-		dch --local "+$VERSUFFIX" "apply mnt reform patch"
-		maybe_faketime dch --force-distribution --distribution="$OURSUITE" --release ""
+		dch --local "+$VERSUFFIX$datesuffix" "apply mnt reform patch"
+		dch --date="$(date --utc --date=@$SOURCE_DATE_EPOCH --rfc-email)" --force-distribution --distribution="$OURSUITE" --release ""
 		"$PATCHDIR/$p"
 		# cross build foreign arch:any packages
 		if [ "$BUILD_ARCH" != "$HOST_ARCH" ] && [ -n "$(env DEB_HOST_ARCH=$HOST_ARCH DEB_BUILD_PROFILES="cross nodoc $(echo $COMMON_BUILD_PROFILES | tr ',' ' ')" dh_listpackages -a)" ]; then
