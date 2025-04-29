@@ -75,8 +75,6 @@ stages:
     if [ "$BASESUITE" = "experimental" ]; then
       BASESUITE=unstable
     fi
-    # https://salsa.debian.org/debian/sbuild/-/merge_requests/172
-    env --chdir=/ patch -p1 < 0001-bin-sbuild-usernsexec-do-not-mount-non-existing-devi.patch
     runuser -u build -- sh -x ./build_patched.sh 2>&1 | ./filter-output
     # move to arch-qualified path
     mv changes "changes-$HOST_ARCH"
@@ -166,8 +164,6 @@ build_custom:
   extends: .setup
   script: |
     set -x
-    # https://salsa.debian.org/debian/sbuild/-/merge_requests/172
-    env --chdir=/ patch -p1 < 0001-bin-sbuild-usernsexec-do-not-mount-non-existing-devi.patch
     # gitlab has pipefail turned on by default, so the below will fail if
     # build.sh fails despite the command being piped to filter-output.
     runuser -u build -- sh -xc '. ./common.sh; cd linux; . ./build.sh' 2>&1 | ./filter-output
