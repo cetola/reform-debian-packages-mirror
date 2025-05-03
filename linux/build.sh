@@ -81,45 +81,127 @@ else
 fi
 maybe_faketime dch --force-distribution --distribution="$OURSUITE" --release ""
 
-# https://salsa.debian.org/kernel-team/linux/-/merge_requests/1159
-# Do not require run-parts 5.21 or otherwise this would not work on bookworm
-#  - check whether either /etc or /usr directories exist
-#  - since the /etc directory is now allowed to be missing, do not pass it if
-#    it does not exist
-#  - use --help output of run-parts to determine whether more than one argument
-#    can be passed
-#  - in debianutils 5.14, run-parts --help output changed from stderr to stdout
-#    so we have to check both
-#  - this will fail if /etc does not exist *and* run-parts is too old (because
-#    then no directory will be passed) -- we assume that /etc can only
-#    be missing on new systems which will thus also have new run-parts
+# https://salsa.debian.org/kernel-team/linux/-/merge_requests/1493
 cat << 'END' | env --chdir=linux patch -p1
+diff --git a/debian/templates/headers.control.in b/debian/templates/headers.control.in
+index ab1439820ebb..97be1ead1601 100644
+--- a/debian/templates/headers.control.in
++++ b/debian/templates/headers.control.in
+@@ -2,6 +2,7 @@ Package: linux-headers-@abiname@@localversion@
+ Meta-Rules-Target: headers
+ Build-Profiles: <!pkg.linux.nokernel>
+ Depends:
++ linux-base (>= 4.11+reform20250503),
+  linux-headers-@abiname@-common@localversion_headers@ (= ${source:Version}),
+  linux-image-@abiname@@localversion@ (= ${binary:Version}) | linux-image-@abiname@@localversion@-unsigned (= ${binary:Version}),
+  linux-kbuild-@abiname@,
+diff --git a/debian/templates/headers.postinst.in b/debian/templates/headers.postinst.in
+index c13e6dc54e41..433571b3c1b9 100644
 --- a/debian/templates/headers.postinst.in
 +++ b/debian/templates/headers.postinst.in
-@@ -10,5 +10,5 @@
--if (-d "/etc/kernel/header_postinst.d") {
-+if (-d "/etc/kernel/header_postinst.d" || -d "/usr/share/kernel/header_postinst.d") {
-   system ("run-parts --report --exit-on-error --arg=$version " .
--          "/etc/kernel/header_postinst.d") &&
-+          '$(test -d /etc/kernel/header_postinst.d && echo /etc/kernel/header_postinst.d) $(test -d /usr/share/kernel/header_postinst.d && run-parts --help 2>&1 | grep -Fxq "Usage: run-parts [OPTION]... DIRECTORY [DIRECTORY ...]" && echo /usr/share/kernel/header_postinst.d)') &&
-             die "Failed to process /etc/kernel/header_postinst.d";
- }
-END
-for maint in postinst postrm preinst prerm; do
-  cat << END | env --chdir=linux patch -p1
---- a/debian/templates/image.$maint.in
-+++ b/debian/templates/image.$maint.in
-@@ -15,5 +15,5 @@
--if [ -d /etc/kernel/$maint.d ]; then
-+if [ -d /etc/kernel/$maint.d ] || [ -d /usr/share/kernel/$maint.d ]; then
-     DEB_MAINT_PARAMS="\$*" run-parts --report --exit-on-error --arg=\$version \\
--	      --arg=\$image_path /etc/kernel/$maint.d
-+	      --arg=\$image_path \$(test -d /etc/kernel/$maint.d && echo /etc/kernel/$maint.d) \$(test -d /usr/share/kernel/$maint.d && run-parts --help 2>&1 | grep -Fxq "Usage: run-parts [OPTION]... DIRECTORY [DIRECTORY ...]" && echo /usr/share/kernel/$maint.d)
- fi
- 
-END
-done
+@@ -1,18 +1,7 @@
+-#!/usr/bin/perl
+-# Author: Michael Gilbert <michael.s.gilbert@gmail.com>
+-# Origin: Stripped down version of the linux-headers postinst from Ubuntu's
+-#         2.6.32-14-generic kernel, which was itself derived from a
+-#         Debian linux-image postinst script.
++#!/bin/sh -e
 
+-$|=1;
+-my $version  = "@abiname@@localversion@";
++version=@abiname@@localversion@
+
+-if (-d "/etc/kernel/header_postinst.d") {
+-  system ("run-parts --report --exit-on-error --arg=$version " .
+-          "/etc/kernel/header_postinst.d") &&
+-            die "Failed to process /etc/kernel/header_postinst.d";
+-}
++linux-run-hooks headers_postinst "$*" $version
+
+-exit 0;
+-
+-__END__
++exit 0
+diff --git a/debian/templates/image.control.in b/debian/templates/image.control.in
+index 8bc561c941dc..1585ca21beeb 100644
+--- a/debian/templates/image.control.in
++++ b/debian/templates/image.control.in
+@@ -6,7 +6,8 @@ Build-Depends:
+  kernel-wedge (>= 2.105~),
+ # used by kernel-wedge (only on Linux, thus not declared as a dependency)
+  kmod,
+-Depends: kmod, linux-base (>= 4.3~), ${misc:Depends}
++Pre-Depends: linux-base (>= 4.11+reform20250503)
++Depends: kmod, ${misc:Depends}
+ Suggests: firmware-linux-free, linux-doc-@version@, debian-kernel-handbook
+ Description: Linux @upstreamversion@ for @class@
+  The Linux kernel @upstreamversion@ and modules for use on @longclass@.
+diff --git a/debian/templates/image.postinst.in b/debian/templates/image.postinst.in
+index 25e7dd65467e..e62d8655195d 100644
+--- a/debian/templates/image.postinst.in
++++ b/debian/templates/image.postinst.in
+@@ -17,9 +17,6 @@ fi
+ linux-update-symlinks $change $version $image_path
+ rm -f /lib/modules/$version/.fresh-install
+
+-if [ -d /etc/kernel/postinst.d ]; then
+-    DEB_MAINT_PARAMS="$*" run-parts --report --exit-on-error --arg=$version \
+-	      --arg=$image_path /etc/kernel/postinst.d
+-fi
++linux-run-hooks postinst "$*" $version $image_path
+
+ exit 0
+diff --git a/debian/templates/image.postrm.in b/debian/templates/image.postrm.in
+index 3fb22e6d7009..2ca7e5b8b2ca 100644
+--- a/debian/templates/image.postrm.in
++++ b/debian/templates/image.postrm.in
+@@ -9,9 +9,10 @@ if [ "$1" != upgrade ] && command -v linux-update-symlinks >/dev/null; then
+     linux-update-symlinks remove $version $image_path
+ fi
+
+-if [ -d /etc/kernel/postrm.d ]; then
+-    DEB_MAINT_PARAMS="$*" run-parts --report --exit-on-error --arg=$version \
+-	      --arg=$image_path /etc/kernel/postrm.d
++if command -v linux-run-hooks >/dev/null; then
++    linux-run-hooks postrm "$*" $version $image_path
++else
++    echo >&2 'W: linux-base is not installed; cannot run postrm hooks'
+ fi
+
+ if [ "$1" = purge ]; then
+diff --git a/debian/templates/image.preinst.in b/debian/templates/image.preinst.in
+index 8a5658ecd1bb..25173feecc69 100644
+--- a/debian/templates/image.preinst.in
++++ b/debian/templates/image.preinst.in
+@@ -13,9 +13,6 @@ if [ "$1" = install ]; then
+     touch /lib/modules/$version/.fresh-install
+ fi
+
+-if [ -d /etc/kernel/preinst.d ]; then
+-    DEB_MAINT_PARAMS="$*" run-parts --report --exit-on-error --arg=$version \
+-	      --arg=$image_path /etc/kernel/preinst.d
+-fi
++linux-run-hooks preinst "$*" $version $image_path
+
+ exit 0
+diff --git a/debian/templates/image.prerm.in b/debian/templates/image.prerm.in
+index f1bde29b1151..eb3cccadf85c 100644
+--- a/debian/templates/image.prerm.in
++++ b/debian/templates/image.prerm.in
+@@ -9,9 +9,6 @@ fi
+
+ linux-check-removal $version
+
+-if [ -d /etc/kernel/prerm.d ]; then
+-    DEB_MAINT_PARAMS="$*" run-parts --report --exit-on-error --arg=$version \
+-	      --arg=$image_path /etc/kernel/prerm.d
+-fi
++linux-run-hooks prerm "$*" $version $image_path
+
+ exit 0
+--
+GitLab
+END
 
 if [ "$KVER" = "6.11" ]; then
   # see https://salsa.debian.org/kernel-team/linux/-/merge_requests/1260
