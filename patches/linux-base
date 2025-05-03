@@ -43,7 +43,7 @@ new file mode 100755
 index 0000000..6568f22
 --- /dev/null
 +++ b/bin/linux-run-hooks
-@@ -0,0 +1,94 @@
+@@ -0,0 +1,98 @@
 +#!/usr/bin/perl
 +
 +# Copyright 2025 Ben Hutchings
@@ -128,6 +128,10 @@ index 0000000..6568f22
 +    usage_error();
 +}
 +
++print STDERR ("argv0: ". $ARGV[0]. "\n");
++print STDERR ("argv1: ". $ARGV[1]. "\n");
++print STDERR ("argv2: ". $ARGV[2]. "\n");
++print STDERR ("argv3: ". $ARGV[3]. "\n");
 +my $type = $ARGV[0];
 +if ($type eq 'help' or grep({$_ eq '--help'} @ARGV)) {
 +    usage(*STDOUT{IO});
