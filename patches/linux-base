@@ -1,7 +1,7 @@
 #!/bin/sh
 # https://salsa.debian.org/kernel-team/linux-base/-/merge_requests/14/diffs
 patch -p1 << 'END'
-From 3b9e22a664b8fdcacda476a62aa721d8f39bf8c7 Mon Sep 17 00:00:00 2001
+From 71bd8de5adaaff73d8f87dbfe4143ceea6d46573 Mon Sep 17 00:00:00 2001
 From: Ben Hutchings <benh@debian.org>
 Date: Sat, 3 May 2025 03:51:05 +0200
 Subject: [PATCH] Add linux-run-hooks command for use by package maintainer
@@ -21,29 +21,21 @@ of directly calling run-parts.  The benefits of that are:
 - The same logic can be shared with Ubuntu and any other derivatives
   that have their own packaging.
 ---
- bin/linux-run-hooks   | 94 +++++++++++++++++++++++++++++++++++++++++++
- debian/changelog      |  1 +
- man/linux-run-hooks.1 | 35 ++++++++++++++++
- 3 files changed, 130 insertions(+)
+ bin/linux-run-hooks        | 94 ++++++++++++++++++++++++++++++++++++++
+ debian/changelog           |  1 +
+ debian/linux-base.install  |  1 +
+ debian/linux-base.manpages |  1 +
+ man/linux-run-hooks.1      | 35 ++++++++++++++
+ 5 files changed, 132 insertions(+)
  create mode 100755 bin/linux-run-hooks
  create mode 100644 man/linux-run-hooks.1
 
-diff --git a/debian/linux-base.install b/debian/linux-base.install
-index 90acfeb..62c509d 100644
---- a/debian/linux-base.install
-+++ b/debian/linux-base.install
-@@ -1,4 +1,5 @@
- bin/linux-check-removal usr/bin
- bin/linux-update-symlinks usr/bin
- bin/linux-version usr/bin
-+bin/linux-run-hooks usr/bin
- lib/DebianLinux.pm usr/share/perl5
 diff --git a/bin/linux-run-hooks b/bin/linux-run-hooks
 new file mode 100755
-index 0000000..6568f22
+index 0000000..cc66f96
 --- /dev/null
 +++ b/bin/linux-run-hooks
-@@ -0,0 +1,98 @@
+@@ -0,0 +1,94 @@
 +#!/usr/bin/perl
 +
 +# Copyright 2025 Ben Hutchings
@@ -128,20 +120,37 @@ index 0000000..6568f22
 +    usage_error();
 +}
 +
-+print STDERR ("argv0: ". $ARGV[0]. "\n");
-+print STDERR ("argv1: ". $ARGV[1]. "\n");
-+print STDERR ("argv2: ". $ARGV[2]. "\n");
-+print STDERR ("argv3: ". $ARGV[3]. "\n");
 +my $type = $ARGV[0];
 +if ($type eq 'help' or grep({$_ eq '--help'} @ARGV)) {
 +    usage(*STDOUT{IO});
 +    exit 0;
 +} elsif ($type =~ /^(?:pre|post)(?:inst|rm)$/ && @ARGV == 4) {
 +    run_hooks(@ARGV);
-+} elsif ($type eq 'headers_postinst' && @ARGV == 2) {
++} elsif ($type eq 'headers_postinst' && @ARGV == 3) {
 +    run_hooks(@ARGV);
 +}
 +usage_error();
+diff --git a/debian/linux-base.install b/debian/linux-base.install
+index 90acfeb..e0b1726 100644
+--- a/debian/linux-base.install
++++ b/debian/linux-base.install
+@@ -1,4 +1,5 @@
+ bin/linux-check-removal usr/bin
++bin/linux-run-hooks usr/bin
+ bin/linux-update-symlinks usr/bin
+ bin/linux-version usr/bin
+ lib/DebianLinux.pm usr/share/perl5
+diff --git a/debian/linux-base.manpages b/debian/linux-base.manpages
+index cd0fcaf..8dabdc2 100644
+--- a/debian/linux-base.manpages
++++ b/debian/linux-base.manpages
+@@ -2,5 +2,6 @@ man/kernel-img.conf.5
+ man/kernel-img.conf.de.5
+ man/kernel-img.conf.fr.5
+ man/linux-check-removal.1
++man/linux-run-hooks.1
+ man/linux-update-symlinks.1
+ man/linux-version.1
 diff --git a/man/linux-run-hooks.1 b/man/linux-run-hooks.1
 new file mode 100644
 index 0000000..770d9ac
