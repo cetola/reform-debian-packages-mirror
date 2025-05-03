@@ -136,7 +136,7 @@ index 0000000..6568f22
 +if ($type eq 'help' or grep({$_ eq '--help'} @ARGV)) {
 +    usage(*STDOUT{IO});
 +    exit 0;
-+} elsif ($type =~ /^(?:pre|post)(?:inst|rm)$/ && @ARGV == 3) {
++} elsif ($type =~ /^(?:pre|post)(?:inst|rm)$/ && @ARGV == 4) {
 +    run_hooks(@ARGV);
 +} elsif ($type eq 'headers_postinst' && @ARGV == 2) {
 +    run_hooks(@ARGV);
