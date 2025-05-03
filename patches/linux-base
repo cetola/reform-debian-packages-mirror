@@ -28,6 +28,16 @@ of directly calling run-parts.  The benefits of that are:
  create mode 100755 bin/linux-run-hooks
  create mode 100644 man/linux-run-hooks.1
 
+diff --git a/debian/linux-base.install b/debian/linux-base.install
+index 90acfeb..62c509d 100644
+--- a/debian/linux-base.install
++++ b/debian/linux-base.install
+@@ -1,4 +1,5 @@
+ bin/linux-check-removal usr/bin
+ bin/linux-update-symlinks usr/bin
+ bin/linux-version usr/bin
++bin/linux-run-hooks usr/bin
+ lib/DebianLinux.pm usr/share/perl5
 diff --git a/bin/linux-run-hooks b/bin/linux-run-hooks
 new file mode 100755
 index 0000000..6568f22
