@@ -93,9 +93,9 @@ patch -p1 << 'END'
 --- a/debian/control
 +++ b/debian/control
 @@ -23,6 +23,7 @@ Depends:
-  alsa-utils,
   console-setup,
   debconf,
+  debianutils (>= 5.21),
 + fonts-reform-iosevka-term (= 2.3.0-1),
   gpiod,
   jq,
