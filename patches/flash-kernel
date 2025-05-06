@@ -33,7 +33,7 @@ index 1bacc51..765fe45 100644
  Machine: MNT Reform 2
  Kernel-Flavors: any
  Boot-Script-Path: /boot/boot.scr
-@@ -1185,6 +1192,41 @@ Boot-Script-Path: /boot/boot.scr
+@@ -1185,6 +1192,48 @@ Boot-Script-Path: /boot/boot.scr
  U-Boot-Script-Name: bootscr.uboot-generic
  Required-Packages: u-boot-tools
 
@@ -61,6 +61,13 @@ index 1bacc51..765fe45 100644
 +Machine: MNT Reform 2 with RCORE RK3588 Module
 +Kernel-Flavors: any
 +DTB-Id: rockchip/rk3588-mnt-reform2.dtb
++Boot-Script-Path: /boot/boot.scr
++U-Boot-Script-Name: bootscr.uboot-generic
++Required-Packages: u-boot-tools
++
++Machine: MNT Reform 2 with RCORE-DSI RK3588 Module
++Kernel-Flavors: any
++DTB-Id: rockchip/rk3588-mnt-reform2-dsi.dtb
 +Boot-Script-Path: /boot/boot.scr
 +U-Boot-Script-Name: bootscr.uboot-generic
 +Required-Packages: u-boot-tools
