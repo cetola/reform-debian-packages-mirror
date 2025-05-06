@@ -47,13 +47,6 @@
 		dais = <&i2s0_8ch_p0>;
 	};
 
-	gmac0_clkin: external-gmac0-clock {
-		compatible = "fixed-clock";
-		clock-frequency = <125000000>;
-		clock-output-names = "gmac0_clkin";
-		#clock-cells = <0>;
-	};
-
 	pcie30_avdd1v8: pcie30-avdd1v8 {
 		compatible = "regulator-fixed";
 		regulator-name = "pcie30_avdd1v8";
@@ -131,6 +124,16 @@
 		regulator-max-microvolt = <5000000>;
 		vin-supply = <&vcc12v_dcin>;
 	};
+
+	vcc1v2_eth: vcc1v2-eth {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc1v2";
+		regulator-always-on;
+		regulator-boot-on;
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		vin-supply = <&vcc12v_dcin>;
+	};
 };
 
 &combphy0_ps {
@@ -186,31 +189,30 @@
 };
 
 &display_subsystem {
-	clocks = <&hdptxphy_hdmi0>, <&hdptxphy_hdmi1>;
-	clock-names = "hdmi0_phy_pll", "hdmi1_phy_pll";
+	clocks = <&hdptxphy_hdmi0>, <&hdptxphy1>;
+	clock-names = "pll_hdmiphy0", "pll_hdmiphy1";
 };
 
 &gmac0 {
 	clock_in_out = "output";
 	phy-handle = <&rgmii_phy>;
-	phy-mode = "rgmii-id";
+	phy-mode = "rgmii";
+	phy-supply = <&vcc1v2_eth>;
+	pinctrl-names = "default";
 	pinctrl-0 = <&gmac0_miim
 		&gmac0_tx_bus2
 		&gmac0_rx_bus2
 		&gmac0_rgmii_clk
 		&gmac0_rgmii_bus
-		&gmac0_clkinout
+		&eth0_pins
 		&eth_phy_reset>;
-	pinctrl-names = "default";
 
-	/* resetting in the driver is not reliable,
-	   so we do it in reform-hw-setup
-	   until we have enough test data to move
-	   it to u-boot */
+	tx_delay = <0x10>;
+	rx_delay = <0x10>;
 
-	/*snps,reset-gpio = <&gpio3 RK_PC7 GPIO_ACTIVE_LOW>;
 	snps,reset-active-low;
-	snps,reset-delays-us = <0 20000 100000>;*/
+	snps,reset-delays-us = <0 10000 100000>;
+	snps,reset-gpio = <&gpio3 RK_PC7 GPIO_ACTIVE_LOW>;
 
 	status = "okay";
 };
@@ -250,7 +252,7 @@
 	};
 };
 
-&hdptxphy_hdmi1 {
+&hdptxphy1 {
 	status = "okay";
 };
 
@@ -853,12 +855,6 @@
 };
 
 &pinctrl {
-	dp {
-		dp1_hpd: dp1-hpd {
-			 rockchip,pins = <1 RK_PA5 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-	};
-
 	pcie2 {
 		pcie2_0_rst: pcie2-0-rst {
 			rockchip,pins = <3 RK_PD1 RK_FUNC_GPIO &pcfg_pull_none>;
@@ -876,6 +872,18 @@
 			rockchip,pins = <3 RK_PC7 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
+};
+
+&gpio4 {
+  /* there are no resistor straps for config options
+  like LED_MODE on RCORE R1, so use a GPIO hog
+  to configure the LED_MODE at PHY reset time */
+  eth-phy-strap-hog {
+    gpios = <RK_PC3 GPIO_ACTIVE_LOW>;
+    output-low;
+    line-name = "ETH PHY LED Mode Strap";
+    gpio-hog;
+  };
 };
 
 &u2phy0 {

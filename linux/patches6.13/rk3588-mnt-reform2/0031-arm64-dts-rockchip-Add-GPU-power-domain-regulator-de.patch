@@ -1,0 +1,42 @@
+From c48f6d4df1f6bfbdda89fe33737336062df340f5 Mon Sep 17 00:00:00 2001
+From: Sebastian Reichel <sebastian.reichel@collabora.com>
+Date: Fri, 6 Sep 2024 19:24:03 +0200
+Subject: [PATCH 31/41] arm64: dts: rockchip: Add GPU power domain regulator
+ dependency for RK3588
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Enabling the GPU power domain requires that the GPU regulator is
+enabled. The regulator is enabled at boot time, but automatically
+gets disabled when there are no users.
+
+If the GPU driver is not probed at boot time or rebound while
+the system is running the system will try to enable the power
+domain before the regulator is enabled resulting in a failure
+hanging the whole system. Avoid this by adding an explicit
+dependency.
+
+Reported-by: Adrián Martínez Larumbe <adrian.larumbe@collabora.com>
+Tested-by: Adrian Larumbe <adrian.larumbe@collabora.com> # On Rock 5B
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3588-base.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-base.dtsi b/arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+index 42c4bf0dece1..ac3f5f26b60c 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+@@ -876,7 +876,7 @@ power-domain@RK3588_PD_NPU2 {
+ 				};
+ 			};
+ 			/* These power domains are grouped by VD_GPU */
+-			power-domain@RK3588_PD_GPU {
++			pd_gpu: power-domain@RK3588_PD_GPU {
+ 				reg = <RK3588_PD_GPU>;
+ 				clocks = <&cru CLK_GPU>,
+ 					 <&cru CLK_GPU_COREGROUP>,
+-- 
+2.49.0
+

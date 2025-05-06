@@ -1,0 +1,62 @@
+commit 82a047fb0da247415d717935bc9ac1d75613956a
+Author: Lukas F. Hartmann <lukas@mntre.com>
+Date:   Wed Apr 30 21:59:34 2025 +0200
+
+    [PATCH v3] PCI: dw-rockchip: Enable L0S capability
+    
+    Ported to Linux 6.14 from https://lore.kernel.org/linux-rockchip/1744594051-209255-1-git-send-email-shawn.lin@rock-chips.com/
+
+diff --git a/drivers/pci/controller/dwc/pcie-dw-rockchip.c b/drivers/pci/controller/dwc/pcie-dw-rockchip.c
+index 1cb77b75ac8d..d1ec202086eb 100644
+--- a/drivers/pci/controller/dwc/pcie-dw-rockchip.c
++++ b/drivers/pci/controller/dwc/pcie-dw-rockchip.c
+@@ -199,6 +199,21 @@ static int rockchip_pcie_link_up(struct dw_pcie *pci)
+ 	return 0;
+ }
+ 
++static void rockchip_pcie_enable_l0s(struct dw_pcie *pci)
++{
++	u32 cap, lnkcap;
++
++	/* Enable L0S capability for all SoCs */
++	cap = dw_pcie_find_capability(pci, PCI_CAP_ID_EXP);
++	if (cap) {
++		lnkcap = dw_pcie_readl_dbi(pci, cap + PCI_EXP_LNKCAP);
++		lnkcap |= PCI_EXP_LNKCAP_ASPM_L0S;
++		dw_pcie_dbi_ro_wr_en(pci);
++		dw_pcie_writel_dbi(pci, cap + PCI_EXP_LNKCAP, lnkcap);
++		dw_pcie_dbi_ro_wr_dis(pci);
++	}
++}
++
+ static int rockchip_pcie_start_link(struct dw_pcie *pci)
+ {
+ 	struct rockchip_pcie *rockchip = to_rockchip_pcie(pci);
+@@ -248,6 +263,8 @@ static int rockchip_pcie_host_init(struct dw_pcie_rp *pp)
+ 	irq_set_chained_handler_and_data(irq, rockchip_pcie_intx_handler,
+ 					 rockchip);
+ 
++	rockchip_pcie_enable_l0s(pci);
++
+ 	return 0;
+ }
+ 
+@@ -298,6 +315,8 @@ static void rockchip_pcie_ep_init(struct dw_pcie_ep *ep)
+ 	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
+ 	enum pci_barno bar;
+ 
++	rockchip_pcie_enable_l0s(pci);
++
+ 	for (bar = 0; bar < PCI_STD_NUM_BARS; bar++)
+ 		dw_pcie_ep_reset_bar(pci, bar);
+ };
+@@ -632,6 +651,9 @@ static int rockchip_pcie_probe(struct platform_device *pdev)
+ 	rockchip->pci.dev = dev;
+ 	rockchip->pci.ops = &dw_pcie_ops;
+ 	rockchip->data = data;
++	/* Default fts number(210) is broken, override it to 255 */
++	rockchip->pci.n_fts[0] = 255; /* Gen1 */
++	rockchip->pci.n_fts[1] = 255; /* Gen2+ */
+ 
+ 	ret = rockchip_pcie_resource_get(pdev, rockchip);
+ 	if (ret)

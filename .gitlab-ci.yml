@@ -3,7 +3,7 @@ image: debian:unstable-slim
 variables:
   BASESUITE:
     description: Debian suite to fetch packages from
-    value: unstable
+    value: experimental
   OURSUITE:
     description: Suite name of the repository we create
     value: reform

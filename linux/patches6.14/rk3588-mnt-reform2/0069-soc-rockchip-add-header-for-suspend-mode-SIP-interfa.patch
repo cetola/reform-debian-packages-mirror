@@ -1,0 +1,35 @@
+From 8bfde05f27248fe3a6f1ede00737030f6fdbf6f8 Mon Sep 17 00:00:00 2001
+From: Shawn Lin <shawn.lin@rock-chips.com>
+Date: Wed, 5 Feb 2025 14:15:51 +0800
+Subject: [PATCH 69/73] soc: rockchip: add header for suspend mode SIP
+ interface
+
+Add ROCKCHIP_SIP_SUSPEND_MODE to pass down parameters to Trusted Firmware
+in order to decide suspend mode. Currently only add ROCKCHIP_SLEEP_PD_CONFIG
+which teaches firmware to power down controllers or not.
+
+Signed-off-by: Shawn Lin <shawn.lin@rock-chips.com>
+Acked-by: Heiko Stuebner <heiko@sntech.de>
+Link: https://lore.kernel.org/r/1738736156-119203-3-git-send-email-shawn.lin@rock-chips.com
+Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+---
+ include/soc/rockchip/rockchip_sip.h | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/include/soc/rockchip/rockchip_sip.h b/include/soc/rockchip/rockchip_sip.h
+index c46a9ae2a2ab..501ad1fedb20 100644
+--- a/include/soc/rockchip/rockchip_sip.h
++++ b/include/soc/rockchip/rockchip_sip.h
+@@ -6,6 +6,9 @@
+ #ifndef __SOC_ROCKCHIP_SIP_H
+ #define __SOC_ROCKCHIP_SIP_H
+ 
++#define ROCKCHIP_SIP_SUSPEND_MODE		0x82000003
++#define ROCKCHIP_SLEEP_PD_CONFIG		0xff
++
+ #define ROCKCHIP_SIP_DRAM_FREQ			0x82000008
+ #define ROCKCHIP_SIP_CONFIG_DRAM_INIT		0x00
+ #define ROCKCHIP_SIP_CONFIG_DRAM_SET_RATE	0x01
+-- 
+2.49.0
+

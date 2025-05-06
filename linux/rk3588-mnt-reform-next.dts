@@ -139,6 +139,16 @@
 		regulator-max-microvolt = <5000000>;
 		vin-supply = <&vcc12v_dcin>;
 	};
+
+	vcc1v2_eth: vcc1v2-eth {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc1v2";
+		regulator-always-on;
+		regulator-boot-on;
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		vin-supply = <&vcc12v_dcin>;
+	};
 };
 
 &combphy0_ps {
@@ -194,8 +204,8 @@
 };
 
 &display_subsystem {
-	clocks = <&hdptxphy_hdmi0>, <&hdptxphy_hdmi1>;
-	clock-names = "hdmi0_phy_pll", "hdmi1_phy_pll";
+	clocks = <&hdptxphy_hdmi0>, <&hdptxphy1>;
+	clock-names = "pll_hdmiphy0", "pll_hdmiphy1";
 };
 
 &gmac0 {
@@ -256,7 +266,7 @@
 	};
 };
 
-&hdptxphy_hdmi1 {
+&hdptxphy1 {
 	status = "okay";
 };
 
@@ -860,12 +870,6 @@
 };
 
 &pinctrl {
-	dp {
-		dp1_hpd: dp1-hpd {
-			 rockchip,pins = <1 RK_PA5 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-	};
-
 	pcie2 {
 		pcie2_0_rst: pcie2-0-rst {
 			rockchip,pins = <3 RK_PD1 RK_FUNC_GPIO &pcfg_pull_none>;
@@ -883,6 +887,18 @@
 			rockchip,pins = <3 RK_PC7 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
+};
+
+&gpio4 {
+  /* there are no resistor straps for config options
+  like LED_MODE on RCORE R1, so use a GPIO hog
+  to configure the LED_MODE at PHY reset time */
+  eth-phy-strap-hog {
+    gpios = <RK_PC3 GPIO_ACTIVE_LOW>;
+    output-low;
+    line-name = "ETH PHY LED Mode Strap";
+    gpio-hog;
+  };
 };
 
 &u2phy0 {

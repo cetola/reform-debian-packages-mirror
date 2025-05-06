@@ -1,0 +1,56 @@
+From fc4ebe83ef2502aa782e8e40cc31f22bfdf8efe6 Mon Sep 17 00:00:00 2001
+From: "Lukas F. Hartmann" <lukas@mntre.com>
+Date: Fri, 18 Apr 2025 21:55:07 +0200
+Subject: [PATCH 39/41] rk3588: vop2: clock reparenting for hdmi1
+
+Port the clock reparenting from hdmi0 to hdmi1 to make use of more
+fine-grained pixel clocks for the secondary hdmi as well.
+---
+ drivers/gpu/drm/rockchip/rockchip_drm_vop2.c | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c b/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
+index 7f1af9e8d065..b6dac32043b5 100644
+--- a/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
++++ b/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
+@@ -216,6 +216,7 @@ struct vop2 {
+ 	struct clk *aclk;
+ 	struct clk *pclk;
+ 	struct clk *pll_hdmiphy0;
++	struct clk *pll_hdmiphy1;
+ 
+ 	/* optional internal rgb encoder */
+ 	struct rockchip_rgb *rgb;
+@@ -2095,7 +2096,16 @@ static void vop2_crtc_atomic_enable(struct drm_crtc *crtc,
+ 					drm_warn(vop2->drm,
+ 						 "Could not switch to HDMI0 PHY PLL: %d\n", ret);
+ 				break;
+-			}
++			} else if (vop2->pll_hdmiphy1 && rkencoder->crtc_endpoint_id == ROCKCHIP_VOP2_EP_HDMI1) {
++				if (!vp->dclk_src)
++					vp->dclk_src = clk_get_parent(vp->dclk);
++
++				ret = clk_set_parent(vp->dclk, vop2->pll_hdmiphy1);
++				if (ret < 0)
++					drm_warn(vop2->drm,
++						 "Could not switch to HDMI1 PHY PLL: %d\n", ret);
++				break;
++		        }
+ 		}
+ 	}
+ 
+@@ -3231,6 +3241,11 @@ static int vop2_bind(struct device *dev, struct device *master, void *data)
+ 		return PTR_ERR(vop2->pll_hdmiphy0);
+ 	}
+ 
++	vop2->pll_hdmiphy1 = devm_clk_get_optional(vop2->dev, "pll_hdmiphy1");
++	if (IS_ERR(vop2->pll_hdmiphy1)) {
++		drm_warn(vop2->drm, "failed to get pll_hdmiphy1\n");
++	}
++
+ 	vop2->irq = platform_get_irq(pdev, 0);
+ 	if (vop2->irq < 0) {
+ 		drm_err(vop2->drm, "cannot find irq for vop2\n");
+-- 
+2.49.0
+
