@@ -119,3 +119,166 @@ patch -p1 << 'END'
   linux-headers-mnt-reform-arm64,
   linux-image-mnt-reform-arm64,
 END
+
+patch -p1 << 'END'
+From dc5633cb32a31c82dd1a0bd34182cf2e314acf5a Mon Sep 17 00:00:00 2001
+From: Johannes Schauer Marin Rodrigues <josch@debian.org>
+Date: Tue, 6 May 2025 18:34:46 +0200
+Subject: [PATCH] diff between Debian unstable and MNT repos during the Trixie
+ freeze
+
+---
+ ...e-for-reform2-rk3588-variant-with-ds.patch | 43 ++++++++++
+ ...h-RCORE-RK3588-Module.conf-update-to.patch | 80 +++++++++++++++++++
+ debian/patches/series                         |  2 +
+ 3 files changed, 125 insertions(+)
+ create mode 100644 debian/patches/0001-machines-add-file-for-reform2-rk3588-variant-with-ds.patch
+ create mode 100644 debian/patches/0002-machines-MNT-with-RCORE-RK3588-Module.conf-update-to.patch
+ create mode 100644 debian/patches/series
+
+diff --git a/debian/patches/0001-machines-add-file-for-reform2-rk3588-variant-with-ds.patch b/debian/patches/0001-machines-add-file-for-reform2-rk3588-variant-with-ds.patch
+new file mode 100644
+index 0000000..468b428
+--- /dev/null
++++ b/debian/patches/0001-machines-add-file-for-reform2-rk3588-variant-with-ds.patch
+@@ -0,0 +1,43 @@
++From 542bc575323915a373f367613b4b6fc5d40378d3 Mon Sep 17 00:00:00 2001
++From: "Lukas F. Hartmann" <lukas@mntre.com>
++Date: Fri, 2 May 2025 20:22:15 +0200
++Subject: [PATCH 1/2] machines: add file for reform2 rk3588 variant with dsi
++ display
++
++---
++ ...Reform 2 with RCORE-DSI RK3588 Module.conf | 23 +++++++++++++++++++
++ 1 file changed, 23 insertions(+)
++ create mode 100644 machines/MNT Reform 2 with RCORE-DSI RK3588 Module.conf
++
++diff --git a/machines/MNT Reform 2 with RCORE-DSI RK3588 Module.conf b/machines/MNT Reform 2 with RCORE-DSI RK3588 Module.conf
++new file mode 100644
++index 0000000..1fd2c35
++--- /dev/null
+++++ b/machines/MNT Reform 2 with RCORE-DSI RK3588 Module.conf	
++@@ -0,0 +1,23 @@
+++# name of the system image file produced by reform-system-image
+++SYSIMAGE="reform-system-rk3588-dsi"
+++DTBPATH="rockchip/rk3588-mnt-reform2-dsi.dtb"
+++# flashing the reform-system-image to emmc also flashes u-boot which might
+++# soft-brick the module if something goes wrong
+++EMMC_USE=true
+++EMMC_BOOT=warn
+++SD_BOOT=true
+++# name of devices in /dev
+++DEV_MMC="mmcblk0"
+++DEV_MMC_BOOT0=false
+++DEV_SD="mmcblk1"
+++DEV_SSD="nvme0n1"
+++DEV_USB="sda"
+++# the current u-boot hashes from source.mnt.re
+++UBOOT_SHA1="4d597f4028120c7c35c4267c9c9bb7d409741d55"
+++UBOOT_PROJECT="reform-rk3588-uboot"
+++UBOOT_TAG="2024-11-13b"
+++# idbloader.img is expected at an offset of 32768 bytes and u-boot follows 8355840 bytes after
+++UBOOT_OFFSET=32768
+++FLASHBIN_OFFSET=0
+++NEED_NONFREE=false
+++BOOTARGS="ro no_console_suspend cryptomgr.notests loglevel=3  clk_ignore_unused cma=256M swiotlb=65535  console=tty1"
++-- 
++2.39.5
++
+diff --git a/debian/patches/0002-machines-MNT-with-RCORE-RK3588-Module.conf-update-to.patch b/debian/patches/0002-machines-MNT-with-RCORE-RK3588-Module.conf-update-to.patch
+new file mode 100644
+index 0000000..0b38295
+--- /dev/null
++++ b/debian/patches/0002-machines-MNT-with-RCORE-RK3588-Module.conf-update-to.patch
+@@ -0,0 +1,80 @@
++From a8fae33f02c1bc09d2c2d71596b4228255cf1f51 Mon Sep 17 00:00:00 2001
++From: Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
++Date: Tue, 6 May 2025 17:57:38 +0200
++Subject: [PATCH 2/2] machines/MNT * with RCORE RK3588 Module.conf: update to
++ u-boot 2025-05-06
++
++---
++ machines/MNT Pocket Reform with RCORE RK3588 Module.conf | 4 ++--
++ machines/MNT Reform 2 with RCORE RK3588 Module.conf      | 4 ++--
++ machines/MNT Reform 2 with RCORE-DSI RK3588 Module.conf  | 4 ++--
++ machines/MNT Reform Next with RCORE RK3588 Module.conf   | 4 ++--
++ 4 files changed, 8 insertions(+), 8 deletions(-)
++
++diff --git a/machines/MNT Pocket Reform with RCORE RK3588 Module.conf b/machines/MNT Pocket Reform with RCORE RK3588 Module.conf
++index 98d63d7..2b84bbd 100644
++--- a/machines/MNT Pocket Reform with RCORE RK3588 Module.conf	
+++++ b/machines/MNT Pocket Reform with RCORE RK3588 Module.conf	
++@@ -13,9 +13,9 @@ DEV_SD="mmcblk1"
++ DEV_SSD="nvme0n1"
++ DEV_USB="sda"
++ # the current u-boot hashes from source.mnt.re
++-UBOOT_SHA1="0b8c4d7ef564d79981941a972f6e8569cad3ecdf"
+++UBOOT_SHA1="373f14807fe29f4151afc05c8e70bcb8f3313e3c"
++ UBOOT_PROJECT="reform-rk3588-uboot"
++-UBOOT_TAG="2024-11-13b"
+++UBOOT_TAG="2025-05-06"
++ # idbloader.img is expected at an offset of 32768 bytes and u-boot follows 8355840 bytes after
++ UBOOT_OFFSET=32768
++ FLASHBIN_OFFSET=0
++diff --git a/machines/MNT Reform 2 with RCORE RK3588 Module.conf b/machines/MNT Reform 2 with RCORE RK3588 Module.conf
++index 9bf4351..a646ec4 100644
++--- a/machines/MNT Reform 2 with RCORE RK3588 Module.conf	
+++++ b/machines/MNT Reform 2 with RCORE RK3588 Module.conf	
++@@ -13,9 +13,9 @@ DEV_SD="mmcblk1"
++ DEV_SSD="nvme0n1"
++ DEV_USB="sda"
++ # the current u-boot hashes from source.mnt.re
++-UBOOT_SHA1="4d597f4028120c7c35c4267c9c9bb7d409741d55"
+++UBOOT_SHA1="033d8e7539b7558fc2f76ad7833707fda7bf0800"
++ UBOOT_PROJECT="reform-rk3588-uboot"
++-UBOOT_TAG="2024-11-13b"
+++UBOOT_TAG="2025-05-06"
++ # idbloader.img is expected at an offset of 32768 bytes and u-boot follows 8355840 bytes after
++ UBOOT_OFFSET=32768
++ FLASHBIN_OFFSET=0
++diff --git a/machines/MNT Reform 2 with RCORE-DSI RK3588 Module.conf b/machines/MNT Reform 2 with RCORE-DSI RK3588 Module.conf
++index 1fd2c35..10f804b 100644
++--- a/machines/MNT Reform 2 with RCORE-DSI RK3588 Module.conf	
+++++ b/machines/MNT Reform 2 with RCORE-DSI RK3588 Module.conf	
++@@ -13,9 +13,9 @@ DEV_SD="mmcblk1"
++ DEV_SSD="nvme0n1"
++ DEV_USB="sda"
++ # the current u-boot hashes from source.mnt.re
++-UBOOT_SHA1="4d597f4028120c7c35c4267c9c9bb7d409741d55"
+++UBOOT_SHA1="57b19e6eb3e0e46cdb8514c2767bf4fe2f66c067"
++ UBOOT_PROJECT="reform-rk3588-uboot"
++-UBOOT_TAG="2024-11-13b"
+++UBOOT_TAG="2025-05-06"
++ # idbloader.img is expected at an offset of 32768 bytes and u-boot follows 8355840 bytes after
++ UBOOT_OFFSET=32768
++ FLASHBIN_OFFSET=0
++diff --git a/machines/MNT Reform Next with RCORE RK3588 Module.conf b/machines/MNT Reform Next with RCORE RK3588 Module.conf
++index 1c40158..b0276f2 100644
++--- a/machines/MNT Reform Next with RCORE RK3588 Module.conf	
+++++ b/machines/MNT Reform Next with RCORE RK3588 Module.conf	
++@@ -13,9 +13,9 @@ DEV_SD="mmcblk1"
++ DEV_SSD="nvme0n1"
++ DEV_USB="sda"
++ # the current u-boot hashes from source.mnt.re
++-UBOOT_SHA1="e99c53a0c6490fc9b8c361d0d09516de968b607a"
+++UBOOT_SHA1="9a76c872ffcf2da657a8441d4bca192217334cda"
++ UBOOT_PROJECT="reform-rk3588-uboot"
++-UBOOT_TAG="2024-11-13b"
+++UBOOT_TAG="2025-05-06"
++ # idbloader.img is expected at an offset of 32768 bytes and u-boot follows 8355840 bytes after
++ UBOOT_OFFSET=32768
++ FLASHBIN_OFFSET=0
++-- 
++2.39.5
++
+diff --git a/debian/patches/series b/debian/patches/series
+new file mode 100644
+index 0000000..c3399da
+--- /dev/null
++++ b/debian/patches/series
+@@ -0,0 +1,2 @@
++0001-machines-add-file-for-reform2-rk3588-variant-with-ds.patch
++0002-machines-MNT-with-RCORE-RK3588-Module.conf-update-to.patch
+-- 
+2.39.5
+END
