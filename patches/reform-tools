@@ -121,7 +121,7 @@ patch -p1 << 'END'
 END
 
 patch -p1 << 'END'
-From dc5633cb32a31c82dd1a0bd34182cf2e314acf5a Mon Sep 17 00:00:00 2001
+From e1ba34b61bafea548b4962ffe81f344d0dcf5000 Mon Sep 17 00:00:00 2001
 From: Johannes Schauer Marin Rodrigues <josch@debian.org>
 Date: Tue, 6 May 2025 18:34:46 +0200
 Subject: [PATCH] diff between Debian unstable and MNT repos during the Trixie
@@ -130,22 +130,24 @@ Subject: [PATCH] diff between Debian unstable and MNT repos during the Trixie
 ---
  ...e-for-reform2-rk3588-variant-with-ds.patch | 43 ++++++++++
  ...h-RCORE-RK3588-Module.conf-update-to.patch | 80 +++++++++++++++++++
- debian/patches/series                         |  2 +
- 3 files changed, 125 insertions(+)
+ ...tup-initramfs-tools-hooks-reform-add.patch | 41 ++++++++++
+ debian/patches/series                         |  3 +
+ 4 files changed, 167 insertions(+)
  create mode 100644 debian/patches/0001-machines-add-file-for-reform2-rk3588-variant-with-ds.patch
  create mode 100644 debian/patches/0002-machines-MNT-with-RCORE-RK3588-Module.conf-update-to.patch
+ create mode 100644 debian/patches/0003-bin-reform-hw-setup-initramfs-tools-hooks-reform-add.patch
  create mode 100644 debian/patches/series
 
 diff --git a/debian/patches/0001-machines-add-file-for-reform2-rk3588-variant-with-ds.patch b/debian/patches/0001-machines-add-file-for-reform2-rk3588-variant-with-ds.patch
 new file mode 100644
-index 0000000..468b428
+index 0000000..f809f52
 --- /dev/null
 +++ b/debian/patches/0001-machines-add-file-for-reform2-rk3588-variant-with-ds.patch
 @@ -0,0 +1,43 @@
 +From 542bc575323915a373f367613b4b6fc5d40378d3 Mon Sep 17 00:00:00 2001
 +From: "Lukas F. Hartmann" <lukas@mntre.com>
 +Date: Fri, 2 May 2025 20:22:15 +0200
-+Subject: [PATCH 1/2] machines: add file for reform2 rk3588 variant with dsi
++Subject: [PATCH 1/3] machines: add file for reform2 rk3588 variant with dsi
 + display
 +
 +---
@@ -187,14 +189,14 @@ index 0000000..468b428
 +
 diff --git a/debian/patches/0002-machines-MNT-with-RCORE-RK3588-Module.conf-update-to.patch b/debian/patches/0002-machines-MNT-with-RCORE-RK3588-Module.conf-update-to.patch
 new file mode 100644
-index 0000000..0b38295
+index 0000000..dcdc7f9
 --- /dev/null
 +++ b/debian/patches/0002-machines-MNT-with-RCORE-RK3588-Module.conf-update-to.patch
 @@ -0,0 +1,80 @@
 +From a8fae33f02c1bc09d2c2d71596b4228255cf1f51 Mon Sep 17 00:00:00 2001
 +From: Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
 +Date: Tue, 6 May 2025 17:57:38 +0200
-+Subject: [PATCH 2/2] machines/MNT * with RCORE RK3588 Module.conf: update to
++Subject: [PATCH 2/3] machines/MNT * with RCORE RK3588 Module.conf: update to
 + u-boot 2025-05-06
 +
 +---
@@ -271,14 +273,62 @@ index 0000000..0b38295
 +-- 
 +2.39.5
 +
+diff --git a/debian/patches/0003-bin-reform-hw-setup-initramfs-tools-hooks-reform-add.patch b/debian/patches/0003-bin-reform-hw-setup-initramfs-tools-hooks-reform-add.patch
+new file mode 100644
+index 0000000..33b99f3
+--- /dev/null
++++ b/debian/patches/0003-bin-reform-hw-setup-initramfs-tools-hooks-reform-add.patch
+@@ -0,0 +1,41 @@
++From 396f905767216b775d6d3764bc89512a37d7e6b4 Mon Sep 17 00:00:00 2001
++From: Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
++Date: Wed, 7 May 2025 18:52:16 +0200
++Subject: [PATCH 3/3] bin/reform-hw-setup & initramfs-tools/hooks/reform: add
++ MNT Reform 2 with RCORE-DSI RK3588 Module
++
++---
++ bin/reform-hw-setup          | 4 ++++
++ initramfs-tools/hooks/reform | 1 +
++ 2 files changed, 5 insertions(+)
++
++diff --git a/bin/reform-hw-setup b/bin/reform-hw-setup
++index 1d8f785..3f5b073 100755
++--- a/bin/reform-hw-setup
+++++ b/bin/reform-hw-setup
++@@ -186,6 +186,10 @@ case "$(cat /proc/device-tree/model)" in
++     init_rk3588
++     init_wm8960
++     ;;
+++  "MNT Reform 2 with RCORE-DSI RK3588 Module")
+++    init_rk3588
+++    init_wm8960
+++    ;;
++   "MNT Pocket Reform with RCORE RK3588 Module")
++     init_rk3588
++     init_tlv320aic3100
++diff --git a/initramfs-tools/hooks/reform b/initramfs-tools/hooks/reform
++index a0d4182..4c3898c 100755
++--- a/initramfs-tools/hooks/reform
+++++ b/initramfs-tools/hooks/reform
++@@ -40,6 +40,7 @@ case $MACHINE in
++     copy_exec /usr/bin/dmesg
++     ;;
++   "MNT Reform 2 with RCORE RK3588 Module") : ;;
+++  "MNT Reform 2 with RCORE-DSI RK3588 Module") : ;;
++   "MNT Pocket Reform with i.MX8MP Module") : ;;
++   "MNT Pocket Reform with BPI-CM4 Module") : ;;
++   "MNT Pocket Reform with RCORE RK3588 Module") : ;;
++-- 
++2.39.5
++
 diff --git a/debian/patches/series b/debian/patches/series
 new file mode 100644
-index 0000000..c3399da
+index 0000000..72f53ec
 --- /dev/null
 +++ b/debian/patches/series
-@@ -0,0 +1,2 @@
+@@ -0,0 +1,3 @@
 +0001-machines-add-file-for-reform2-rk3588-variant-with-ds.patch
 +0002-machines-MNT-with-RCORE-RK3588-Module.conf-update-to.patch
++0003-bin-reform-hw-setup-initramfs-tools-hooks-reform-add.patch
 -- 
 2.39.5
 END
