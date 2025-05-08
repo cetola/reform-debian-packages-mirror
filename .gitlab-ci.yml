@@ -72,9 +72,6 @@ stages:
     #    done
     #  fi
     #done
-    if [ "$BASESUITE" = "experimental" ]; then
-      BASESUITE=unstable
-    fi
     runuser -u build -- sh -x ./build_patched.sh 2>&1 | ./filter-output
     # move to arch-qualified path
     mv changes "changes-$HOST_ARCH"

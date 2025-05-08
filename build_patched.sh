@@ -26,7 +26,14 @@ for p in patches/*; do
 	# differing) version of the binary packages it builds using sed.
 	# shellcheck disable=SC2016
 	our_version=$(reprepro --list-format '${version}_${source}\n' -T deb listfilter "$OURSUITE" "\$Source (== $p)" | sed 's/.*_.*(\(.*\))$/\1/;s/_.*//' | uniq)
-	their_version=$(chdist_base apt-get source --only-source -t "$BASESUITE" --no-act "$p" | sed "s/^Selected version '\\([^']*\\)' ($BASESUITE) for .*/\\1/;t;d")
+	OUR_BASESUITE=$BASESUITE
+	their_version=$(chdist_base apt-get source --only-source -t "$OUR_BASESUITE" --no-act "$p" | sed "s/^Selected version '\\([^']*\\)' ($OUR_BASESUITE) for .*/\\1/;t;d")
+	if test -z "$their_version" && [ "$OUR_BASESUITE" = "experimental" ]; then
+		# if the package was not in experimental, try again with unstable
+		echo "I: package was not found in experimental, trying again with unstable" >&2
+		OUR_BASESUITE=unstable
+		their_version=$(chdist_base apt-get source --only-source -t "$OUR_BASESUITE" --no-act "$p" | sed "s/^Selected version '\\([^']*\\)' ($OUR_BASESUITE) for .*/\\1/;t;d")
+	fi
 	if test -z "$their_version"; then
 		echo "W: cannot determine source version for $p -- skipping..." >&2
 		continue
@@ -54,7 +61,7 @@ for p in patches/*; do
 	mkdir --mode=0777 "$WORKDIR"
 	(
 		cd "$WORKDIR"
-		chdist_base apt-get source --only-source -t "$BASESUITE" "$p"
+		chdist_base apt-get source --only-source -t "$OUR_BASESUITE" "$p"
 		cd "$p-"*
 		dch --local "+$VERSUFFIX$datesuffix" "apply mnt reform patch"
 		dch --date="$(date --utc --date=@$SOURCE_DATE_EPOCH --rfc-email)" --force-distribution --distribution="$OURSUITE" --release ""
@@ -63,7 +70,7 @@ for p in patches/*; do
 		if [ "$BUILD_ARCH" != "$HOST_ARCH" ] && [ -n "$(env DEB_HOST_ARCH=$HOST_ARCH DEB_BUILD_PROFILES="cross nodoc $(echo $COMMON_BUILD_PROFILES | tr ',' ' ')" dh_listpackages -a)" ]; then
 			rm -f ../*.changes
 			ret=0
-			sbuild --chroot $BASESUITE-$BUILD_ARCH \
+			sbuild --chroot $OUR_BASESUITE-$BUILD_ARCH \
 				--host="$HOST_ARCH" \
 				--no-arch-all --arch-any \
 				--profiles="cross,nodoc,$COMMON_BUILD_PROFILES" \
@@ -72,7 +79,7 @@ for p in patches/*; do
 			if [ "$ret" -ne 0 ]; then
 				# cross building failed -- try building
 				# "natively" with qemu-user
-				sbuild --chroot $BASESUITE-$HOST_ARCH \
+				sbuild --chroot $OUR_BASESUITE-$HOST_ARCH \
 					--build="$HOST_ARCH" --host="$HOST_ARCH" \
 					--no-arch-all --arch-any \
 					--profiles="$COMMON_BUILD_PROFILES" \
@@ -96,7 +103,7 @@ for p in patches/*; do
 		if [ -n "$(env DEB_HOST_ARCH=$BUILD_ARCH DEB_BUILD_PROFILES="$(echo $COMMON_BUILD_PROFILES | tr ',' ' ')" dh_listpackages -i)" ] \
 		|| [ -n "$(env DEB_HOST_ARCH=$BUILD_ARCH DEB_BUILD_PROFILES="$(echo $COMMON_BUILD_PROFILES | tr ',' ' ')" dh_listpackages -a)" ]; then
 			rm -f ../*.changes
-			sbuild --chroot $BASESUITE-$BUILD_ARCH \
+			sbuild --chroot $OUR_BASESUITE-$BUILD_ARCH \
 				--build="$BUILD_ARCH" --host="$BUILD_ARCH" \
 				"$([ "$HOST_ARCH" = "arm64" ] && echo --arch-all || echo --no-arch-all)" \
 				--arch-any \

@@ -120,6 +120,11 @@ patch -p1 << 'END'
   linux-image-mnt-reform-arm64,
 END
 
+if [ -e "machines/MNT Reform 2 with RCORE-DSI RK3588 Module.conf" ]; then
+  # nothing to be done for reform-tools 1.72 or later
+  exit 0
+fi
+
 patch -p1 << 'END'
 From e1ba34b61bafea548b4962ffe81f344d0dcf5000 Mon Sep 17 00:00:00 2001
 From: Johannes Schauer Marin Rodrigues <josch@debian.org>
