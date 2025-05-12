@@ -244,6 +244,9 @@
 	// external HDMI
 	enable-gpios = <&gpio4 RK_PB4 GPIO_ACTIVE_HIGH>;
 	status = "okay";
+
+	pinctrl-names = "default";
+	pinctrl-0 = <&hdmim2_tx1_cec &hdmim1_tx1_hpd &hdmim1_tx1_scl &hdmim1_tx1_sda>;
 };
 
 &hdmi1_in {
