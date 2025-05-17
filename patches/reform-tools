@@ -337,3 +337,52 @@ index 0000000..72f53ec
 -- 
 2.39.5
 END
+patch -p1 << 'END'
+From 12b46cdf07971b5eb6ca11cf3cafcf95bd5b001b Mon Sep 17 00:00:00 2001
+From: Johannes Schauer Marin Rodrigues <josch@debian.org>
+Date: Sat, 17 May 2025 13:19:22 +0200
+Subject: [PATCH] kernel/zz-reform-tools: make verbose
+
+---
+ debian/patches/series                    |  1 +
+ debian/patches/verbose-kernel-hook.patch | 19 +++++++++++++++++++
+ 2 files changed, 20 insertions(+)
+ create mode 100644 debian/patches/verbose-kernel-hook.patch
+
+diff --git a/debian/patches/series b/debian/patches/series
+index 72f53ec..789f89e 100644
+--- a/debian/patches/series
++++ b/debian/patches/series
+@@ -1,3 +1,4 @@
+ 0001-machines-add-file-for-reform2-rk3588-variant-with-ds.patch
+ 0002-machines-MNT-with-RCORE-RK3588-Module.conf-update-to.patch
+ 0003-bin-reform-hw-setup-initramfs-tools-hooks-reform-add.patch
++verbose-kernel-hook.patch
+diff --git a/debian/patches/verbose-kernel-hook.patch b/debian/patches/verbose-kernel-hook.patch
+new file mode 100644
+index 0000000..11f5809
+--- /dev/null
++++ b/debian/patches/verbose-kernel-hook.patch
+@@ -0,0 +1,19 @@
++--- a/kernel/zz-reform-tools
+++++ b/kernel/zz-reform-tools
++@@ -23,6 +23,8 @@ action="${action%\'}"
++ 
++ set -u
++ 
+++echo "I: Running $self $action" >&2
+++
++ install_dtbs() {
++   for CONF in /usr/share/reform-tools/machines/*.conf; do
++     # shellcheck disable=SC1090
++@@ -43,6 +45,7 @@ install_dtbs() {
++       echo "W: irregular dtb path: $dtb" >&2
++     fi
++     mkdir -p "/boot/dtbs/$version/$(dirname "$DTBPATH")"
+++    echo "I: copying $dtb to /boot/dtbs/$version/$DTBPATH" >&2
++     cp "$dtb" "/boot/dtbs/$version/$DTBPATH"
++   done
++ }
+-- 
+2.39.5
+END
