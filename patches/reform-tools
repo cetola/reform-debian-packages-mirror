@@ -347,13 +347,11 @@ Subject: [PATCH] kernel/zz-reform-tools: make verbose
  create mode 100644 debian/patches/verbose-kernel-hook.patch
 
 diff --git a/debian/patches/series b/debian/patches/series
+new file mode 100644
 index 72f53ec..789f89e 100644
---- a/debian/patches/series
+--- /dev/null
 +++ b/debian/patches/series
-@@ -1,3 +1,4 @@
- 0001-machines-add-file-for-reform2-rk3588-variant-with-ds.patch
- 0002-machines-MNT-with-RCORE-RK3588-Module.conf-update-to.patch
- 0003-bin-reform-hw-setup-initramfs-tools-hooks-reform-add.patch
+@@ -0,0 +1,1 @@
 +verbose-kernel-hook.patch
 diff --git a/debian/patches/verbose-kernel-hook.patch b/debian/patches/verbose-kernel-hook.patch
 new file mode 100644
