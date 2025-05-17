@@ -35,7 +35,7 @@ new file mode 100755
 index 0000000..cc66f96
 --- /dev/null
 +++ b/bin/linux-run-hooks
-@@ -0,0 +1,94 @@
+@@ -0,0 +1,96 @@
 +#!/usr/bin/perl
 +
 +# Copyright 2025 Ben Hutchings
@@ -106,6 +106,7 @@ index 0000000..cc66f96
 +	exit 0;
 +    }
 +
++    printf STDERR ("I: running run-parts --report --exit-on-error " . (join " ", (map({"--arg=$_"} @hook_args)), @hook_dirs) . "\n");
 +    $ENV{'DEB_MAINT_PARAMS'} = $maint_params;
 +    exec 'run-parts', '--report', '--exit-on-error',
 +	map({"--arg=$_"} @hook_args),
@@ -121,6 +122,7 @@ index 0000000..cc66f96
 +}
 +
 +my $type = $ARGV[0];
++printf STDERR ("I: linux-run-hooks running with " . (join " ", @ARGV) . "\n");
 +if ($type eq 'help' or grep({$_ eq '--help'} @ARGV)) {
 +    usage(*STDOUT{IO});
 +    exit 0;
