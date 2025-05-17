@@ -106,9 +106,9 @@ index 0000000..cc66f96
 +	exit 0;
 +    }
 +
-+    printf STDERR ("I: running run-parts --report --exit-on-error " . (join " ", (map({"--arg=$_"} @hook_args)), @hook_dirs) . "\n");
++    printf STDERR ("I: running run-parts --debug --exit-on-error " . (join " ", (map({"--arg=$_"} @hook_args)), @hook_dirs) . "\n");
 +    $ENV{'DEB_MAINT_PARAMS'} = $maint_params;
-+    exec 'run-parts', '--report', '--exit-on-error',
++    exec 'run-parts', '--debug', '--exit-on-error',
 +	map({"--arg=$_"} @hook_args),
 +	@hook_dirs;
 +
