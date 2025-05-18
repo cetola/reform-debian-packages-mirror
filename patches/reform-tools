@@ -2,29 +2,28 @@
 set -e
 
 case "$(dpkg-parsechangelog --show-field=Distribution)" in
-  trixie)
-    echo "I: patch nothing for trixie" >&2
-    exit 0
-    ;;
-  reform|trixie-backports) : ;;
-  *)
-    echo "E: unknown distribution in d/changelog: $(dpkg-parsechangelog --show-field=Distribution)" >&2
-    exit 1
-    ;;
+trixie)
+	echo "I: patch nothing for trixie" >&2
+	exit 0
+	;;
+reform | trixie-backports) : ;;
+*)
+	echo "E: unknown distribution in d/changelog: $(dpkg-parsechangelog --show-field=Distribution)" >&2
+	exit 1
+	;;
 esac
 
-
-cat << 'END' > debian/reform-tools.conffiles
+cat <<'END' >debian/reform-tools.conffiles
 remove-on-upgrade /etc/flash-kernel/ubootenv.d/00reform2_ubootenv
 remove-on-upgrade /etc/modprobe.d/reform.conf
 END
 
 if dpkg --compare-versions "$(dpkg-parsechangelog --show-field=Version)" gt 1.71-2; then
-  # versions after trixie come with their own postinst
-  sed '/^#DEBHELPER#$/d' debian/reform-tools.postinst
+	# versions after trixie come with their own postinst
+	sed '/^#DEBHELPER#$/d' debian/reform-tools.postinst
 else
-  # trixie has no postinst
-  cat << 'END' > debian/reform-tools.postinst
+	# trixie has no postinst
+	cat <<'END' >debian/reform-tools.postinst
 #!/bin/sh
 
 action="$1"
@@ -36,7 +35,7 @@ END
 fi
 
 # append
-cat << 'END' >> debian/reform-tools.postinst
+cat <<'END' >>debian/reform-tools.postinst
 
 for f in mntre reform_bookworm reform_bookworm-backports; do
   file="/etc/apt/sources.list.d/${f}.sources"
@@ -117,11 +116,11 @@ END
 chmod +x debian/reform-tools.postinst
 
 if [ "$(dpkg-parsechangelog --show-field=Distribution)" = reform ]; then
-  # changes specific to the MNT repo:
-  #  - depend on fonts-reform-iosevka-term
-  #  - replace firefox-esr with firefox
-  #  - replace ezurio-qcacld-2.0-dkms with reform-qcacld2
-  patch -p1 << 'END'
+	# changes specific to the MNT repo:
+	#  - depend on fonts-reform-iosevka-term
+	#  - replace firefox-esr with firefox
+	#  - replace ezurio-qcacld-2.0-dkms with reform-qcacld2
+	patch -p1 <<'END'
 --- a/debian/control
 +++ b/debian/control
 @@ -23,6 +23,7 @@ Depends:
@@ -154,11 +153,11 @@ END
 fi
 
 if dpkg --compare-versions "$(dpkg-parsechangelog --show-field=Version)" gt 1.71-2; then
-  # versions after trixie come with support for RCORE-DSI and verbose hook
-  :
+	# versions after trixie come with support for RCORE-DSI and verbose hook
+	:
 else
-  # add RCORE-DSI support to trixie
-  patch -p1 << 'END'
+	# add RCORE-DSI support to trixie
+	patch -p1 <<'END'
 From e1ba34b61bafea548b4962ffe81f344d0dcf5000 Mon Sep 17 00:00:00 2001
 From: Johannes Schauer Marin Rodrigues <josch@debian.org>
 Date: Tue, 6 May 2025 18:34:46 +0200
@@ -370,7 +369,7 @@ index 0000000..72f53ec
 -- 
 2.39.5
 END
-  patch -p1 << 'END'
+	patch -p1 <<'END'
 From 12b46cdf07971b5eb6ca11cf3cafcf95bd5b001b Mon Sep 17 00:00:00 2001
 From: Johannes Schauer Marin Rodrigues <josch@debian.org>
 Date: Sat, 17 May 2025 13:19:22 +0200
