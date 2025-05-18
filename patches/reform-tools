@@ -1,5 +1,19 @@
 #!/bin/sh
 set -e
+
+case "$(dpkg-parsechangelog --show-field=Distribution)" in
+  trixie)
+    echo "I: patch nothing for trixie" >&2
+    exit 0
+    ;;
+  reform|trixie-backports) : ;;
+  *)
+    echo "E: unknown distribution in d/changelog: $(dpkg-parsechangelog --show-field=Distribution)" >&2
+    exit 1
+    ;;
+esac
+
+
 cat << 'END' > debian/reform-tools.conffiles
 remove-on-upgrade /etc/flash-kernel/ubootenv.d/00reform2_ubootenv
 remove-on-upgrade /etc/modprobe.d/reform.conf
@@ -101,7 +115,13 @@ sed -i -e "s/^FONTFACE=.*/FONTFACE=$font/" -e "s/FONTSIZE=.*/FONTSIZE=$size/" $c
 dpkg-reconfigure -f noninteractive console-setup
 END
 chmod +x debian/reform-tools.postinst
-patch -p1 << 'END'
+
+if [ "$(dpkg-parsechangelog --show-field=Distribution)" = reform ]; then
+  # changes specific to the MNT repo:
+  #  - depend on fonts-reform-iosevka-term
+  #  - replace firefox-esr with firefox
+  #  - replace ezurio-qcacld-2.0-dkms with reform-qcacld2
+  patch -p1 << 'END'
 --- a/debian/control
 +++ b/debian/control
 @@ -23,6 +23,7 @@ Depends:
@@ -131,6 +151,7 @@ patch -p1 << 'END'
   linux-headers-mnt-reform-arm64,
   linux-image-mnt-reform-arm64,
 END
+fi
 
 if dpkg --compare-versions "$(dpkg-parsechangelog --show-field=Version)" gt 1.71-2; then
   # versions after trixie come with support for RCORE-DSI and verbose hook
