@@ -20,7 +20,7 @@ END
 
 if dpkg --compare-versions "$(dpkg-parsechangelog --show-field=Version)" gt 1.71-2; then
 	# versions after trixie come with their own postinst
-	sed '/^#DEBHELPER#$/d' debian/reform-tools.postinst
+	sed -i '/^#DEBHELPER#$/d' debian/reform-tools.postinst
 else
 	# trixie has no postinst
 	cat <<'END' >debian/reform-tools.postinst
