@@ -2,11 +2,7 @@
 set -e
 
 case "$(dpkg-parsechangelog --show-field=Distribution)" in
-trixie)
-	echo "I: patch nothing for trixie" >&2
-	exit 0
-	;;
-reform | trixie-backports) : ;;
+trixie | reform | trixie-backports) : ;;
 *)
 	echo "E: unknown distribution in d/changelog: $(dpkg-parsechangelog --show-field=Distribution)" >&2
 	exit 1
@@ -31,7 +27,26 @@ last_ver="$2"
 
 set -e
 
+# In case reform-tools is installed or upgraded without the kernel being
+# installed or upgraded at the same time, the hooks in /etc/kernel/postinst.d
+# or /usr/share/kernel/postinst.d are not getting executed. Run them here
+# manually. In the worst case, the scripts get run twice but that should not be
+# a problem since they are fast.
+
+for kver in $(linux-version list); do
+	# We cannot skip kernel versions, even those for which /boot/dtbs/$kvers
+	# already exists because a new reform-tools version might've added a new
+	# machine.
+	DEB_MAINT_PARAMS=configure /usr/share/kernel/postinst.d/zz-reform-tools "$kver" "/boot/vmlinuz-$kver"
+done
+
 END
+fi
+
+if [ "$(dpkg-parsechangelog --show-field=Distribution)" = trixie ]; then
+	# nothing more than the postinst needs to be patched for trixie
+	echo '#DEBHELPER#' >>debian/reform-tools.postinst
+	exit 0
 fi
 
 # append
