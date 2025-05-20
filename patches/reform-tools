@@ -41,6 +41,7 @@ else
 	sed -i '/^#DEBHELPER#$/d' debian/reform-tools.postinst
 fi
 
+mkdir -p debian/patches
 echo verbose-kernel-hook.patch >>debian/patches/series
 cat <<'END' >debian/patches/verbose-kernel-hook.patch
 --- a/kernel/zz-reform-tools
