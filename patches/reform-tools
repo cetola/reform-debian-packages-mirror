@@ -36,21 +36,18 @@ done
 #DEBHELPER#
 END
 	chmod +x debian/reform-tools.postinst
-else
-	# versions after trixie come with their own postinst
-	sed -i '/^#DEBHELPER#$/d' debian/reform-tools.postinst
-fi
 
-mkdir -p debian/patches
-echo verbose-kernel-hook.patch >>debian/patches/series
-cat <<'END' >debian/patches/verbose-kernel-hook.patch
+	test ! -e debian/patches/series
+	mkdir debian/patches
+	echo verbose-kernel-hook.patch >debian/patches/series
+	cat <<'END' >debian/patches/verbose-kernel-hook.patch
 --- a/kernel/zz-reform-tools
 +++ b/kernel/zz-reform-tools
 @@ -23,6 +23,9 @@ action="${action%\'}"
  
  set -u
  
-+echo "I: Now running: $@" >&2
++echo "I: Now running: $*" >&2
 +echo "I: with DEB_MAINT_PARAMS=$DEB_MAINT_PARAMS" >&2
 +
  install_dtbs() {
@@ -66,10 +63,13 @@ cat <<'END' >debian/patches/verbose-kernel-hook.patch
  }
 END
 
-if [ "$(dpkg-parsechangelog --show-field=Distribution)" = trixie ]; then
 	# nothing more than the postinst and zz-reform-tools needs to be patched for trixie
 	exit 0
 fi
+
+# versions after trixie come with their own postinst and has zz-reform-tools
+# patched
+sed -i '/^#DEBHELPER#$/d' debian/reform-tools.postinst
 
 # append
 cat <<'END' >>debian/reform-tools.postinst
