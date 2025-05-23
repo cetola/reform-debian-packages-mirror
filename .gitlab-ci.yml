@@ -7,6 +7,9 @@ variables:
   OURSUITE:
     description: Suite name of the repository we create
     value: reform
+  MIRROR:
+    description: Debian mirror to pull packages from
+    value: https://snapshot.debian.org/archive/debian/20250522T000000Z/
 
 stages:
   - build
