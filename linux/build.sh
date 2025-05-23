@@ -91,7 +91,7 @@ index ab1439820ebb..97be1ead1601 100644
  Meta-Rules-Target: headers
  Build-Profiles: <!pkg.linux.nokernel>
  Depends:
-+ linux-base (>= 4.11+reform20250520),
++ linux-base (>= 4.11+reform20250523),
   linux-headers-@abiname@-common@localversion_headers@ (= ${source:Version}),
   linux-image-@abiname@@localversion@ (= ${binary:Version}) | linux-image-@abiname@@localversion@-unsigned (= ${binary:Version}),
   linux-kbuild-@abiname@,
@@ -131,7 +131,7 @@ index 2f3ed2c5e508..029d57b2c212 100644
  # used by kernel-wedge (only on Linux, thus not declared as a dependency)
   kmod,
 -Depends: kmod, linux-base (>= 4.3~), ${misc:Depends}
-+Pre-Depends: linux-base (>= 4.11+reform20250520)
++Pre-Depends: linux-base (>= 4.11+reform20250523)
 +Depends: kmod, ${misc:Depends}
  Suggests: firmware-linux-free, linux-doc-@version@, debian-kernel-handbook
  Conflicts: linux-image-@abiname@@localversion@
@@ -145,7 +145,7 @@ index 8bc561c941dc..1585ca21beeb 100644
  # used by kernel-wedge (only on Linux, thus not declared as a dependency)
   kmod,
 -Depends: kmod, linux-base (>= 4.3~), ${misc:Depends}
-+Pre-Depends: linux-base (>= 4.11+reform20250520)
++Pre-Depends: linux-base (>= 4.11+reform20250523)
 +Depends: kmod, ${misc:Depends}
  Suggests: firmware-linux-free, linux-doc-@version@, debian-kernel-handbook
  Description: Linux @upstreamversion@ for @class@
@@ -222,7 +222,7 @@ index ad8402fe6220..d4a78f45e889 100644
   rsync,
  Built-Using: @source_basename@@source_suffix@ (= @version_complete@)
 -Depends: kmod, linux-base (>= 4.3~), ${misc:Depends}
-+Pre-Depends: linux-base (>= 4.11+reform20250520)
++Pre-Depends: linux-base (>= 4.11+reform20250523)
 +Depends: kmod, ${misc:Depends}
  Conflicts: linux-image-@abiname@@localversion@-unsigned
  Replaces: linux-image-@abiname@@localversion@-unsigned

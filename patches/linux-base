@@ -1,5 +1,6 @@
 #!/bin/sh
 # https://salsa.debian.org/kernel-team/linux-base/-/merge_requests/14/diffs
+# no changes bump for Esther
 patch -p1 << 'END'
 From fe31a3e39e975027f10e3786620261476681078d Mon Sep 17 00:00:00 2001
 From: Ben Hutchings <benh@debian.org>
