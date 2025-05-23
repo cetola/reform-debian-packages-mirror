@@ -21,6 +21,13 @@ for p in patches/*; do
 		continue
 	fi
 
+	# if we are in a git repository, set SOURCE_DATE_EPOCH to the timestamp of
+	# the latest change to the patch
+	if git -C . rev-parse 2>/dev/null; then
+		SOURCE_DATE_EPOCH=$(git log -1 --format=%ct "patches/$p")
+	fi
+	datesuffix="$(date --utc --date=@$SOURCE_DATE_EPOCH +%Y%m%dT%H%M%SZ)"
+
 	# We print '${version}_${source}\n' and then do sed filtering to get
 	# to the version of the source package and discard the (possibly
 	# differing) version of the binary packages it builds using sed.
@@ -39,20 +46,18 @@ for p in patches/*; do
 		continue
 	fi
 	if test -n "$our_version" && dpkg --compare-versions "$our_version" gt "$their_version"; then
-		if [ -e repo/dists/$OURSUITE/Release ] && [ repo/dists/$OURSUITE/Release -ot "patches/$p" ]; then
+		our_suffix=${our_version#*"+$VERSUFFIX"}
+		our_suffix=${our_suffix%1}
+		case $our_suffix in
+			[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]T[0-9][0-9][0-9][0-9][0-9][0-9]Z) : ;;
+			*) echo "E: unknown format in date suffix: $our_suffix" >&2; exit 1 ;;
+		esac
+		if dpkg --compare-versions "$datesuffix" gt "$our_suffix"; then
 			echo "patches/$p has been changed -- rebuilding"
 		else
 			echo "package $p up to date"
 			continue
 		fi
-	fi
-
-	# if we are in a git repository, set SOURCE_DATE_EPOCH to the timestamp of
-	# the latest change to the patch
-	datesuffix=
-	if git -C . rev-parse 2>/dev/null; then
-		SOURCE_DATE_EPOCH=$(git log -1 --format=%ct "patches/$p")
-		datesuffix="$(date --utc --date=@$SOURCE_DATE_EPOCH +%Y%m%dT%H%M%SZ)"
 	fi
 
 	reprepro removesrc "$OURSUITE" "$p"
