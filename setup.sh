@@ -8,12 +8,21 @@ set -u
 
 . ./common.sh
 
+# Release    pattern     pinning   Example
+# -------------------------------------------
+# Codename   ?codename   n=        sid
+# Label      n.a.        l=        Debian
+# Suite      ?archive    a=        unstable
+# Origin     ?origin     o=        Debian
+#
+
 if ! test -d "$REPREPRO_BASE_DIR"; then
 	mkdir -p "$REPREPRO_BASE_DIR/conf"
 	cat > "$REPREPRO_BASE_DIR/conf/distributions" <<EOF
 Codename: $OURSUITE
 Label: $OURLABEL
 Suite: $OURSUITE
+Origin: $OURORIGIN
 Architectures: $HOST_ARCH $(test "$BUILD_ARCH" = "$HOST_ARCH" || echo "$BUILD_ARCH")
 Components: main
 UDebComponents: main
@@ -28,6 +37,7 @@ EOF
 Codename: ${OURSUITE%-backports}
 Label: $OURLABEL
 Suite: ${OURSUITE%-backports}
+Origin: $OURORIGIN
 Architectures: $HOST_ARCH $(test "$BUILD_ARCH" = "$HOST_ARCH" || echo "$BUILD_ARCH")
 Components: main
 UDebComponents: main
