@@ -48,9 +48,6 @@ else
 	rm -r "$WORKDIR"
 fi
 
-# we add a suffix based on SOURCE_DATE_EPOCH if it is set or "now" otherwise
-datesuffix="$(date --utc ${SOURCE_DATE_EPOCH:+--date=@$SOURCE_DATE_EPOCH} +%Y%m%dT%H%M%SZ)"
-
 # if we have the faketime utility and if SOURCE_DATE_EPOCH is set, set a
 # reproducible d/changelog timestamp using faketime
 maybe_faketime () {
@@ -64,6 +61,21 @@ maybe_faketime () {
 DEB_VERSION="$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog)"
 DEB_VERSION_UPSTREAM="$(echo "$DEB_VERSION" | sed -e 's/-[^-]*$//')"
 KVER=$(echo "$DEB_VERSION" | sed 's/\([0-9]\+\.[0-9]\+\).*/\1/')
+
+# The working directory of this script must be the linux subdirectory of the
+# reform-debian-packages repository.
+if [ ! -e "patches${KVER}" ]; then
+	echo "no patches for linux $KVER prepared yet" >&2
+	exit 1
+fi
+
+# SOURCE_DATE_EPOCH is set based on the last git commit touching anything in
+# this directory.
+if git -C . rev-parse 2>/dev/null; then
+	SOURCE_DATE_EPOCH=$(git log -1 --format=%ct ".")
+fi
+datesuffix="$(date --utc ${SOURCE_DATE_EPOCH:+--date=@$SOURCE_DATE_EPOCH} +%Y%m%dT%H%M%SZ)"
+
 if dpkg --compare-versions "$KVER" ge "6.8"; then
 	# Starting with kernel 6.8 we use the flavour name instead of the
 	# upstream version to indicate that this is the reform kernel, so
@@ -526,11 +538,6 @@ make -C linux -f debian/rules debian/control-real && exit 1 || :
 if dpkg --compare-versions "$KVER" lt "6.8"; then
 	# running the last command creates pyc files that we don't want
 	rm -r ./linux/debian/lib/python/debian_linux/__pycache__
-fi
-
-if [ ! -e "patches${KVER}" ]; then
-	echo "no patches for linux $KVER prepared yet" >&2
-	exit 1
 fi
 
 mkdir linux/debian/patches/reform
