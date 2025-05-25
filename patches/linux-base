@@ -241,7 +241,7 @@ new file mode 100755
 index 0000000..d2f1932
 --- /dev/null
 +++ b/bin/linux-run-hooks
-@@ -0,0 +1,116 @@
+@@ -0,0 +1,128 @@
 +#!/usr/bin/perl
 +
 +# Copyright 2025 Ben Hutchings
@@ -335,6 +335,18 @@ index 0000000..d2f1932
 +}
 +
 +my ($pkg_type, $script_type) = @ARGV;
++
++# support the old interface from
++# https://salsa.debian.org/kernel-team/linux-base/-/merge_requests/14
++# until everybody has upgraded
++if ($pkg_type =~ /^(?:pre|post)(?:inst|rm)$/ && @ARGV == 4) {
++	run_hooks($ARGV[0], [$ARGV[2], $ARGV[3]], [split /\s+/, $ARGV[1]]);
++	exit 1;
++} elsif ($pkg_type eq 'headers_postinst' && @ARGV == 3) {
++	run_hooks($ARGV[0], [$ARGV[2]], [split /\s+/, $ARGV[1]]);
++	exit 1;
++}
++
 +if (!defined($pkg_type)
 +    or ($pkg_type ne 'image' and $pkg_type ne 'headers')
 +    or !defined($script_type)
