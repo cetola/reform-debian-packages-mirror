@@ -164,7 +164,7 @@ if [ "$(dpkg-parsechangelog --show-field=Distribution)" = reform ]; then
 	patch -p1 <<'END'
 --- a/debian/control
 +++ b/debian/control
-@@ -23,6 +23,7 @@ Depends:
+@@ -24,6 +24,7 @@ Depends:
   console-setup,
   debconf,
   debianutils (>= 5.21),
@@ -172,7 +172,7 @@ if [ "$(dpkg-parsechangelog --show-field=Distribution)" = reform ]; then
   gpiod,
   jq,
   keyboard-configuration,
-@@ -78,7 +79,7 @@ Depends:
+@@ -79,7 +80,7 @@ Depends:
   dunst,
   engrampa,
   evince,
@@ -181,14 +181,62 @@ if [ "$(dpkg-parsechangelog --show-field=Distribution)" = reform ]; then
   fonts-font-awesome,
   fonts-inter,
   fonts-jetbrains-mono,
-@@ -235,7 +236,7 @@ Depends:
+@@ -93,9 +94,12 @@ Depends:
+  gir1.2-gtk-3.0,
+  gir1.2-gtklayershell-0.1,
+  gir1.2-notify-0.7,
++ gnome,
+  gnome-disk-utility,
+  gnome-icon-theme,
+  gnome-settings-daemon,
++ gnome-shell-extension-dashtodock,
++ gnome-shell-extension-manager,
+  gnome-system-monitor,
+  gnome-themes-extra-data,
+  grim,
+@@ -119,7 +123,6 @@ Depends:
+  python3-usb1,
+  qt5ct,
+  reform-desktop-minimal,
+- reform-firedecor,
+  slurp,
+  sway,
+  swayidle,
+@@ -128,7 +131,6 @@ Depends:
+  thunar,
+  unicode-data,
+  waybar,
+- wayfire,
+  wayland-protocols,
+  wayvnc,
+  wev,
+@@ -180,7 +182,6 @@ Depends:
+  gnupg,
+  gpiod,
+  gpm,
+- greetd,
+  hdparm,
+  htop,
+  iproute2,
+@@ -225,7 +226,6 @@ Depends:
+  telnet,
+  tmux,
+  traceroute,
+- tuigreet,
+  u-boot-tools,
+  unzip,
+  usbutils,
+@@ -239,10 +239,10 @@ Depends:
   zstd,
   ${misc:Depends},
  Recommends:
 - ezurio-qcacld-2.0-dkms,
-+ reform-qcacld2,
   flash-kernel,
   linux-headers-mnt-reform-arm64,
   linux-image-mnt-reform-arm64,
++ reform-qcacld2,
+ Suggests:
+  firmware-atheros,
+  firmware-iwlwifi,
 END
 fi
