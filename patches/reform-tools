@@ -2,14 +2,12 @@
 set -e
 
 case "$(dpkg-parsechangelog --show-field=Distribution)" in
-trixie | reform | trixie-backports) : ;;
-*)
-	echo "E: unknown distribution in d/changelog: $(dpkg-parsechangelog --show-field=Distribution)" >&2
-	exit 1
+reform)
+	# all modifications to reform-tools are stored in the reform-tools/debian
+	# directory in the parent directory of this script
+	cp -a "$(dirname -- "$0")/../reform-tools/debian" .
 	;;
-esac
-
-if [ "$(dpkg-parsechangelog --show-field=Distribution)" = trixie ]; then
+trixie | trixie-backports)
 	# trixie has no postinst
 	test ! -e debian/reform-tools.postinst
 	cat <<'END' >debian/reform-tools.postinst
@@ -62,181 +60,9 @@ END
    done
  }
 END
-
-	# nothing more than the postinst and zz-reform-tools needs to be patched for trixie
-	exit 0
-fi
-
-# versions after trixie come with their own postinst and has zz-reform-tools
-# patched
-sed -i '/^#DEBHELPER#$/d' debian/reform-tools.postinst
-
-# append
-cat <<'END' >>debian/reform-tools.postinst
-
-for f in mntre reform_bookworm reform_bookworm-backports; do
-  file="/etc/apt/sources.list.d/${f}.sources"
-  if [ ! -e "$file" ]; then
-    continue
-  fi
-  if [ "$(stat -c %a "$file")" != "666" ]; then
-    # nothing to do
-    continue
-  fi
-  echo "E: $file has insecure permissions 0666 -- setting it to 644..." >&2
-  chmod 644 "$file"
-done
-for f in . firefox firefox/syspref.js motd-full motd-rescue profile.d profile.d/reform.sh profile.d/reform-setup.sh; do
-  file="/etc/$f"
-  if [ ! -e "$file" ]; then
-    continue
-  fi
-  # only process world-writable files
-  if [ -z "$(find "$file" -maxdepth 0 \( \! -type l \) -perm /o+w)" ]; then
-    continue
-  fi
-  echo "E: fixing insecure write permissions of $file" >&2
-  chmod go-w "$file"
-done
-
-if [ -e /etc/skel ] && [ "$(stat -c %a /etc/skel)" = "777" ]; then
-  echo "E: fixing insecure read/write permisions of /etc/skel" >&2
-  chmod -R go-w /etc/skel
-fi
-
-#DEBHELPER#
-
-[ -n "$last_ver" ] || exit 0        # fresh install
-[ "$action" = configure ] || exit 0 # unknown action
-
-# only run on upgrade from 1.59 and earlier
-dpkg --compare-versions "$last_ver" le-nl 1.59 || exit 0
-
-# only run on Pocket Reform
-MACHINE="$(cat /proc/device-tree/model)"
-case "$MACHINE" in
-  "MNT Pocket Reform"*) : ;;
-  *)
-    exit 0
-    ;;
+	;;
+*)
+	echo "E: unknown distribution in d/changelog: $(dpkg-parsechangelog --show-field=Distribution)" >&2
+	exit 1
+	;;
 esac
-
-config=/etc/default/console-setup
-# shellcheck disable=SC1090
-oldfont="$(
-  . $config
-  echo "$FONTFACE"
-)"
-[ "$oldfont" = "Fixed" ] || exit 0 # do nothing if font is customized
-# shellcheck disable=SC1090
-oldsize="$(
-  . $config
-  echo "$FONTSIZE"
-)"
-[ "$oldsize" = "8x16" ] || exit 0 # do nothing if font is customized
-
-cmdline="$(cat /proc/cmdline)"
-case "$cmdline" in
-  *fbcon=font:*)
-    font=""
-    size=""
-    ;;
-  *)
-    font="TerminusBold" # no font set by kernel parameter
-    size="16x32"
-    ;;
-esac
-
-sed -i -e "s/^FONTFACE=.*/FONTFACE=$font/" -e "s/FONTSIZE=.*/FONTSIZE=$size/" $config
-dpkg-reconfigure -f noninteractive console-setup
-END
-
-cat <<'END' >debian/reform-tools.conffiles
-remove-on-upgrade /etc/flash-kernel/ubootenv.d/00reform2_ubootenv
-remove-on-upgrade /etc/modprobe.d/reform.conf
-END
-
-if [ "$(dpkg-parsechangelog --show-field=Distribution)" = reform ]; then
-	# changes specific to the MNT repo:
-	#  - depend on fonts-reform-iosevka-term
-	#  - replace firefox-esr with firefox
-	#  - replace ezurio-qcacld-2.0-dkms with reform-qcacld2
-	patch -p1 <<'END'
---- a/debian/control
-+++ b/debian/control
-@@ -24,6 +24,7 @@ Depends:
-  console-setup,
-  debconf,
-  debianutils (>= 5.21),
-+ fonts-reform-iosevka-term (= 2.3.0-1),
-  gpiod,
-  jq,
-  keyboard-configuration,
-@@ -79,7 +80,7 @@ Depends:
-  dunst,
-  engrampa,
-  evince,
-- firefox-esr,
-+ firefox,
-  fonts-font-awesome,
-  fonts-inter,
-  fonts-jetbrains-mono,
-@@ -93,9 +94,12 @@ Depends:
-  gir1.2-gtk-3.0,
-  gir1.2-gtklayershell-0.1,
-  gir1.2-notify-0.7,
-+ gnome,
-  gnome-disk-utility,
-  gnome-icon-theme,
-  gnome-settings-daemon,
-+ gnome-shell-extension-dashtodock,
-+ gnome-shell-extension-manager,
-  gnome-system-monitor,
-  gnome-themes-extra-data,
-  grim,
-@@ -119,7 +123,6 @@ Depends:
-  python3-usb1,
-  qt5ct,
-  reform-desktop-minimal,
-- reform-firedecor,
-  slurp,
-  sway,
-  swayidle,
-@@ -128,7 +131,6 @@ Depends:
-  thunar,
-  unicode-data,
-  waybar,
-- wayfire,
-  wayland-protocols,
-  wayvnc,
-  wev,
-@@ -180,7 +182,6 @@ Depends:
-  gnupg,
-  gpiod,
-  gpm,
-- greetd,
-  hdparm,
-  htop,
-  iproute2,
-@@ -225,7 +226,6 @@ Depends:
-  telnet,
-  tmux,
-  traceroute,
-- tuigreet,
-  u-boot-tools,
-  unzip,
-  usbutils,
-@@ -239,10 +239,10 @@ Depends:
-  zstd,
-  ${misc:Depends},
- Recommends:
-- ezurio-qcacld-2.0-dkms,
-  flash-kernel,
-  linux-headers-mnt-reform-arm64,
-  linux-image-mnt-reform-arm64,
-+ reform-qcacld2,
- Suggests:
-  firmware-atheros,
-  firmware-iwlwifi,
-END
-fi

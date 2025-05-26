@@ -1,0 +1,276 @@
+Source: reform-tools
+Section: admin
+Priority: optional
+Maintainer: Debian Reform Team <team+reform@tracker.debian.org>
+Uploaders:
+ Johannes Schauer Marin Rodrigues <josch@debian.org>,
+Homepage: https://source.mnt.re/reform/reform-tools/
+Standards-Version: 4.7.0
+Build-Depends:
+ debhelper-compat (= 13),
+ dh-sequence-dkms,
+ help2man,
+ python3-psutil,
+ python3-usb1,
+Vcs-Git: https://salsa.debian.org/reform-team/reform-tools.git
+Vcs-Browser: https://salsa.debian.org/reform-team/reform-tools
+Rules-Requires-Root: no
+Testsuite: autopkgtest-pkg-dkms
+
+Package: reform-tools
+Architecture: all
+Depends:
+ alsa-utils,
+ console-setup,
+ debconf,
+ debianutils (>= 5.21),
+ fonts-reform-iosevka-term (= 2.3.0-1),
+ gpiod,
+ jq,
+ keyboard-configuration,
+ mount,
+ parted,
+ procps,
+ reform2-lpc-dkms,
+ rsync,
+ systemd,
+ tzdata,
+ ${misc:Depends},
+Recommends:
+ bmap-tools,
+ brightnessctl,
+ debian-keyring,
+ fonts-font-awesome,
+ fonts-jetbrains-mono,
+ foot,
+ gir1.2-ayatanaappindicator3-0.1,
+ gir1.2-gdesktopenums-3.0,
+ gir1.2-gdkpixbuf-2.0,
+ gir1.2-glib-2.0,
+ gir1.2-gtk-3.0,
+ gir1.2-gtklayershell-0.1,
+ gir1.2-notify-0.7,
+ gnome-system-monitor,
+ ircii,
+ pavucontrol,
+ pulseaudio-utils,
+ python3,
+ python3-gi,
+ python3-usb1,
+ thunar,
+Suggests:
+ reform-branding,
+Protected: yes
+Description: MNT System Tools for MNT Reform and MNT Pocket Reform
+ Utilities, scripts and configurations for the MNT Reform and MNT Pocket Reform
+ open hardware laptops with either i.MX8MQ, i.MX8MPlus, Banana PI CM4, LS1028A
+ or RK3588.
+ .
+ Contains system utilities to manage your installation as well as configuration
+ files for initramfs, flash-kernel, pulseaudio, alsa, u-boot-menu, udev and
+ NetworkManager.
+
+Package: reform-desktop-full
+Architecture: all
+Section: metapackages
+Depends:
+ blueman,
+ bmap-tools,
+ brightnessctl,
+ dunst,
+ engrampa,
+ evince,
+ firefox,
+ fonts-font-awesome,
+ fonts-inter,
+ fonts-jetbrains-mono,
+ fonts-noto-color-emoji,
+ foot,
+ gedit,
+ gir1.2-ayatanaappindicator3-0.1,
+ gir1.2-gdesktopenums-3.0,
+ gir1.2-gdkpixbuf-2.0,
+ gir1.2-glib-2.0,
+ gir1.2-gtk-3.0,
+ gir1.2-gtklayershell-0.1,
+ gir1.2-notify-0.7,
+ gnome,
+ gnome-disk-utility,
+ gnome-icon-theme,
+ gnome-settings-daemon,
+ gnome-shell-extension-dashtodock,
+ gnome-shell-extension-manager,
+ gnome-system-monitor,
+ gnome-themes-extra-data,
+ grim,
+ gsettings-desktop-schemas,
+ gvfs-backends,
+ ircii,
+ kde-style-breeze,
+ libglib2.0-bin,
+ lxpolkit,
+ mesa-utils,
+ minetest,
+ mpv,
+ network-manager-gnome,
+ neverball,
+ papirus-icon-theme,
+ pasystray,
+ pavucontrol,
+ pulseaudio-utils,
+ python3,
+ python3-gi,
+ python3-usb1,
+ qt5ct,
+ reform-desktop-minimal,
+ slurp,
+ sway,
+ swayidle,
+ swaylock,
+ sxiv,
+ thunar,
+ unicode-data,
+ waybar,
+ wayland-protocols,
+ wayvnc,
+ wev,
+ wf-recorder,
+ wireplumber,
+ wlr-randr,
+ wofi,
+ xterm,
+ xwayland,
+ ${misc:Depends},
+Description: MNT Reform Desktop Environment -- graphical desktop
+ The MNT Reform suite of open hardware computers comes with a default
+ Debian installation. This metapackage includes all packages required for
+ a full graphical desktop.
+
+Package: reform-desktop-minimal
+Architecture: all
+Section: metapackages
+Depends:
+ alsa-utils,
+ apt,
+ apt-file,
+ apt-listbugs,
+ apt-utils,
+ bash-completion,
+ brightness-udev,
+ brightnessctl,
+ bsdextrautils,
+ busybox,
+ ca-certificates,
+ console-data,
+ console-setup,
+ cpio,
+ cron,
+ cryptsetup,
+ cryptsetup-initramfs,
+ curl,
+ dbus-bin,
+ debian-archive-keyring,
+ debian-keyring,
+ dhcpcd-base,
+ dialog,
+ dosfstools,
+ e2fsprogs,
+ elinks,
+ fbset,
+ fdisk,
+ file,
+ gnupg,
+ gpiod,
+ gpm,
+ hdparm,
+ htop,
+ iproute2,
+ iptables,
+ iputils-ping,
+ iw,
+ kbd,
+ less,
+ linux-sysctl-defaults,
+ lm-sensors,
+ locales,
+ lshw,
+ lvm2,
+ man-db,
+ micro,
+ nano,
+ ncdu,
+ ncurses-term,
+ net-tools,
+ netbase,
+ netcat-openbsd,
+ network-manager,
+ nfacct,
+ ntpsec,
+ ntpsec-ntpdate,
+ nvme-cli,
+ openssh-client,
+ parted,
+ pciutils,
+ picotool,
+ pocket-reform-handbook,
+ procps,
+ python3-psutil,
+ readline-common,
+ reform-handbook,
+ reform-tools,
+ rfkill,
+ rsync,
+ sudo,
+ systemd,
+ systemd-sysv,
+ telnet,
+ tmux,
+ traceroute,
+ u-boot-tools,
+ unzip,
+ usbutils,
+ vim,
+ w3m,
+ wavemon,
+ wget,
+ wireless-regdb,
+ wpasupplicant,
+ xdg-utils,
+ zstd,
+ ${misc:Depends},
+Recommends:
+ flash-kernel,
+ linux-headers-mnt-reform-arm64,
+ linux-image-mnt-reform-arm64,
+ reform-qcacld2,
+Suggests:
+ firmware-atheros,
+ firmware-iwlwifi,
+ firmware-mediatek,
+ firmware-misc-nonfree,
+ firmware-realtek,
+ reform-branding,
+Description: MNT Reform Desktop Environment -- essential components
+ The MNT Reform suite of open hardware computers comes with a default
+ Debian installation. This metapackage includes all packages required for
+ a minimal non-graphical terminal based installation.
+
+Package: reform2-lpc-dkms
+Architecture: all
+Section: kernel
+Depends:
+ ${misc:Depends},
+Description: dkms driver sources for Reform 2 LPC11U24
+ The reform2_lpc kernel module allows for interaction with the NXP LPC11U24
+ Cortex-M0 MCU system controller in the Reform 2 open hardware laptop. It
+ controls an analog monitor chip for the eight battery cells as well as the
+ charger. It is connected to the Processor Module via SPI, and has GPIO lines
+ to the main power rail switchers in the system. It has a UART (SYSCTL) that
+ the keyboard can talk to directly for issuing power on/off commands and
+ battery status queries.
+ .
+ The reform2_lpc module provides battery status information and is necessary to
+ completely shut down the system when powering it off via userspace.
+ .
+ This package provides sources for the reform2_lpc kernel module for use with
+ the Dynamic Kernel Module Support (dkms) framework.

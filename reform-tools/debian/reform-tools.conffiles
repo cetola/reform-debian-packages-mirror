@@ -1,0 +1,2 @@
+remove-on-upgrade /etc/flash-kernel/ubootenv.d/00reform2_ubootenv
+remove-on-upgrade /etc/modprobe.d/reform.conf

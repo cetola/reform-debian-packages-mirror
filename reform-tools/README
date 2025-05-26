@@ -1,0 +1,7 @@
+The files in the debian directory will be copied to (and overwrite if
+necessary) the packaging files of the reform-tools package in Debian.  Thus, if
+you want to make changes to the debian/control file in Debian, copy the
+original into the ./debian directory and then make your edits. This avoids
+having to maintain a patch against the Debian packaging. The downside is, that
+it is now necessary to regularly copy the desired changes from the Debian
+packaging in Debian as those will otherwise get reverted.
