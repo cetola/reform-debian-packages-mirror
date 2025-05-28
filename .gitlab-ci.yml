@@ -9,7 +9,7 @@ variables:
     value: reform
   MIRROR:
     description: Debian mirror to pull packages from
-    value: https://snapshot.debian.org/archive/debian/20250522T000000Z/
+    value: http://deb.debian.org/debian
 
 stages:
   - build
@@ -159,6 +159,8 @@ build_custom:
     echo "OURSUITE: $OURSUITE"
 
 .build_linux:
+  variables:
+    MIRROR: "https://snapshot.debian.org/archive/debian/20250522T000000Z/"
   stage: build
   #when: manual
   extends: .setup
