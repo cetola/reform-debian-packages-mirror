@@ -1,0 +1,28 @@
+From 1c68cfef00afa82c05805956b1f33c0b0ef85b41 Mon Sep 17 00:00:00 2001
+From: "Lukas F. Hartmann" <lukas@mntre.com>
+Date: Wed, 28 May 2025 18:01:41 +0200
+Subject: [PATCH 2/2] gschema: make EURkey layout/altgr and compose key work
+
+---
+ schemas/20_reform.gschema.override | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/schemas/20_reform.gschema.override b/schemas/20_reform.gschema.override
+index 44f268f..3440310 100644
+--- a/schemas/20_reform.gschema.override
++++ b/schemas/20_reform.gschema.override
+@@ -35,6 +35,11 @@ idle-delay = 0
+ [org.gnome.desktop.a11y]
+ always-show-universal-access-status = true
+ 
++# Make EURkey layout and compose work
++[org.gnome.desktop.input-sources]
++show-all-sources true
++xkb-options ['compose:rctrl', 'lv3:ralt_alt']
++
+ # this is hogging Super+Escape by default
+ [org.gnome.mutter.wayland.keybindings]
+ restore-shortcuts = @as []
+-- 
+2.39.5
+
