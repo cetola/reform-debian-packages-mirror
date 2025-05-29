@@ -17,8 +17,8 @@ index 44f268f..3440310 100644
  
 +# Make EURkey layout and compose work
 +[org.gnome.desktop.input-sources]
-+show-all-sources true
-+xkb-options ['compose:rctrl', 'lv3:ralt_alt']
++show-all-sources = true
++xkb-options = ['compose:rctrl', 'lv3:ralt_alt']
 +
  # this is hogging Super+Escape by default
  [org.gnome.mutter.wayland.keybindings]
