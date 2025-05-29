@@ -75,6 +75,8 @@ case $BASESUITE in
 		;;
 esac;
 } > "$chdistdata/base/etc/apt/sources.list"
+mkdir -p "$chdistdata/base/etc/apt/apt.conf.d"
+echo 'Acquire::Check-Valid-Until "false";' > "$chdistdata/base/etc/apt/apt.conf.d/99mmdebstrap"
 
 chdist_base apt-get update
 
