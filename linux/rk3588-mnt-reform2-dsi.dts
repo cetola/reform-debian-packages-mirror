@@ -359,7 +359,7 @@
 		reg = <0x2c>;
 		/* not actually connected on RCORE R1, will be fixed in RCORE R2. */
 		/* for RCORE R1, remove resistor R82 from MREF motherboard (it pulls down the reset). */
-		enable-gpios = <&gpio0 RK_PC0 GPIO_ACTIVE_LOW>;
+		enable-gpios = <&gpio0 RK_PC0 GPIO_ACTIVE_HIGH>;
 		vccio-supply = <&vcc_1v8_s3>;
 		vpll-supply = <&vcc_1v8_s3>;
 		vcca-supply = <&avdd_1v2_s0>;
