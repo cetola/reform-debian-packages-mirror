@@ -115,6 +115,7 @@ Depends:
  lxpolkit,
  mesa-utils,
  minetest,
+ modemmanager,
  mpv,
  network-manager-gnome,
  neverball,
