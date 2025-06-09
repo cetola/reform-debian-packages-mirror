@@ -28,6 +28,7 @@ Depends:
  gpiod,
  jq,
  keyboard-configuration,
+ libglib2.0-bin,
  mount,
  parted,
  procps,
