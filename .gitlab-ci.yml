@@ -166,6 +166,7 @@ build_custom:
   extends: .setup
   script: |
     set -x
+    echo "MIRROR: $MIRROR" >&2
     # gitlab has pipefail turned on by default, so the below will fail if
     # build.sh fails despite the command being piped to filter-output.
     runuser -u build -- sh -xc '. ./common.sh; cd linux; . ./build.sh' 2>&1 | ./filter-output
