@@ -22,7 +22,7 @@ HTTP_PORT=7251
 if [ -z ${SOURCE_DATE_EPOCH:+x} ] && git -C . rev-parse 2>/dev/null; then
 	SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)
 else
-	: "${SOURCE_DATE_EPOCH:=$(date +%s)}"
+	: "${SOURCE_DATE_EPOCH:=$(date --utc +%s)}"
 fi
 export SOURCE_DATE_EPOCH
 export REPREPRO_BASE_DIR
