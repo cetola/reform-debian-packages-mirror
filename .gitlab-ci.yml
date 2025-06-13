@@ -159,13 +159,12 @@ build_custom:
     echo "OURSUITE: $OURSUITE"
 
 .build_linux:
-  variables:
-    MIRROR: "https://snapshot.debian.org/archive/debian/20250522T000000Z/"
   stage: build
   #when: manual
   extends: .setup
   script: |
     set -x
+    export MIRROR="https://snapshot.debian.org/archive/debian/20250522T000000Z/"
     echo "MIRROR: $MIRROR" >&2
     # gitlab has pipefail turned on by default, so the below will fail if
     # build.sh fails despite the command being piped to filter-output.
