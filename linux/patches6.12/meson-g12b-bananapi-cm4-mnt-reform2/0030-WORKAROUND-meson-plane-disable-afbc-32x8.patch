@@ -1,5 +1,6 @@
-commit 5880cab67e4b3f6ab40fd6f3477bd16f6eb329cf
-Author: Lukas F. Hartmann <lukas@mntre.com>
+From 5880cab67e4b3f6ab40fd6f3477bd16f6eb329cf
+From: Lukas F. Hartmann <lukas@mntre.com>
+Subject: WORKAROUND-meson-plane-disable-afbc-32x8
 Date:   Sat Mar 22 14:48:13 2025 +0100
 
     meson_plane: disable AFBC 32x8 support

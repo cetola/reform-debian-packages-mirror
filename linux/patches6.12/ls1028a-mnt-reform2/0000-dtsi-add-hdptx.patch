@@ -1,3 +1,8 @@
+From a38d90dab271fd9911cf338e2693fd608744d9f7
+From: Lukas F. Hartmann <lukas@mntre.com>
+Subject: dtsi-add-hdptx
+Date:   Tue Nov 12 03:00:14 2024 +0100
+
 --- a/arch/arm64/boot/dts/freescale/fsl-ls1028a.dtsi
 +++ b/arch/arm64/boot/dts/freescale/fsl-ls1028a.dtsi
 @@ -871,8 +871,28 @@

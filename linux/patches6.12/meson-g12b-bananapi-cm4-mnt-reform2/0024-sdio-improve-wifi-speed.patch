@@ -1,3 +1,8 @@
+From a38d90dab271fd9911cf338e2693fd608744d9f7
+From: Lukas F. Hartmann <lukas@mntre.com>
+Subject: sdio-improve-wifi-speed
+Date:   Tue Nov 12 03:00:14 2024 +0100
+
 diff --git a/arch/arm64/boot/dts/amlogic/meson-g12b-bananapi-cm4.dtsi b/arch/arm64/boot/dts/amlogic/meson-g12b-bananapi-cm4.dtsi
 index 5805bc9..144d68b 100644
 --- a/arch/arm64/boot/dts/amlogic/meson-g12b-bananapi-cm4.dtsi

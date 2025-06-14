@@ -1,3 +1,8 @@
+From a38d90dab271fd9911cf338e2693fd608744d9f7
+From: Lukas F. Hartmann <lukas@mntre.com>
+Subject: revert-crashy-audiomix-pm-support
+Date:   Tue Nov 12 03:00:14 2024 +0100
+
 diff --git a/drivers/clk/imx/clk-imx8mp-audiomix.c b/drivers/clk/imx/clk-imx8mp-audiomix.c
 index b2cb157703c5..73e4fe9c5ff1 100644
 --- a/drivers/clk/imx/clk-imx8mp-audiomix.c

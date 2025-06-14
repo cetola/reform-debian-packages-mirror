@@ -1,5 +1,6 @@
-commit fc0096f4790838f878af23fcd837fee1ece6abe5
-Author: Lukas F. Hartmann <lukas@mntre.com>
+From fc0096f4790838f878af23fcd837fee1ece6abe5
+From: Lukas F. Hartmann <lukas@mntre.com>
+Subject: add-multi-display-panel-driver
 Date:   Tue Dec 17 13:20:47 2024 +0100
 
     pocket: add v5 of auto-detecting multi display driver

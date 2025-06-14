@@ -1,5 +1,6 @@
-commit d9686ba780834f5d728bda8aff9dc585f51380a7
-Author: Lukas F. Hartmann <lukas@mntre.com>
+From d9686ba780834f5d728bda8aff9dc585f51380a7
+From: Lukas F. Hartmann <lukas@mntre.com>
+Subject: sn65dsi86-use-hs-clock-of-samsung-dsim-host-directly
 Date:   Thu May 30 14:46:50 2024 +0200
 
     ti-sn65dsi86: use HS clock of samsung dsim host directly

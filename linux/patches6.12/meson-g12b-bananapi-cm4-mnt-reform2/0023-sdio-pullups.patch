@@ -1,3 +1,8 @@
+From a38d90dab271fd9911cf338e2693fd608744d9f7
+From: Lukas F. Hartmann <lukas@mntre.com>
+Subject: sdio-improve-wifi-speed
+Date:   Tue Nov 12 03:00:14 2024 +0100
+
 --- a/arch/arm64/boot/dts/amlogic/meson-g12-common.dtsi
 +++ b/arch/arm64/boot/dts/amlogic/meson-g12-common.dtsi
 @@ -937,17 +937,22 @@
