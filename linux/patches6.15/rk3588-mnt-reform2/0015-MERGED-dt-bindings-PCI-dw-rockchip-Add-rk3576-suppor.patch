@@ -1,0 +1,133 @@
+From 9172a1419c1827502f4b272a9de49edc768ea50c Mon Sep 17 00:00:00 2001
+From: Kever Yang <kever.yang@rock-chips.com>
+Date: Mon, 14 Apr 2025 22:51:09 +0800
+Subject: [PATCH 15/74] [MERGED] dt-bindings: PCI: dw: rockchip: Add rk3576
+ support
+
+rk3576 is using DWC PCIe controller, with msi interrupt directly to GIC
+instead of using GIC ITS, so
+- no ITS support is required and the 'msi-map' is not required,
+- a new 'msi' interrupt is needed.
+
+Co-developed-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+Signed-off-by: Kever Yang <kever.yang@rock-chips.com>
+Reviewed-by: Rob Herring (Arm) <robh@kernel.org>
+Reviewed-by: Heiko Stuebner <heiko@sntech.de>
+Link: https://lore.kernel.org/r/20250414145110.11275-2-kever.yang@rock-chips.com
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
+---
+ .../bindings/pci/rockchip-dw-pcie-common.yaml | 10 +++-
+ .../bindings/pci/rockchip-dw-pcie.yaml        | 55 +++++++++++++++++--
+ 2 files changed, 57 insertions(+), 8 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/pci/rockchip-dw-pcie-common.yaml b/Documentation/devicetree/bindings/pci/rockchip-dw-pcie-common.yaml
+index cc9adfc7611cf..2150bd8b5fc21 100644
+--- a/Documentation/devicetree/bindings/pci/rockchip-dw-pcie-common.yaml
++++ b/Documentation/devicetree/bindings/pci/rockchip-dw-pcie-common.yaml
+@@ -65,7 +65,11 @@ properties:
+           tx_cpl_timeout, cor_err_sent, nf_err_sent, f_err_sent, cor_err_rx,
+           nf_err_rx, f_err_rx, radm_qoverflow
+       - description:
+-          eDMA write channel 0 interrupt
++          If the matching interrupt name is "msi", then this is the combinded
++          MSI line interrupt, which is to support MSI interrupts output to GIC
++          controller via GIC SPI interrupt instead of GIC its interrupt.
++          If the matching interrupt name is "dma0", then this is the eDMA write
++          channel 0 interrupt.
+       - description:
+           eDMA write channel 1 interrupt
+       - description:
+@@ -81,7 +85,9 @@ properties:
+       - const: msg
+       - const: legacy
+       - const: err
+-      - const: dma0
++      - enum:
++          - msi
++          - dma0
+       - const: dma1
+       - const: dma2
+       - const: dma3
+diff --git a/Documentation/devicetree/bindings/pci/rockchip-dw-pcie.yaml b/Documentation/devicetree/bindings/pci/rockchip-dw-pcie.yaml
+index 550d8a684af3f..4764a0173ae4f 100644
+--- a/Documentation/devicetree/bindings/pci/rockchip-dw-pcie.yaml
++++ b/Documentation/devicetree/bindings/pci/rockchip-dw-pcie.yaml
+@@ -16,16 +16,13 @@ description: |+
+   PCIe IP and thus inherits all the common properties defined in
+   snps,dw-pcie.yaml.
+ 
+-allOf:
+-  - $ref: /schemas/pci/snps,dw-pcie.yaml#
+-  - $ref: /schemas/pci/rockchip-dw-pcie-common.yaml#
+-
+ properties:
+   compatible:
+     oneOf:
+       - const: rockchip,rk3568-pcie
+       - items:
+           - enum:
++              - rockchip,rk3576-pcie
+               - rockchip,rk3588-pcie
+           - const: rockchip,rk3568-pcie
+ 
+@@ -71,8 +68,54 @@ properties:
+ 
+   vpcie3v3-supply: true
+ 
+-required:
+-  - msi-map
++allOf:
++  - $ref: /schemas/pci/snps,dw-pcie.yaml#
++  - $ref: /schemas/pci/rockchip-dw-pcie-common.yaml#
++  - if:
++      not:
++        properties:
++          compatible:
++            contains:
++              const: rockchip,rk3576-pcie
++    then:
++      required:
++        - msi-map
++
++  - if:
++      properties:
++        compatible:
++          contains:
++            const: rockchip,rk3576-pcie
++    then:
++      properties:
++        interrupts:
++          minItems: 6
++          maxItems: 6
++        interrupt-names:
++          items:
++            - const: sys
++            - const: pmc
++            - const: msg
++            - const: legacy
++            - const: err
++            - const: msi
++    else:
++      properties:
++        interrupts:
++          minItems: 5
++        interrupt-names:
++          minItems: 5
++          items:
++            - const: sys
++            - const: pmc
++            - const: msg
++            - const: legacy
++            - const: err
++            - const: dma0
++            - const: dma1
++            - const: dma2
++            - const: dma3
++
+ 
+ unevaluatedProperties: false
+ 
+-- 
+2.39.5
+

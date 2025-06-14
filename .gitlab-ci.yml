@@ -159,8 +159,6 @@ build_custom:
     echo "OURSUITE: $OURSUITE"
 
 .build_linux:
-  variables:
-    MIRROR: "https://snapshot.debian.org/archive/debian/20250522T000000Z/"
   stage: build
   #when: manual
   extends: .setup

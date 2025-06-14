@@ -333,7 +333,26 @@ if test "$KVER" = 6.8; then
 END
 fi
 
-if true; then
+if dpkg --compare-versions "$KVER" ge "6.15"; then
+	# below setting should go into linux/debian/config.local/defines.toml but
+	# as the list of debianrelease cannot be overridden, the catch-all '.*' will
+	# always get applied but we have to sneak in 'reform' before that
+	cat << 'END' | env --chdir=linux patch -p1
+--- a/debian/config/defines.toml
++++ b/debian/config/defines.toml
+@@ -109,6 +109,10 @@ name_regex = 'bookworm-backports'
+ abi_suffix = '+deb12'
+ revision_regex = '\d+(\.\d+)?(\+deb13u\d+)?~bpo12\+\d+'
+ 
++[[debianrelease]]
++name_regex = 'reform'
++revision_regex = '\d+(~exp\d+)?\+reform[0-9]+T[0-9]+Z'
++
+ # Use default rules for any suite with no explicit config
+ [[debianrelease]]
+ name_regex = '.*'
+END
+else
 	# make revision suffix more liberal to be able to recognize our
 	# bookworm-backports kernel as such
 	#
@@ -584,7 +603,10 @@ if dpkg --compare-versions "$KVER" ge "6.8"; then
 	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/rockchip/rk3588-mnt-reform-next.dts
 	cp rk3588-mnt-reform-next.dts linux/arch/arm64/boot/dts/rockchip/rk3588-mnt-reform-next.dts
 	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/rockchip/Makefile
-	sed -i '/rk3588-rock-5b.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform2.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
+	if ! grep --silent --fixed-strings --line-regexp 'dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform2.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile; then
+		# rk3588-mnt-reform2.dtb is included since 6.15
+		sed -i '/^dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-rock-5b.dtb$/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform2.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
+	fi
 	sed -i '/rk3588-mnt-reform2.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform2-dsi.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
 	sed -i '/rk3588-mnt-reform2-dsi.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform-next.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
 	sed -i '/rk3588-mnt-reform-next.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-pocket-reform.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile

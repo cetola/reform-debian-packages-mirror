@@ -1,0 +1,35 @@
+From 37f3aa0735ba149f0096cfe4654962f42fb43add Mon Sep 17 00:00:00 2001
+From: FUKAUMI Naoki <naoki@radxa.com>
+Date: Thu, 8 May 2025 19:48:52 +0200
+Subject: [PATCH 17/74] [MERGED] dt-bindings: arm: rockchip: Add Radxa ROCK 5B+
+
+The Radxa ROCK 5B+ is an improved version of the ROCK 5B.
+
+Signed-off-by: FUKAUMI Naoki <naoki@radxa.com>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+Link: https://lore.kernel.org/r/20250508-rock5bp-for-upstream-v2-3-677033cc1ac2@kernel.org
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+---
+ Documentation/devicetree/bindings/arm/rockchip.yaml | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/arm/rockchip.yaml b/Documentation/devicetree/bindings/arm/rockchip.yaml
+index 650fb833d96ef..fe1fe8fe52fa3 100644
+--- a/Documentation/devicetree/bindings/arm/rockchip.yaml
++++ b/Documentation/devicetree/bindings/arm/rockchip.yaml
+@@ -946,6 +946,11 @@ properties:
+           - const: radxa,rock-5b
+           - const: rockchip,rk3588
+ 
++      - description: Radxa ROCK 5B+
++        items:
++          - const: radxa,rock-5b-plus
++          - const: rockchip,rk3588
++
+       - description: Radxa ROCK 5C
+         items:
+           - const: radxa,rock-5c
+-- 
+2.39.5
+
