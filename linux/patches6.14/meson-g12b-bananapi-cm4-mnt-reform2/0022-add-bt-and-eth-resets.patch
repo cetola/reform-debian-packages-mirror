@@ -1,3 +1,8 @@
+From a38d90dab271fd9911cf338e2693fd608744d9f7
+From: Lukas F. Hartmann <lukas@mntre.com>
+Subject: add-bt-and-eth-resets
+Date:   Tue Nov 12 03:00:14 2024 +0100
+
 diff --git a/arch/arm64/boot/dts/amlogic/meson-g12b-bananapi-cm4.dtsi b/arch/arm64/boot/dts/amlogic/meson-g12b-bananapi-cm4.dtsi
 index 97e5229..d1435a3 100644
 --- a/arch/arm64/boot/dts/amlogic/meson-g12b-bananapi-cm4.dtsi

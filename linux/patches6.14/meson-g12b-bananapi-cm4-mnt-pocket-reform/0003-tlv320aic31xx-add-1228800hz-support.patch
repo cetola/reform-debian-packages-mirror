@@ -1,5 +1,6 @@
-commit 49eb7d2f225e00742f9c95a796fd781c93465ca6
-Author: Lukas F. Hartmann <lukas@mntre.com>
+From 49eb7d2f225e00742f9c95a796fd781c93465ca6
+From: Lukas F. Hartmann <lukas@mntre.com>
+Subject: tlv320aic31xx: add 12.288MHz mclk support and fix formatting
 Date:   Mon Feb 26 23:05:15 2024 +0100
 
     tlv320aic31xx: add 12.288MHz mclk support and fix formatting
