@@ -60,6 +60,57 @@ END
    done
  }
 END
+	echo trixie-support.patch >> debian/patches/series
+	cat <<'END' >debian/patches/trixie-support.patch
+commit ad216a676c1c7ebad89ae40487ecee9753eb0917
+Author: Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
+Date:   Tue May 27 06:09:30 2025 +0200
+
+    bin/reform-check: add support for trixie
+
+--- a/bin/reform-check
++++ b/bin/reform-check
+@@ -603,14 +603,17 @@ else
+       echo "E: add the following line to your /etc/apt/sources.list to fix this" >&2
+       echo "deb [arch=arm64 trusted=yes] https://mntre.com/reform-debian-repo reform main" >&2
+     fi
+-    case "$(apt-get indextargets 'Created-By: Packages' 'Repo-URI: https://reform.debian.net/debian/' --format '$(RELEASE)')" in
+-      bookworm*) echo "E: you have the reform.debian.net repository enabled while also using the mntre.com mirror. Consider choosing one or the other but not both." >&2 ;;
+-    esac
++    if [ -n "$(apt-get indextargets 'Created-By: Packages' 'Repo-URI: https://reform.debian.net/debian/' --format '$(RELEASE)')" ]; then
++      echo "E: you have the reform.debian.net repository enabled while also using the mntre.com mirror. Consider choosing one or the other but not both." >&2
++    fi
+     ;;
+   reform.debian.net)
+-    case "$(apt-get indextargets 'Created-By: Packages' 'Repo-URI: https://reform.debian.net/debian/' --format '$(RELEASE)')" in
++    release="$(apt-get indextargets 'Created-By: Packages' 'Repo-URI: https://reform.debian.net/debian/' --format '$(RELEASE)')"
++    case "$release" in
++      "") echo "E: unable to obtain release name for reform.debian.net repository" >&2 ;;
+       bookworm*) : ;;
+-      *) echo "E: the reform.debian.net repository is not known to apt" >&2 ;;
++      trixie*) : ;;
++      *) echo "E: unknown reform.debian.net repository release name: $release" >&2 ;;
+     esac
+     if [ "$(apt-get indextargets 'Created-By: Packages' 'Repo-URI: https://mntre.com/reform-debian-repo/' --format '$(RELEASE)')" = reform ]; then
+       echo "E: you have the mntre.com repository enabled while also using the reform.debian.net mirror. Consider choosing one or the other but not both." >&2
+END
+	# There is no such key in Trixie:
+	# No such key “scheme” in schema “org.gnome.gedit.preferences.editor” as specified in override file “/usr/share/glib-2.0/schemas/20_reform.gschema.override” and --strict was specified; exiting.
+	echo trixie-gsettings-schema.patch >> debian/patches/series
+	cat <<'END' >debian/patches/trixie-gsettings-schema.patch
+--- a/schemas/20_reform.gschema.override
++++ b/schemas/20_reform.gschema.override
+@@ -13,9 +13,6 @@ gtk-theme = 'Adwaita-dark'
+ cursor-theme = 'Adwaita'
+ color-scheme = 'prefer-dark'
+ 
+-[org.gnome.gedit.preferences.editor]
+-scheme = 'cobalt'
+-
+ [org.gnome.desktop.background]
+ picture-options = 'zoom'
+ picture-uri = 'file:///usr/share/backgrounds/reform-mountains.jpg'
+END
 	;;
 *)
 	echo "E: unknown distribution in d/changelog: $(dpkg-parsechangelog --show-field=Distribution)" >&2
