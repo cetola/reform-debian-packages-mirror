@@ -388,12 +388,13 @@
 	status = "okay";
 };
 
-/*&pcie2x1l1 {
-	reset-gpios = <&gpio4 RK_PA2 GPIO_ACTIVE_LOW>;
+&pcie2x1l1 {
+	/* only works with rcore r-2 and wifi/bt m.2 expansion */
+	reset-gpios = <&gpio3 RK_PA0 GPIO_ACTIVE_HIGH>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pcie2_1_rst>;
 	status = "okay";
-};*/
+};
 
 /*&pcie30phy {
 	status = "okay";
@@ -861,6 +862,12 @@
 	pcie2 {
 		pcie2_0_rst: pcie2-0-rst {
 			rockchip,pins = <3 RK_PD1 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
+	pcie2_1 {
+		pcie2_1_rst: pcie2-1-reset {
+			rockchip,pins = <3 RK_PA0 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 
