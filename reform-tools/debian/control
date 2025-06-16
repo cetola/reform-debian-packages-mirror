@@ -10,6 +10,7 @@ Build-Depends:
  debhelper-compat (= 13),
  dh-sequence-dkms,
  help2man,
+ libglib2.0-bin <!nocheck>,
  python3-psutil,
  python3-usb1,
 Vcs-Git: https://salsa.debian.org/reform-team/reform-tools.git
