@@ -1,0 +1,45 @@
+#!/bin/sh
+set -exu
+# patch by mojyack <mojyack@gmail.com>
+# https://community.mnt.re/t/poor-browser-performance/2042/30
+# https://github.com/mojyack/etc-portage/blob/d51196e958409a3a1020af5149ed9ca49664d267/patches/media-libs/mesa/panfrost-enable-blit.patch
+# https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/38433
+
+echo 38433.patch >> debian/patches/series
+cat << 'END' > debian/patches/38433.patch
+From 112bdfe2b170b92fceeda2b1697be3dcf92828ea Mon Sep 17 00:00:00 2001
+From: Joshua Watt <JPEWhacker@gmail.com>
+Date: Thu, 13 Nov 2025 12:47:24 -0700
+Subject: [PATCH] panfrost: Enable hardware texture conversion
+
+Enable using the hardware to do texture conversion in panfrost. In
+my testing, this resulted in a 60% reduction of the processing time
+required for texture heavy workloads.
+
+This patch originally comes from [1], with a description of the original
+discovery here [2].
+
+[1]: https://github.com/mojyack/etc-portage/blob/d51196e958409a3a1020af5149ed9ca49664d267/patches/media-libs/mesa/panfrost-enable-blit.patch
+[2]: https://community.mnt.re/t/poor-browser-performance/2042/30
+
+Signed-off-by: Joshua Watt <JPEWhacker@gmail.com>
+---
+ src/gallium/drivers/panfrost/pan_screen.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/gallium/drivers/panfrost/pan_screen.c b/src/gallium/drivers/panfrost/pan_screen.c
+index b1d15887b87e4..395ba97118d32 100644
+--- a/src/gallium/drivers/panfrost/pan_screen.c
++++ b/src/gallium/drivers/panfrost/pan_screen.c
+@@ -834,7 +834,7 @@ panfrost_init_screen_caps(struct panfrost_screen *screen)
+ 
+    caps->max_vertex_element_src_offset = 0xffff;
+ 
+-   caps->texture_transfer_modes = 0;
++   caps->texture_transfer_modes = PIPE_TEXTURE_TRANSFER_BLIT;
+ 
+    caps->endianness = PIPE_ENDIAN_NATIVE;
+ 
+-- 
+GitLab
+END
