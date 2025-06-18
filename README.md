@@ -45,7 +45,7 @@ Also refer to:
  - https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/tree/Documentation/admin-guide/README.rst
  - https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/tree/Documentation/admin-guide/verify-bugs-and-bisect-regressions.rst
 
- 1. apt-get install git gpg gpgv build-essential bc rsync kmod cpio bison flex libelf-dev libssl-dev debhelper
+ 1. apt-get install git gpg gpgv build-essential bc rsync kmod cpio bison flex libelf-dev libssl-dev debhelper libdw-dev
  2. git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git linux-upstream
  3. git checkout vX.Y # check out the good version
  4. cp /boot/config-X.Y .config # best from a kernel close to the version you are building
