@@ -8,7 +8,7 @@ index c68d76b25080..9c791268401b 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
 +++ b/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
 @@ -218,6 +218,7 @@ struct vop2 {
- 	struct clk *pclk;
+ 	struct clk *pll_hdmiphy0;
  	// [CC:] hack to support additional display modes
  	struct clk *hdmi0_phy_pll;
 +	struct clk *hdmi1_phy_pll;

@@ -32,8 +32,8 @@ index 9873172e3fd3..6122eb18e6c9 100644
  	struct vop2 *vop2;
 +	struct reset_control *dclk_rst;
  	struct clk *dclk;
+ 	struct clk *dclk_src;
  	unsigned int id;
- 	const struct vop2_video_port_data *data;
 @@ -1917,6 +1919,26 @@ static int us_to_vertical_line(struct drm_display_mode *mode, int us)
  	return us * mode->clock / mode->htotal / 1000;
  }
