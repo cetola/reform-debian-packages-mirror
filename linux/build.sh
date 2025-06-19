@@ -93,8 +93,9 @@ else
 fi
 maybe_faketime dch --force-distribution --distribution="$OURSUITE" --release ""
 
-# https://salsa.debian.org/kernel-team/linux/-/merge_requests/1493
-cat << 'END' | env --chdir=linux patch -p1
+if dpkg --compare-versions "$KVER" eq "6.14"; then
+	# https://salsa.debian.org/kernel-team/linux/-/merge_requests/1493
+	cat << 'END' | env --chdir=linux patch -p1
 diff --git a/debian/templates/headers.control.in b/debian/templates/headers.control.in
 index ab1439820ebb..97be1ead1601 100644
 --- a/debian/templates/headers.control.in
@@ -243,6 +244,7 @@ index ad8402fe6220..d4a78f45e889 100644
 GitLab
 
 END
+fi
 
 if [ "$KVER" = "6.11" ]; then
   # see https://salsa.debian.org/kernel-team/linux/-/merge_requests/1260
