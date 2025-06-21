@@ -12,7 +12,7 @@ Date:   Tue Mar 5 14:06:47 2024 +0100
  		gpio4 = &gpio4;
 +		hdmi0 = &hdmi0;
 +		hdmi1 = &hdmi1;
-+		hdptxphy0 = &hdptxphy_hdmi0;
++		hdptxphy0 = &hdptxphy0;
 +		hdptxphy1 = &hdptxphy1;
  		i2c0 = &i2c0;
  		i2c1 = &i2c1;
