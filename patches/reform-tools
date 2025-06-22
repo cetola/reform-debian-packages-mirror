@@ -60,7 +60,7 @@ END
    done
  }
 END
-	echo trixie-support.patch >> debian/patches/series
+	echo trixie-support.patch >>debian/patches/series
 	cat <<'END' >debian/patches/trixie-support.patch
 commit ad216a676c1c7ebad89ae40487ecee9753eb0917
 Author: Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
@@ -96,7 +96,7 @@ Date:   Tue May 27 06:09:30 2025 +0200
 END
 	# There is no such key in Trixie:
 	# No such key “scheme” in schema “org.gnome.gedit.preferences.editor” as specified in override file “/usr/share/glib-2.0/schemas/20_reform.gschema.override” and --strict was specified; exiting.
-	echo trixie-gsettings-schema.patch >> debian/patches/series
+	echo trixie-gsettings-schema.patch >>debian/patches/series
 	cat <<'END' >debian/patches/trixie-gsettings-schema.patch
 --- a/schemas/20_reform.gschema.override
 +++ b/schemas/20_reform.gschema.override
