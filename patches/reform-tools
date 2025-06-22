@@ -7,7 +7,7 @@ reform)
 	# directory in the parent directory of this script
 	cp -a "$(dirname -- "$0")/../reform-tools/debian" .
 	;;
-trixie | trixie-backports)
+trixie)
 	# trixie has no postinst
 	test ! -e debian/reform-tools.postinst
 	cat <<'END' >debian/reform-tools.postinst
@@ -111,6 +111,10 @@ END
  picture-options = 'zoom'
  picture-uri = 'file:///usr/share/backgrounds/reform-mountains.jpg'
 END
+	;;
+trixie-backports)
+	# trixie-backports already has all the modifications from above
+	:
 	;;
 *)
 	echo "E: unknown distribution in d/changelog: $(dpkg-parsechangelog --show-field=Distribution)" >&2
