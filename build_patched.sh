@@ -62,8 +62,11 @@ for p in patches/*; do
 		trixie-backports) our_suffix=${our_suffix%~bpo13} ;;
 		esac
 		case $our_suffix in
-			[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]T[0-9][0-9][0-9][0-9][0-9][0-9]Z) : ;;
-			*) echo "E: unknown format in date suffix: $our_suffix" >&2; exit 1 ;;
+		[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]T[0-9][0-9][0-9][0-9][0-9][0-9]Z) : ;;
+		*)
+			echo "E: unknown format in date suffix: $our_suffix" >&2
+			exit 1
+			;;
 		esac
 		if dpkg --compare-versions "$datesuffix" gt "$our_suffix"; then
 			echo "patches/$p has been changed -- rebuilding"
@@ -118,8 +121,8 @@ for p in patches/*; do
 		# just building arch:all packages is not enough in case later
 		# packages need to install native arch versions of m-a:same
 		# packages and we need to prevent a version skew
-		if [ -n "$(env DEB_HOST_ARCH=$BUILD_ARCH DEB_BUILD_PROFILES="$(echo $COMMON_BUILD_PROFILES | tr ',' ' ')" dh_listpackages -i)" ] \
-		|| [ -n "$(env DEB_HOST_ARCH=$BUILD_ARCH DEB_BUILD_PROFILES="$(echo $COMMON_BUILD_PROFILES | tr ',' ' ')" dh_listpackages -a)" ]; then
+		if [ -n "$(env DEB_HOST_ARCH=$BUILD_ARCH DEB_BUILD_PROFILES="$(echo $COMMON_BUILD_PROFILES | tr ',' ' ')" dh_listpackages -i)" ] ||
+			[ -n "$(env DEB_HOST_ARCH=$BUILD_ARCH DEB_BUILD_PROFILES="$(echo $COMMON_BUILD_PROFILES | tr ',' ' ')" dh_listpackages -a)" ]; then
 			rm -f ../*.changes
 			sbuild --chroot $OUR_BASESUITE-$BUILD_ARCH \
 				--build="$BUILD_ARCH" --host="$BUILD_ARCH" \
