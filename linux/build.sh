@@ -333,7 +333,7 @@ if test "$KVER" = 6.8; then
 END
 fi
 
-if dpkg --compare-versions "$KVER" ge "6.15"; then
+if dpkg --compare-versions "$KVER" ge "6.12"; then
 	# below setting should go into linux/debian/config.local/defines.toml but
 	# as the list of debianrelease cannot be overridden, the catch-all '.*' will
 	# always get applied but we have to sneak in 'reform' before that
