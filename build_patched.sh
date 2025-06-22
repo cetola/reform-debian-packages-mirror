@@ -27,6 +27,12 @@ for p in patches/*; do
 		SOURCE_DATE_EPOCH=$(git log -1 --format=%ct "patches/$p")
 	fi
 	datesuffix="$(date --utc --date=@$SOURCE_DATE_EPOCH +%Y%m%dT%H%M%SZ)"
+	case "$OURSUITE" in
+	bookworm-backports) datesuffix="$datesuffix~bpo12" ;;
+	trixie-backports) datesuffix="$datesuffix~bpo13" ;;
+	esac
+	# dch --local adds a "1" to the version, so separate it with a "+"
+	datesuffix="$datesuffix+"
 
 	# We print '${version}_${source}\n' and then do sed filtering to get
 	# to the version of the source package and discard the (possibly
@@ -47,7 +53,14 @@ for p in patches/*; do
 	fi
 	if test -n "$our_version" && dpkg --compare-versions "$our_version" gt "$their_version"; then
 		our_suffix=${our_version#*"+$VERSUFFIX"}
-		our_suffix=${our_suffix%1}
+		# strip off the "1" which got added by dch --local and the "+" which was
+		# added by us
+		our_suffix=${our_suffix%+1}
+		# strip off the ~bpo suffix for backports
+		case "$OURSUITE" in
+		bookworm-backports) our_suffix=${our_suffix%~bpo12} ;;
+		trixie-backports) our_suffix=${our_suffix%~bpo13} ;;
+		esac
 		case $our_suffix in
 			[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]T[0-9][0-9][0-9][0-9][0-9][0-9]Z) : ;;
 			*) echo "E: unknown format in date suffix: $our_suffix" >&2; exit 1 ;;
