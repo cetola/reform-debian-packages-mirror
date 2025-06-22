@@ -40,7 +40,7 @@ stages:
     chown build -R .
     rm -rvf changes buildlogs chdist repo chroot-*.tar
     runuser -u build -- sh -x ./setup.sh
-    runuser -u build -- sed -i 's/^Architectures: .*/Architectures: arm64 armhf i386 amd64/' ./repo/conf/distributions
+    runuser -u build -- sed -i 's/^Architectures: .*/Architectures: source arm64 armhf i386 amd64/' ./repo/conf/distributions
     runuser -u build -- reprepro --basedir ./repo export
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
     runuser -u build -- sh -c 'mkdir -p ~/.config/sbuild'

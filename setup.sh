@@ -23,7 +23,7 @@ Codename: $OURSUITE
 Label: $OURLABEL
 Suite: $OURSUITE
 Origin: $OURORIGIN
-Architectures: $HOST_ARCH $(test "$BUILD_ARCH" = "$HOST_ARCH" || echo "$BUILD_ARCH")
+Architectures: $HOST_ARCH $(test "$BUILD_ARCH" = "$HOST_ARCH" || echo "$BUILD_ARCH") source
 Components: main
 UDebComponents: main
 Contents: .xz
@@ -38,7 +38,7 @@ Codename: ${OURSUITE%-backports}
 Label: $OURLABEL
 Suite: ${OURSUITE%-backports}
 Origin: $OURORIGIN
-Architectures: $HOST_ARCH $(test "$BUILD_ARCH" = "$HOST_ARCH" || echo "$BUILD_ARCH")
+Architectures: $HOST_ARCH $(test "$BUILD_ARCH" = "$HOST_ARCH" || echo "$BUILD_ARCH") source
 Components: main
 UDebComponents: main
 Contents: .xz

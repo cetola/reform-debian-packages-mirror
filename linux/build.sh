@@ -644,3 +644,5 @@ env --chdir=linux DEB_BUILD_PROFILES="$DEB_BUILD_PROFILES" \
 
 mv "./linux_$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog)_$HOST_ARCH.changes" "./linux.changes"
 dcmd mv "./linux.changes" "$ROOTDIR/changes"
+mv "./linux_$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog).dsc" "./linux.dsc"
+dcmd mv "./linux.dsc" "$ROOTDIR/changes"
