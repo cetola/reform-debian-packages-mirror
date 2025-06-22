@@ -8,7 +8,6 @@ set -u
 
 . ./common.sh
 
-
 if [ ! -e fonts-reform-iosevka-term_2.3.0-1_all.deb ]; then
 	if [ ! -e 02-iosevka-term-2.3.0.zip ]; then
 		curl --location --remote-name https://github.com/be5invis/Iosevka/releases/download/v2.3.0/02-iosevka-term-2.3.0.zip
@@ -27,7 +26,7 @@ if [ ! -e fonts-reform-iosevka-term_2.3.0-1_all.deb ]; then
 	mv "$WORKDIR/02-iosevka-term-2.3.0/ttf" "$WORKDIR/usr/share/fonts/truetype/Iosevka Term"
 	rmdir "$WORKDIR/02-iosevka-term-2.3.0"
 	mkdir "$WORKDIR/DEBIAN"
-	cat << 'END' > "$WORKDIR/DEBIAN/control"
+	cat <<'END' >"$WORKDIR/DEBIAN/control"
 Package: fonts-reform-iosevka-term
 Version: 2.3.0-1
 Section: fonts

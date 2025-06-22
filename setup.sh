@@ -18,7 +18,7 @@ set -u
 
 if ! test -d "$REPREPRO_BASE_DIR"; then
 	mkdir -p "$REPREPRO_BASE_DIR/conf"
-	cat > "$REPREPRO_BASE_DIR/conf/distributions" <<EOF
+	cat >"$REPREPRO_BASE_DIR/conf/distributions" <<EOF
 Codename: $OURSUITE
 Label: $OURLABEL
 Suite: $OURSUITE
@@ -31,8 +31,8 @@ Description: updated packages for mnt reform
 EOF
 	# if OURSUITE is backports, also add the base suite
 	case $OURSUITE in
-		*-backports)
-			cat >> "$REPREPRO_BASE_DIR/conf/distributions" <<EOF
+	*-backports)
+		cat >>"$REPREPRO_BASE_DIR/conf/distributions" <<EOF
 
 Codename: ${OURSUITE%-backports}
 Label: $OURLABEL
@@ -46,7 +46,7 @@ Description: updated packages for mnt reform
 EOF
 		;;
 	esac
-	cat > "$REPREPRO_BASE_DIR/conf/options" <<EOF
+	cat >"$REPREPRO_BASE_DIR/conf/options" <<EOF
 verbose
 EOF
 	reprepro export
@@ -57,12 +57,12 @@ if [ ! -d "$chdistdata" ]; then
 fi
 
 {
-echo "deb-src $MIRROR $BASESUITE main";
-case $BASESUITE in
-	experimental|rc-buggy)
+	echo "deb-src $MIRROR $BASESUITE main"
+	case $BASESUITE in
+	experimental | rc-buggy)
 		echo "deb-src $MIRROR unstable main"
 		;;
-	unstable|sid|testing) : ;;
+	unstable | sid | testing) : ;;
 	*-backports)
 		echo "deb-src $MIRROR ${BASESUITE%-backports} main"
 		echo "deb-src $MIRROR ${BASESUITE%-backports}-updates main"
@@ -73,10 +73,10 @@ case $BASESUITE in
 		echo "deb-src $MIRROR $BASESUITE-updates main"
 		echo "deb-src http://security.debian.org/debian-security $BASESUITE-security main"
 		;;
-esac;
-} > "$chdistdata/base/etc/apt/sources.list"
+	esac
+} >"$chdistdata/base/etc/apt/sources.list"
 mkdir -p "$chdistdata/base/etc/apt/apt.conf.d"
-echo 'Acquire::Check-Valid-Until "false";' > "$chdistdata/base/etc/apt/apt.conf.d/99mmdebstrap"
+echo 'Acquire::Check-Valid-Until "false";' >"$chdistdata/base/etc/apt/apt.conf.d/99mmdebstrap"
 
 chdist_base apt-get update
 

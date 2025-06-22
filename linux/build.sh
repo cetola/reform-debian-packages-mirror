@@ -50,7 +50,7 @@ fi
 
 # if we have the faketime utility and if SOURCE_DATE_EPOCH is set, set a
 # reproducible d/changelog timestamp using faketime
-maybe_faketime () {
+maybe_faketime() {
 	if command -v faketime >/dev/null && [ -n "${SOURCE_DATE_EPOCH:+x}" ]; then
 		env --chdir=linux TZ=UTC faketime "@$SOURCE_DATE_EPOCH" "$@"
 	else
@@ -95,7 +95,7 @@ maybe_faketime dch --force-distribution --distribution="$OURSUITE" --release ""
 
 if dpkg --compare-versions "$KVER" eq "6.14"; then
 	# https://salsa.debian.org/kernel-team/linux/-/merge_requests/1493
-	cat << 'END' | env --chdir=linux patch -p1
+	cat <<'END' | env --chdir=linux patch -p1
 diff --git a/debian/templates/headers.control.in b/debian/templates/headers.control.in
 index ab1439820ebb..97be1ead1601 100644
 --- a/debian/templates/headers.control.in
@@ -247,8 +247,8 @@ END
 fi
 
 if [ "$KVER" = "6.11" ]; then
-  # see https://salsa.debian.org/kernel-team/linux/-/merge_requests/1260
-  cat << 'END' | env --chdir=linux patch -p1
+	# see https://salsa.debian.org/kernel-team/linux/-/merge_requests/1260
+	cat <<'END' | env --chdir=linux patch -p1
 --- a/debian/patches/debian/fixdep-allow-overriding-hostcc-and-hostld.patch
 +++ b/debian/patches/debian/fixdep-allow-overriding-hostcc-and-hostld.patch
 @@ -18,7 +18,7 @@ override HOSTCC and HOSTLD for fixdep only.
@@ -261,9 +261,9 @@ if [ "$KVER" = "6.11" ]; then
  +		$(OUTPUT)fixdep
   
 END
-  # the patch above changed a quilt patch, so we have to adjust the unpacked
-  # files to the new reality the patch stack advertises
-  cat << 'END' | env --chdir=linux patch -p1
+	# the patch above changed a quilt patch, so we have to adjust the unpacked
+	# files to the new reality the patch stack advertises
+	cat <<'END' | env --chdir=linux patch -p1
 --- a/tools/build/Makefile.include
 +++ b/tools/build/Makefile.include
 @@ -13,7 +13,7 @@ endif
@@ -279,7 +279,7 @@ END
 fi
 
 if dpkg --compare-versions "$KVER" lt "6.8"; then
-	cat << END | env --chdir=linux patch -p1
+	cat <<END | env --chdir=linux patch -p1
 --- a/debian/bin/gencontrol.py
 +++ b/debian/bin/gencontrol.py
 @@ -74,13 +74,9 @@ class Gencontrol(Base):
@@ -303,7 +303,7 @@ END
 fi
 
 if test "$KVER" = 6.8; then
-	cat << 'END' | env --chdir=linux patch -p1
+	cat <<'END' | env --chdir=linux patch -p1
 --- a/debian/rules
 +++ b/debian/rules
 @@ -93,7 +93,7 @@ endif
@@ -337,7 +337,7 @@ if dpkg --compare-versions "$KVER" ge "6.12"; then
 	# below setting should go into linux/debian/config.local/defines.toml but
 	# as the list of debianrelease cannot be overridden, the catch-all '.*' will
 	# always get applied but we have to sneak in 'reform' before that
-	cat << 'END' | env --chdir=linux patch -p1
+	cat <<'END' | env --chdir=linux patch -p1
 --- a/debian/config/defines.toml
 +++ b/debian/config/defines.toml
 @@ -109,6 +109,10 @@ name_regex = 'bookworm-backports'
@@ -358,7 +358,7 @@ else
 	#
 	# https://salsa.debian.org/kernel-team/linux/-/merge_requests/1150
 	# sed -i 's/^(?:\\+b\\d+)?$/(?:\\+[a-zA-Z0-9]+)?/' debian/lib/python/debian_linux/debian.py
-	cat << END | env --chdir=linux patch -p1
+	cat <<END | env --chdir=linux patch -p1
 --- a/debian/lib/python/debian_linux/debian.py
 +++ b/debian/lib/python/debian_linux/debian.py
 @@ -202,7 +202,7 @@ $
@@ -378,7 +378,7 @@ if [ "$KVER" = "6.10" ]; then
 	# was changed from dict to dataclass
 	#
 	# https://salsa.debian.org/kernel-team/linux/-/merge_requests/1152
-	cat << END | env --chdir=linux patch -p1
+	cat <<END | env --chdir=linux patch -p1
 --- a/debian/lib/python/debian_linux/gencontrol.py
 +++ b/debian/lib/python/debian_linux/gencontrol.py
 @@ -454,7 +454,7 @@ class Gencontrol(object):
@@ -457,7 +457,7 @@ if dpkg --compare-versions "$KVER" ge "6.7"; then
 		flavour="mnt-reform-arm64"
 	fi
 	mkdir -p linux/debian/config.local/arm64
-	cat << END >> linux/debian/config.local/arm64/defines.toml
+	cat <<END >>linux/debian/config.local/arm64/defines.toml
 [[flavour]]
 name = '$flavour'
 [flavour.defs]
@@ -480,19 +480,19 @@ enable_signed = false
 END
 else
 	mkdir -p linux/debian/config.local/arm64/none
-	cat << END >> linux/debian/config.local/defines
+	cat <<END >>linux/debian/config.local/defines
 [packages]
 installer: false
 docs: false
 END
-	cat << END >> linux/debian/config.local/arm64/defines
+	cat <<END >>linux/debian/config.local/arm64/defines
 [base]
 featuresets: none
 
 [build]
 signed-code: false
 END
-	cat << END >> linux/debian/config.local/arm64/none/defines
+	cat <<END >>linux/debian/config.local/arm64/none/defines
 [base]
 flavours: arm64
 END
@@ -504,7 +504,7 @@ if dpkg --compare-versions "$KVER" ge "6.7"; then
 	: # nothing to do
 elif test "$KVER" = 6.6; then
 	# apply https://salsa.debian.org/kernel-team/linux/-/merge_requests/957
-	cat << END | env --chdir=linux patch -p1
+	cat <<END | env --chdir=linux patch -p1
 --- a/debian/bin/gencontrol.py
 +++ b/debian/bin/gencontrol.py
 @@ -640,6 +640,9 @@ linux-signed-{vars['arch']} (@signedtemplate_sourceversion@) {dist}; urgency={ur
@@ -518,7 +518,7 @@ elif test "$KVER" = 6.6; then
              'upstreamversion': self.version.linux_upstream,
              'version': self.version.linux_version,
 END
-	cat << END >> linux/debian/config.local/defines
+	cat <<END >>linux/debian/config.local/defines
 
 [abi]
 abisuffix: -reform2
@@ -564,10 +564,9 @@ fi
 mkdir linux/debian/patches/reform
 cp -a "patches${KVER}"/* linux/debian/patches/reform
 
-find "patches${KVER}/" -type f -name "*.patch" | env LC_ALL=C sort | sed 's/^patches'"$KVER"'\//reform\//' >> linux/debian/patches/series
+find "patches${KVER}/" -type f -name "*.patch" | env LC_ALL=C sort | sed 's/^patches'"$KVER"'\//reform\//' >>linux/debian/patches/series
 
 env --chdir=linux QUILT_PATCHES=debian/patches quilt push -a --fuzz=0
-
 
 # The next few dozen lines create a new quilt patch containing all the device
 # tree files that we copy into the kernel tree
@@ -620,13 +619,12 @@ if [ ! -d kernel-team ]; then
 	git clone https://salsa.debian.org/kernel-team/kernel-team.git
 fi
 
-cat config >> linux/debian/config/arm64/config
+cat config >>linux/debian/config/arm64/config
 # we don't care that ":" runs even when control-real succeeds
 # shellcheck disable=SC2015
 env --chdir=linux make -f debian/rules debian/control-real && exit 1 || :
 env --chdir=linux debian/rules source
 env --chdir=linux ../kernel-team/utils/kconfigeditor2/process.py .
-
 
 DEB_BUILD_PROFILES="nodoc pkg.linux.nokerneldbg pkg.linux.nokerneldbginfo"
 if [ "$BUILD_ARCH" != "$HOST_ARCH" ]; then
@@ -639,8 +637,8 @@ fi
 
 env --chdir=linux DEB_BUILD_PROFILES="$DEB_BUILD_PROFILES" \
 	sbuild --chroot="$BASESUITE-$BUILD_ARCH" --arch-any --build="$BUILD_ARCH" --host="$HOST_ARCH" \
-		"$([ "$HOST_ARCH" = "arm64" ] && echo --arch-all || echo --no-arch-all)" \
-		--verbose --no-source-only-changes --no-run-lintian --no-run-autopkgtest
+	"$([ "$HOST_ARCH" = "arm64" ] && echo --arch-all || echo --no-arch-all)" \
+	--verbose --no-source-only-changes --no-run-lintian --no-run-autopkgtest
 
 mv "./linux_$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog)_$HOST_ARCH.changes" "./linux.changes"
 dcmd mv "./linux.changes" "$ROOTDIR/changes"

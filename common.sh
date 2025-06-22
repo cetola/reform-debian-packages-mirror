@@ -64,11 +64,11 @@ chdist_base() {
 # This is no longer necessary with dch --date
 # https://salsa.debian.org/debian/devscripts/-/merge_requests/357
 maybe_faketime() {
-  if command -v faketime >/dev/null && [ -n "${SOURCE_DATE_EPOCH:+x}" ]; then
-    env TZ=UTC faketime "@$SOURCE_DATE_EPOCH" "$@"
-  else
-    env TZ=UTC "$@"
-  fi
+	if command -v faketime >/dev/null && [ -n "${SOURCE_DATE_EPOCH:+x}" ]; then
+		env TZ=UTC faketime "@$SOURCE_DATE_EPOCH" "$@"
+	else
+		env TZ=UTC "$@"
+	fi
 }
 
 COMMON_SBUILD_OPTS="--verbose --no-clean-source --no-source-only-changes --no-run-lintian --no-run-autopkgtest --no-apt-upgrade --no-apt-distupgrade"
