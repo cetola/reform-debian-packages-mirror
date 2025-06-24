@@ -249,6 +249,14 @@
 	pinctrl-0 = <&hdmim2_tx1_cec &hdmim1_tx1_hpd &hdmim1_tx1_scl &hdmim1_tx1_sda>;
 };
 
+&hdmi1_sound {
+	status = "okay";
+};
+
+&i2s6_8ch {
+	status = "okay";
+};
+
 &hdmi1_in {
 	hdmi1_in_vp0: endpoint {
 		remote-endpoint = <&vp0_out_hdmi1>;
