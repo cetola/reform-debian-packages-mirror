@@ -31,8 +31,6 @@ for p in patches/*; do
 	bookworm-backports) datesuffix="$datesuffix~bpo12" ;;
 	trixie-backports) datesuffix="$datesuffix~bpo13" ;;
 	esac
-	# dch --local adds a "1" to the version, so separate it with a "+"
-	datesuffix="$datesuffix+"
 
 	# We print '${version}_${source}\n' and then do sed filtering to get
 	# to the version of the source package and discard the (possibly
@@ -84,7 +82,8 @@ for p in patches/*; do
 		cd "$WORKDIR"
 		chdist_base apt-get source --only-source -t "$OUR_BASESUITE" "$p"
 		cd "$p-"*
-		dch --local "+$VERSUFFIX$datesuffix" "apply mnt reform patch"
+		# dch --local adds a "1" to the version, so separate it with a "+"
+		dch --local "+$VERSUFFIX$datesuffix+" "apply mnt reform patch"
 		dch --date="$(date --utc --date=@$SOURCE_DATE_EPOCH --rfc-email)" --force-distribution --distribution="$OURSUITE" --release ""
 		"$PATCHDIR/$p"
 		# cross build foreign arch:any packages
