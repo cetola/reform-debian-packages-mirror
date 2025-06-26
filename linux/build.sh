@@ -638,7 +638,7 @@ fi
 env --chdir=linux DEB_BUILD_PROFILES="$DEB_BUILD_PROFILES" \
 	sbuild --chroot="$BASESUITE-$BUILD_ARCH" --arch-any --build="$BUILD_ARCH" --host="$HOST_ARCH" \
 	"$([ "$HOST_ARCH" = "arm64" ] && echo --arch-all || echo --no-arch-all)" \
-	--verbose --no-source-only-changes --no-run-lintian --no-run-autopkgtest
+	--verbose --clean-source --no-source-only-changes --no-run-lintian --no-run-autopkgtest
 
 mv "./linux_$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog)_$HOST_ARCH.changes" "./linux.changes"
 dcmd mv "./linux.changes" "$ROOTDIR/changes"
