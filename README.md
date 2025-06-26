@@ -5,10 +5,11 @@ The build sources for custom Debian packages which end up at https://mntre.com/r
 To run all the scripts in this repository, the following apt-get command will
 install all required dependencies (on Trixie) for you:
 
-    $ sudo apt --no-install-recommends curl debhelper debian-archive-keyring \
-        debian-keyring devscripts dh-python faketime git kernel-wedge \
-        mmdebstrap pristine-tar python3 python3-dacite python3-debian \
-        python3-jinja2 quilt reprepro rsync sbuild uidmap unzip
+    $ sudo apt --no-install-recommends install curl \
+        debhelper debian-archive-keyring debian-keyring devscripts dh-python
+        faketime git kernel-wedge mmdebstrap pristine-tar python3
+        python3-dacite python3-debian python3-jinja2 quilt reprepro rsync
+        sbuild uidmap unzip
 
 If you are building this on an amd64 box, then you also need to install
 binfmt-support, arch-test and qemu-user-static.
