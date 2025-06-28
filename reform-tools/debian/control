@@ -132,6 +132,7 @@ Depends:
  python3-usb1,
  qt5ct,
  reform-desktop-minimal,
+ rtkit,
  slurp,
  speech-dispatcher-espeak-ng,
  sway,
