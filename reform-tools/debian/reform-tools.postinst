@@ -53,6 +53,22 @@ fi
 [ -n "$last_ver" ] || exit 0        # fresh install
 [ "$action" = configure ] || exit 0 # unknown action
 
+# only run on upgrade before 1.75
+dpkg --compare-versions "$last_ver" lt-nl 1.75 || exit 0
+
+if command -v systemctl >/dev/null 2>&1 &&
+	systemctl is-active --quiet greetd &&
+	test -e /etc/greetd/config.toml &&
+	grep --quiet '^ *command *= *["'"'"']/usr/bin/tuigreet *' /etc/greetd/config.toml &&
+	test -d /etc/flash-kernel/ubootenv.d/ &&
+	test ! -e /etc/flash-kernel/ubootenv.d/00reform2_tuigreet_loglevel; then
+	# on systems with tuigreet, reduce the loglevel to 3 so that the kernel does
+	# not overwrite the login interface
+	cat <<'END' >/etc/flash-kernel/ubootenv.d/00reform2_tuigreet_loglevel
+setenv bootargs "${bootargs} loglevel=3"
+END
+fi
+
 # only run on upgrade from 1.59 and earlier
 dpkg --compare-versions "$last_ver" le-nl 1.59 || exit 0
 
