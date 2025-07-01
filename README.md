@@ -19,7 +19,7 @@ never set up sbuild before, the easiest way is to set it up to use unshare
 mode like this (assuming you run this on the Reform):
 
     mkdir -p ~/.config/sbuild
-    cat << END > ~/.config/sbuild/config.pl
+    cat << 'END' > ~/.config/sbuild/config.pl
     $chroot_mode = "unshare";
     $unshare_mmdebstrap_keep_tarball = 1;
     $chroot_aliases->{reform} = 'unstable';
