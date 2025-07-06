@@ -1,0 +1,88 @@
+#!/bin/sh
+# https://source.mnt.re/-/snippets/14
+#
+# works only on Sway/wlroots, fails on GNOME/mutter due to Explicit Sync error
+# can crash the GPU sometimes
+# text in the editor overlay(s) slows down the framerate a lot, best to disable it
+
+set -e
+
+cat <<'EOF' > debian/patches/rk3588.patch
+--- a/intern/ghost/intern/GHOST_ContextVK.cc
++++ b/intern/ghost/intern/GHOST_ContextVK.cc
+@@ -218,15 +218,10 @@ class GHOST_DeviceVK {
+ 
+     VkPhysicalDeviceFeatures device_features = {};
+ #ifndef __APPLE__
+-    device_features.geometryShader = VK_TRUE;
+     /* MoltenVK supports logicOp, needs to be build with MVK_USE_METAL_PRIVATE_API. */
+     device_features.logicOp = VK_TRUE;
+ #endif
+-    device_features.dualSrcBlend = VK_TRUE;
+     device_features.imageCubeArray = VK_TRUE;
+-    device_features.multiDrawIndirect = VK_TRUE;
+-    device_features.multiViewport = VK_TRUE;
+-    device_features.shaderClipDistance = VK_TRUE;
+     device_features.drawIndirectFirstInstance = VK_TRUE;
+     device_features.fragmentStoresAndAtomics = VK_TRUE;
+     device_features.samplerAnisotropy = features.features.samplerAnisotropy;
+@@ -379,11 +374,13 @@ static GHOST_TSuccess ensure_vulkan_devi
+       continue;
+     }
+ #else
++    /*
+     if (!device_vk.features.features.geometryShader || !device_vk.features.features.dualSrcBlend ||
+         !device_vk.features.features.logicOp || !device_vk.features.features.imageCubeArray)
+     {
+       continue;
+     }
++    */
+ #endif
+ 
+     int device_score = 0;
+--- a/source/blender/gpu/vulkan/vk_backend.cc
++++ b/source/blender/gpu/vulkan/vk_backend.cc
+@@ -52,28 +52,13 @@ static Vector<StringRefNull> missing_cap
+ 
+   vkGetPhysicalDeviceFeatures2(vk_physical_device, &features);
+ #ifndef __APPLE__
+-  if (features.features.geometryShader == VK_FALSE) {
+-    missing_capabilities.append("geometry shaders");
+-  }
+   if (features.features.logicOp == VK_FALSE) {
+     missing_capabilities.append("logical operations");
+   }
+ #endif
+-  if (features.features.dualSrcBlend == VK_FALSE) {
+-    missing_capabilities.append("dual source blending");
+-  }
+   if (features.features.imageCubeArray == VK_FALSE) {
+     missing_capabilities.append("image cube array");
+   }
+-  if (features.features.multiDrawIndirect == VK_FALSE) {
+-    missing_capabilities.append("multi draw indirect");
+-  }
+-  if (features.features.multiViewport == VK_FALSE) {
+-    missing_capabilities.append("multi viewport");
+-  }
+-  if (features.features.shaderClipDistance == VK_FALSE) {
+-    missing_capabilities.append("shader clip distance");
+-  }
+   if (features.features.drawIndirectFirstInstance == VK_FALSE) {
+     missing_capabilities.append("draw indirect first instance");
+   }
+--- a/source/blender/gpu/vulkan/vk_device.cc
++++ b/source/blender/gpu/vulkan/vk_device.cc
+@@ -216,6 +216,9 @@ void VKDevice::init_glsl_patch()
+     ss << "#extension GL_ARB_shader_draw_parameters : enable\n";
+     ss << "#define GPU_ARB_shader_draw_parameters\n";
+     ss << "#define gpu_BaseInstance (gl_BaseInstanceARB)\n";
++  } else {
++    printf("GPU_shader_draw_parameters_support: no\n");
++    ss << "#define gpu_BaseInstance (0)\n";
+   }
+ 
+   ss << "#define gl_VertexID gl_VertexIndex\n";
+EOF
+
+echo rk3588.patch >> debian/patches/series
