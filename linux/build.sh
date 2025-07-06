@@ -340,17 +340,17 @@ if dpkg --compare-versions "$KVER" ge "6.12"; then
 	cat <<'END' | env --chdir=linux patch -p1
 --- a/debian/config/defines.toml
 +++ b/debian/config/defines.toml
-@@ -109,6 +109,10 @@ name_regex = 'bookworm-backports'
- abi_suffix = '+deb12'
- revision_regex = '\d+(\.\d+)?(\+deb13u\d+)?~bpo12\+\d+'
- 
+@@ -109,6 +109,10 @@ name_regex = 'unstable'
+ abi_suffix = '+deb13'
+ revision_regex = '\d+(\.\d+)?'
+
 +[[debianrelease]]
-+name_regex = 'reform'
++name_regex = '(reform|trixie)'
 +revision_regex = '\d+(~exp\d+)?\+reform[0-9]+T[0-9]+Z'
 +
- # Use default rules for any suite with no explicit config
  [[debianrelease]]
- name_regex = '.*'
+ name_regex = 'trixie(-security)?'
+ abi_suffix = '+deb13'
 END
 else
 	# make revision suffix more liberal to be able to recognize our
