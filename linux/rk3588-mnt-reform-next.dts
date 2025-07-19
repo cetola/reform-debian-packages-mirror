@@ -358,6 +358,8 @@
 	tlv320aic3100: codec@18 {
 		compatible = "ti,tlv320aic3100";
 		reg = <0x18>;
+		assigned-clocks = <&cru I2S0_8CH_MCLKOUT>;
+		assigned-clock-rates = <12288000>;
 		clocks = <&cru I2S0_8CH_MCLKOUT>;
 		clock-names = "mclk";
 		ai31xx-micbias-vg = <2>;
