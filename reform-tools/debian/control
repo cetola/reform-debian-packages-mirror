@@ -76,6 +76,7 @@ Package: reform-desktop-full
 Architecture: all
 Section: metapackages
 Depends:
+ alsa-ucm-conf,
  blueman,
  bmap-tools,
  brightnessctl,
