@@ -1,8 +1,7 @@
-commit 7db1d1e320e1e0a96bef4d427c72177e0ea28073
-Author: Lukas F. Hartmann <lukas@mntre.com>
+From 7db1d1e320e1e0a96bef4d427c72177e0ea28073 today
+From: Lukas F. Hartmann <lukas@mntre.com>
 Date:   Thu May 22 17:18:42 2025 +0200
-
-    pocket/panel: sleep fix v3
+Subject:  pocket/panel: sleep fix v3
 
 diff --git a/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c b/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c
 index 7335bd6..7f6a19b 100644
