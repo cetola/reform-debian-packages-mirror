@@ -1,0 +1,43 @@
+From 46737db2d6b20fe2b59d63a0f62506fc7c3f0620 Mon Sep 17 00:00:00 2001
+From: Sebastian Reichel <sebastian.reichel@collabora.com>
+Date: Tue, 8 Jul 2025 19:36:31 +0200
+Subject: [PATCH 108/111] arm64: dts: rockchip: use downstream PHY timing setup
+
+With the production Rock 4D boards in our LAVA setup, we are
+seeing connection issues. After the recent fixes for the PHY
+setup itself the link is established properly, but it seems
+no data gets through as DHCP does not work. As things are
+working in U-Boot, this is obviously a software issue.
+
+Downstream uses different timing setup; try importing that.
+
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3576-rock-4d.dts | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3576-rock-4d.dts b/arch/arm64/boot/dts/rockchip/rk3576-rock-4d.dts
+index 3f3001c9b061e..5f1554b68a339 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3576-rock-4d.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3576-rock-4d.dts
+@@ -294,7 +294,7 @@ &cpu_l3 {
+ &gmac0 {
+ 	clock_in_out = "output";
+ 	phy-handle = <&rgmii_phy0>;
+-	phy-mode = "rgmii-id";
++	phy-mode = "rgmii-rxid";
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&eth0m0_miim
+ 		     &eth0m0_tx_bus2
+@@ -303,6 +303,8 @@ &eth0m0_rgmii_clk
+ 		     &eth0m0_rgmii_bus
+ 		     &ethm0_clk0_25m_out>;
+ 	status = "okay";
++	tx_delay = <0x20>;
++	rx_delay = <0x00>;
+ };
+ 
+ &gpu {
+-- 
+2.39.5
+

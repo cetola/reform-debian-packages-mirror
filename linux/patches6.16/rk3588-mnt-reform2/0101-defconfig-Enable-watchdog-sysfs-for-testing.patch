@@ -1,0 +1,32 @@
+From 0090f3d998f7bd73759c8f738eb5671c7a0852bb Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?N=C3=ADcolas=20F=2E=20R=2E=20A=2E=20Prado?=
+ <nfraprado@collabora.com>
+Date: Fri, 20 Jun 2025 16:53:56 -0400
+Subject: [PATCH 101/111] defconfig: Enable watchdog sysfs for testing
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This exposes the watchdog timeout in sysfs which allows testing the
+watchdog without hardcoding a timeout. Enable it.
+
+Signed-off-by: Nícolas F. R. A. Prado <nfraprado@collabora.com>
+---
+ arch/arm64/configs/defconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm64/configs/defconfig b/arch/arm64/configs/defconfig
+index a0d03894d4fda..b7ade3b9c1d72 100644
+--- a/arch/arm64/configs/defconfig
++++ b/arch/arm64/configs/defconfig
+@@ -741,6 +741,7 @@ CONFIG_SL28CPLD_WATCHDOG=m
+ CONFIG_ARM_SP805_WATCHDOG=y
+ CONFIG_ARM_SBSA_WATCHDOG=y
+ CONFIG_S3C2410_WATCHDOG=y
++CONFIG_WATCHDOG_SYSFS=y
+ CONFIG_DW_WATCHDOG=y
+ CONFIG_K3_RTI_WATCHDOG=m
+ CONFIG_SUNXI_WATCHDOG=m
+-- 
+2.39.5
+

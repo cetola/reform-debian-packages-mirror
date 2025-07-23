@@ -1,0 +1,36 @@
+From 002a6102e0822def2b03c5799ae86697e709ba7e Mon Sep 17 00:00:00 2001
+From: Andy Yan <andy.yan@rock-chips.com>
+Date: Wed, 16 Jul 2025 18:04:31 +0800
+Subject: [PATCH 070/111] MAINTAINERS: Add entry for DW DPTX Controller bridge
+
+Add an entry for the DW DPTX Controller bridge driver.
+
+Signed-off-by: Andy Yan <andy.yan@rock-chips.com>
+Link: https://lore.kernel.org/r/20250716100440.816351-5-andyshrk@163.com
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
+---
+ MAINTAINERS | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 60bba48f5479a..9fd96ca5f2cdc 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -7879,6 +7879,14 @@ S:	Maintained
+ F:	Documentation/devicetree/bindings/display/panel/synaptics,r63353.yaml
+ F:	drivers/gpu/drm/panel/panel-synaptics-r63353.c
+ 
++DRM DRIVER FOR SYNOPSYS DESIGNWARE DISPLAYPORT BRIDGE
++M:	Andy Yan <andy.yan@rock-chips.com>
++S:	Maintained
++T:	git https://gitlab.freedesktop.org/drm/misc/kernel.git
++F:	Documentation/devicetree/bindings/display/rockchip/rockchip,dw-dp.yaml
++F:	drivers/gpu/drm/bridge/synopsys/dw-dp.c
++F:	include/drm/bridge/dw_dp.h
++
+ DRM DRIVER FOR TI DLPC3433 MIPI DSI TO DMD BRIDGE
+ M:	Jagan Teki <jagan@amarulasolutions.com>
+ S:	Maintained
+-- 
+2.39.5
+
