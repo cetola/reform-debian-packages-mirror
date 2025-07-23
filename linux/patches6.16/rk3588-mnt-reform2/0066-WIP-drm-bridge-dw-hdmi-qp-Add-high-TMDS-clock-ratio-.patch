@@ -177,7 +177,7 @@ index 5e5f8c2f95be1..2b04155d603e1 100644
  }
  
 -static enum drm_connector_status
--dw_hdmi_qp_bridge_detect(struct drm_bridge *bridge)
+-dw_hdmi_qp_bridge_detect(struct drm_bridge *bridge, struct drm_connector *connector)
 +static int dw_hdmi_qp_reset_link(struct drm_connector *conn,
 +				 struct drm_modeset_acquire_ctx *ctx)
 +{
