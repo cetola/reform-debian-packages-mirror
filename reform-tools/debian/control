@@ -173,7 +173,7 @@ Depends:
  bsdextrautils,
  busybox,
  ca-certificates,
- console-data,
+ console-setup-linux,
  console-setup,
  cpio,
  cron,
