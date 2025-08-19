@@ -53,7 +53,7 @@
 
 	backlight: backlight {
 		compatible = "pwm-backlight";
-		pwms = <&pwm8 0 10000 0>;
+		pwms = <&pwm8 0 2000000 0>;
 		enable-gpios = <&gpio2 RK_PB5 GPIO_ACTIVE_HIGH>;
 		brightness-levels = <0 1000>;
 		default-brightness-level = <500>;
