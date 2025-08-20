@@ -29,6 +29,10 @@ mode like this (assuming you run this on the Reform):
 
 # linux
 
+> [!tip]
+> Building the kernel will require >8GB free space on your temp directory. Please check before starting the build, especially if you are use a `tmpfs` backed `/tmp`.  
+> You may use an alternate temp directory by setting the environment variable `TMPDIR`, e.g. `export TMPDIR=/var/tmp`
+
 To just rebuild the kernel and not the rest, you can run this:
 
     sh -xc '. ./setup.sh; cd linux; . ./build.sh'
