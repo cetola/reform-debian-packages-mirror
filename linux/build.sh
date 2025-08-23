@@ -333,7 +333,26 @@ if test "$KVER" = 6.8; then
 END
 fi
 
-if dpkg --compare-versions "$KVER" ge "6.12"; then
+if dpkg --compare-versions "$KVER" ge "6.16"; then
+	# below setting should go into linux/debian/config.local/defines.toml but
+	# as the list of debianrelease cannot be overridden, the catch-all '.*' will
+	# always get applied but we have to sneak in 'reform' before that
+	cat <<'END' | env --chdir=linux patch -p1
+--- a/debian/config/defines.toml
++++ b/debian/config/defines.toml
+@@ -105,6 +105,10 @@
+ revision_regex = '\d+(\.\d+)?(\+deb14u\d+)?'
+
+ [[debianrelease]]
++name_regex = '(reform|trixie|trixie-backports)'
++revision_regex = '\d+(~exp\d+)?\+reform[0-9]+T[0-9]+Z'
++
++[[debianrelease]]
+ name_regex = 'trixie-backports'
+ abi_suffix = '+deb13'
+ revision_regex = '\d+(\.\d+)?(\+deb14u\d+)?~bpo13\+\d+'
+END
+elif dpkg --compare-versions "$KVER" ge "6.12"; then
 	# below setting should go into linux/debian/config.local/defines.toml but
 	# as the list of debianrelease cannot be overridden, the catch-all '.*' will
 	# always get applied but we have to sneak in 'reform' before that
