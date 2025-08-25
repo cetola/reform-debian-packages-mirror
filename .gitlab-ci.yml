@@ -383,4 +383,4 @@ reprepro:
     } | tee variables.sh
   after_script: |
     echo "To use the artifacts of this job as an apt source, add this to your /etc/apt/sources.list:" >&2
-    echo "deb [trusted=yes arch=arm64] https://$CI_SERVER_HOST/$CI_PROJECT_NAMESPACE/reform-debian-packages/-/jobs/$CI_JOB_ID/artifacts/raw/repo reform main"
+    echo "deb [trusted=yes arch=arm64] https://$CI_SERVER_HOST/$CI_PROJECT_NAMESPACE/reform-debian-packages/-/jobs/$CI_JOB_ID/artifacts/raw/repo $OURSUITE main"
