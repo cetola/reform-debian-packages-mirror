@@ -3,7 +3,7 @@ image: debian:unstable-slim
 variables:
   BASESUITE:
     description: Debian suite to fetch packages from
-    value: experimental
+    value: unstable
   OURSUITE:
     description: Suite name of the repository we create
     value: reform
@@ -21,8 +21,8 @@ stages:
     # Do not allow custom builds in the 'reform' namespace as those can
     # potentially taint the repository at https://mntre.com/reform-debian-repo/
     if [ "$CI_SERVER_HOST" = "source.mnt.re" ] && [ "$CI_PROJECT_NAMESPACE" = "reform" ]; then
-      if [ "$BASESUITE" != "experimental" ]; then
-        echo "Refusing to run pipeline in the 'reform' namespace with BASESUITE not set to 'experimental'" >&2
+      if [ "$BASESUITE" != "unstable" ]; then
+        echo "Refusing to run pipeline in the 'reform' namespace with BASESUITE not set to 'unstable'" >&2
         echo "to avoid accidentally tainting the repository at https://mntre.com/reform-debian-repo." >&2
         echo "Consider running custom pipelines in a fork of reform-debian-packages under your own username instead." >&2
         exit 1
