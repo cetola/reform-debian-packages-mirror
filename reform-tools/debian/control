@@ -39,7 +39,7 @@ Depends:
  tzdata,
  ${misc:Depends},
 Recommends:
- bmap-tools,
+ bmaptool,
  brightnessctl,
  debian-keyring,
  fonts-font-awesome,
@@ -78,7 +78,7 @@ Section: metapackages
 Depends:
  alsa-ucm-conf,
  blueman,
- bmap-tools,
+ bmaptool,
  brightnessctl,
  dunst,
  engrampa,
