@@ -1,0 +1,37 @@
+#!/bin/sh
+set -e
+patch -p1 << 'EOF'
+diff --git a/debian/control b/debian/control
+index b27e12b..198f6a8 100644
+--- a/debian/control
++++ b/debian/control
+@@ -7,6 +7,7 @@ Uploaders:
+ Build-Depends:
+  debhelper-compat (= 13),
+  fontforge,
++ librsvg2-bin,
+ Rules-Requires-Root: no
+ Standards-Version: 4.7.0
+ Vcs-Git: https://salsa.debian.org/reform-team/reform-branding.git
+diff --git a/debian/reform-branding.install b/debian/reform-branding.install
+index 4310f37..e4ecdc1 100644
+--- a/debian/reform-branding.install
++++ b/debian/reform-branding.install
+@@ -1,2 +1,3 @@
+ MNTIcons.ttf /usr/share/fonts/truetype/
+ logo.svg     /usr/share/doc/reform-handbook/html/_static/
++watermark.png /usr/share/plymouth/themes/mnt/
+diff --git a/debian/rules b/debian/rules
+index 7334919..713f688 100755
+--- a/debian/rules
++++ b/debian/rules
+@@ -5,6 +5,7 @@
+ 
+ execute_after_dh_auto_build:
+ 	fontforge -lang=ff -c 'Open($$1); Generate($$2)' MNTIcons.sfd MNTIcons.ttf
++	rsvg-convert logo.svg -o watermark.png
+ 
+ execute_after_dh_clean:
+-	rm -f MNTIcons.ttf
++	rm -f MNTIcons.ttf watermark.png
+EOF

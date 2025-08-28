@@ -57,7 +57,7 @@ if [ ! -d "$chdistdata" ]; then
 fi
 
 {
-	echo "deb-src $MIRROR $BASESUITE main"
+	echo "deb-src $MIRROR $BASESUITE main non-free"
 	case $BASESUITE in
 	experimental | rc-buggy)
 		echo "deb-src $MIRROR unstable main"
