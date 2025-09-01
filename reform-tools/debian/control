@@ -127,8 +127,6 @@ Depends:
  papirus-icon-theme,
  pasystray,
  pavucontrol,
- plymouth,
- plymouth-themes,
  pulseaudio-utils,
  python3,
  python3-gi,
