@@ -24,7 +24,14 @@ for p in patches/*; do
 	# if we are in a git repository, set SOURCE_DATE_EPOCH to the timestamp of
 	# the latest change to the patch
 	if git -C . rev-parse 2>/dev/null; then
-		SOURCE_DATE_EPOCH=$(git log -1 --format=%ct "patches/$p")
+		# reform-tools is special because its changes depend on the contents of the
+		# ./reform-tools directory but only if we we are building for the suite
+		# "reform"
+		if [ "$OURSUITE" = "reform" ] && [ "$p" = "reform-tools" ]; then
+			SOURCE_DATE_EPOCH=$(git log -1 --format=%ct -- "./reform-tools")
+		else
+			SOURCE_DATE_EPOCH=$(git log -1 --format=%ct -- "./patches/$p")
+		fi
 	fi
 	datesuffix="$(date --utc --date=@$SOURCE_DATE_EPOCH +%Y%m%dT%H%M%SZ)"
 	case "$OURSUITE" in
