@@ -78,6 +78,6 @@ fi
 mkdir -p "$chdistdata/base/etc/apt/apt.conf.d"
 echo 'Acquire::Check-Valid-Until "false";' >"$chdistdata/base/etc/apt/apt.conf.d/99mmdebstrap"
 
-chdist_base apt-get update
+chdist_base apt-get update --error-on=any
 
 mkdir -p changes buildlogs
