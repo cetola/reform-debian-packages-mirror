@@ -573,7 +573,11 @@ fi
 # this command fails intentionally, so we let it always succeed
 # we don't care that ":" runs even when control-real succeeds
 # shellcheck disable=SC2015
-make -C linux -f debian/rules debian/control-real && exit 1 || :
+if dpkg --compare-versions "$KVER" ge "6.17"; then
+	make -C linux -f debian/rules debian/control-real-fail && exit 1 || :
+else
+	make -C linux -f debian/rules debian/control-real && exit 1 || :
+fi
 
 if dpkg --compare-versions "$KVER" lt "6.8"; then
 	# running the last command creates pyc files that we don't want
@@ -641,7 +645,11 @@ fi
 cat config >>linux/debian/config/arm64/config
 # we don't care that ":" runs even when control-real succeeds
 # shellcheck disable=SC2015
-env --chdir=linux make -f debian/rules debian/control-real && exit 1 || :
+if dpkg --compare-versions "$KVER" ge "6.17"; then
+	make -C linux -f debian/rules debian/control-real-fail && exit 1 || :
+else
+	make -C linux -f debian/rules debian/control-real && exit 1 || :
+fi
 env --chdir=linux debian/rules source
 env --chdir=linux ../kernel-team/utils/kconfigeditor2/process.py .
 
