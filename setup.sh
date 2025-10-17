@@ -56,22 +56,24 @@ if [ ! -d "$chdistdata" ]; then
 	chdist_base create
 fi
 
+components="main non-free-firmware"
+
 {
-	echo "deb-src $MIRROR $BASESUITE main"
+	echo "deb-src $MIRROR $BASESUITE $components"
 	case $BASESUITE in
 	experimental | rc-buggy)
-		echo "deb-src $MIRROR unstable main"
+		echo "deb-src $MIRROR unstable $components"
 		;;
 	unstable | sid | testing) : ;;
 	*-backports)
-		echo "deb-src $MIRROR ${BASESUITE%-backports} main"
-		echo "deb-src $MIRROR ${BASESUITE%-backports}-updates main"
-		echo "deb-src http://security.debian.org/debian-security ${BASESUITE%-backports}-security main"
+		echo "deb-src $MIRROR ${BASESUITE%-backports} $components"
+		echo "deb-src $MIRROR ${BASESUITE%-backports}-updates $components"
+		echo "deb-src http://security.debian.org/debian-security ${BASESUITE%-backports}-security $components"
 		;;
 	*)
 		# assume this is a stable release
-		echo "deb-src $MIRROR $BASESUITE-updates main"
-		echo "deb-src http://security.debian.org/debian-security $BASESUITE-security main"
+		echo "deb-src $MIRROR $BASESUITE-updates $components"
+		echo "deb-src http://security.debian.org/debian-security $BASESUITE-security $components"
 		;;
 	esac
 } >"$chdistdata/base/etc/apt/sources.list"
