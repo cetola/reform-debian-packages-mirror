@@ -53,8 +53,8 @@ for p in patches/*; do
 		their_version=$(chdist_base apt-get source --only-source -t "$OUR_BASESUITE" --no-act "$p" | sed "s/^Selected version '\\([^']*\\)' ($OUR_BASESUITE) for .*/\\1/;t;d")
 	fi
 	if test -z "$their_version"; then
-		echo "W: cannot determine source version for $p -- skipping..." >&2
-		continue
+		echo "E: cannot determine source version for $p" >&2
+		exit 1
 	fi
 	if test -n "$our_version" && dpkg --compare-versions "$our_version" gt "$their_version"; then
 		our_suffix=${our_version#*"+$VERSUFFIX"}
