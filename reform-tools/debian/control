@@ -77,6 +77,7 @@ Package: reform-desktop-full
 Architecture: all
 Section: metapackages
 Depends:
+ adwaita-icon-theme,
  alsa-ucm-conf,
  blueman,
  bmaptool,
@@ -105,7 +106,6 @@ Depends:
  gnome,
  gnome-disk-utility,
  gnome-firmware,
- gnome-icon-theme,
  gnome-settings-daemon,
  gnome-shell-extension-dashtodock,
  gnome-shell-extension-manager,
@@ -140,6 +140,7 @@ Depends:
  swayidle,
  swaylock,
  sxiv,
+ tio,
  thunar,
  unicode-data,
  waybar,
