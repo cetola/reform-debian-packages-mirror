@@ -44,7 +44,7 @@ new file mode 100644
 index 000000000000..3e945397bac5
 --- /dev/null
 +++ b/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c
-@@ -0,0 +1,853 @@
+@@ -0,0 +1,855 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
 + * Copyright (C) 2016 InforceComputing
@@ -583,9 +583,9 @@ index 000000000000..3e945397bac5
 +	if (!jdi->prepared)
 +		return 0;
 +
-+ if (jdi->panel_version < 2) jdi->dsi->mode_flags |= ~MIPI_DSI_MODE_LPM;
-+ mipi_dsi_dcs_set_display_off(jdi->dsi);
-+ mipi_dsi_dcs_enter_sleep_mode(jdi->dsi);
++	if (jdi->panel_version < 2) jdi->dsi->mode_flags |= ~MIPI_DSI_MODE_LPM;
++	mipi_dsi_dcs_set_display_off(jdi->dsi);
++	mipi_dsi_dcs_enter_sleep_mode(jdi->dsi);
 +	msleep(100);
 +
 +	ret = regulator_bulk_disable(ARRAY_SIZE(jdi->supplies), jdi->supplies);
@@ -664,6 +664,8 @@ index 000000000000..3e945397bac5
 +		}
 +	} else {
 +		jdi->dsi->mode_flags |= MIPI_DSI_MODE_LPM;
++		mipi_dsi_dcs_exit_sleep_mode(jdi->dsi);
++		mdelay(800);
 +		ret = mipi_dsi_dcs_set_display_on(jdi->dsi);
 +		if (ret < 0) {
 +			dev_err(dev, "[display] failed to turn display on in enable: %d\n", ret);
