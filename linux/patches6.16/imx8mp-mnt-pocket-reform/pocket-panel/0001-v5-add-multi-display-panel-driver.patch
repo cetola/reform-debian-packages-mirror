@@ -44,7 +44,7 @@ new file mode 100644
 index 000000000000..3e945397bac5
 --- /dev/null
 +++ b/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c
-@@ -0,0 +1,855 @@
+@@ -0,0 +1,842 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
 + * Copyright (C) 2016 InforceComputing
@@ -637,7 +637,7 @@ index 000000000000..3e945397bac5
 +		dev_info(dev, "[display] init in prepare...\n");
 +		ret = jdi_panel_init(jdi);
 +		if (ret < 0) {
-+			dev_err(dev, "failed jdi_panel_init: %d\n", ret);
++			dev_err(dev, "[display] failed jdi_panel_init: %d\n", ret);
 +			return ret;
 +		}
 +	}
@@ -653,25 +653,12 @@ index 000000000000..3e945397bac5
 +	struct device *dev = &jdi->dsi->dev;
 +	int ret;
 +
-+	if (of_property_present(dev->of_node, "init-in-enable")) {
-+		// on imx8mp the panels only work
-+		// if init is done here, not in prepare
-+		dev_info(dev, "[display] init in enable...\n");
-+		ret = jdi_panel_init(jdi);
-+		if (ret < 0) {
-+			dev_err(dev, "failed jdi_panel_init: %d\n", ret);
-+			return ret;
-+		}
-+	} else {
-+		jdi->dsi->mode_flags |= MIPI_DSI_MODE_LPM;
-+		mipi_dsi_dcs_exit_sleep_mode(jdi->dsi);
-+		mdelay(800);
-+		ret = mipi_dsi_dcs_set_display_on(jdi->dsi);
-+		if (ret < 0) {
-+			dev_err(dev, "[display] failed to turn display on in enable: %d\n", ret);
-+		}
-+		if (jdi->backlight) backlight_enable(jdi->backlight);
++	dev_info(dev, "[display] init in enable...\n");
++	ret = jdi_panel_init(jdi);
++	if (ret < 0) {
++		dev_err(dev, "[display] failed to turn display on in enable: %d\n", ret);
 +	}
++	if (jdi->backlight) backlight_enable(jdi->backlight);
 +	jdi->enabled = true;
 +
 +	return 0;
