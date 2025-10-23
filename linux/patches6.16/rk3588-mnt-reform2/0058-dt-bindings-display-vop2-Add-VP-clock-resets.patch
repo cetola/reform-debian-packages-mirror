@@ -1,7 +1,14 @@
-From a578e5806169f85fca03234ae61a17aa7a29ca2a Mon Sep 17 00:00:00 2001
+From d7bb9377aceda34c5677e7f1f1c6c72afa883937 Mon Sep 17 00:00:00 2001
+From: "Lucie L. Hartmann" <lukas@mntre.com>
+Date: Thu, 23 Oct 2025 19:12:16 +0200
+Subject: [PATCH] (rebased) [PATCH 058/111] dt-bindings: display: vop2: Add VP
+ clock resets
+
+This patch didn't apply cleanly to our tree, so rebased by Lucie. Original commit message:
+
 From: Detlev Casanova <detlev.casanova@collabora.com>
 Date: Fri, 15 Nov 2024 11:20:40 -0500
-Subject: [PATCH 058/111] dt-bindings: display: vop2: Add VP clock resets
+Subject: (rebased) [PATCH 058/111] dt-bindings: display: vop2: Add VP clock resets
 
 Add the documentation for VOP2 video ports reset clocks.
 One reset can be set per video port.
@@ -13,12 +20,12 @@ Signed-off-by: Detlev Casanova <detlev.casanova@collabora.com>
  1 file changed, 48 insertions(+)
 
 diff --git a/Documentation/devicetree/bindings/display/rockchip/rockchip-vop2.yaml b/Documentation/devicetree/bindings/display/rockchip/rockchip-vop2.yaml
-index 93da1fb9adc47..8a8993fea896d 100644
+index f546d481b7e5..761852338c57 100644
 --- a/Documentation/devicetree/bindings/display/rockchip/rockchip-vop2.yaml
 +++ b/Documentation/devicetree/bindings/display/rockchip/rockchip-vop2.yaml
 @@ -82,6 +82,26 @@ properties:
-       - {}
-       - {}
+       - const: pll_hdmiphy0
+       - const: pll_hdmiphy1
  
 +  resets:
 +    minItems: 5
@@ -56,7 +63,7 @@ index 93da1fb9adc47..8a8993fea896d 100644
          ports:
            required:
              - port@0
-@@ -200,6 +226,12 @@ allOf:
+@@ -186,6 +212,12 @@ allOf:
          interrupt-names:
            minItems: 4
  
@@ -69,7 +76,7 @@ index 93da1fb9adc47..8a8993fea896d 100644
          ports:
            required:
              - port@0
-@@ -251,6 +283,12 @@ allOf:
+@@ -219,6 +251,12 @@ allOf:
  
          interrupt-names: false
  
@@ -82,7 +89,7 @@ index 93da1fb9adc47..8a8993fea896d 100644
          ports:
            required:
              - port@0
-@@ -289,6 +327,16 @@ examples:
+@@ -257,6 +295,16 @@ examples:
                                "dclk_vp0",
                                "dclk_vp1",
                                "dclk_vp2";
@@ -100,5 +107,5 @@ index 93da1fb9adc47..8a8993fea896d 100644
                  rockchip,grf = <&grf>;
                  iommus = <&vop_mmu>;
 -- 
-2.39.5
+2.51.0
 
