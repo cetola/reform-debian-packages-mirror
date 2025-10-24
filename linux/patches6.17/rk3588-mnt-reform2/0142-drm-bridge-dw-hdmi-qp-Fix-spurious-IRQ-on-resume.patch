@@ -32,15 +32,15 @@ diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.c b/drivers/gpu/drm/brid
 index 66802415b8923..ebd69b90656eb 100644
 --- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.c
 +++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.c
-@@ -192,6 +192,7 @@ struct dw_hdmi_qp {
- 	bool flt_no_timeout;
+@@ -163,6 +163,7 @@ struct dw_hdmi_qp {
  
+ 	unsigned long ref_clk_rate;
  	struct regmap *regm;
 +	int main_irq;
  
- 	//TODO: store tmds_char_rate in struct dw_hdmi_qp_link_config
- 	unsigned long long tmds_char_rate;
-@@ -2024,6 +2025,7 @@ struct dw_hdmi_qp *dw_hdmi_qp_bind(struct platform_device *pdev,
+ 	unsigned long tmds_char_rate;
+ };
+@@ -1276,6 +1277,7 @@ struct dw_hdmi_qp *dw_hdmi_qp_bind(struct platform_device *pdev,
  
  	dw_hdmi_qp_init_hw(hdmi);
  
@@ -48,7 +48,7 @@ index 66802415b8923..ebd69b90656eb 100644
  	ret = devm_request_threaded_irq(dev, plat_data->main_irq,
  					dw_hdmi_qp_main_hardirq, NULL,
  					IRQF_SHARED, dev_name(dev), hdmi);
-@@ -2080,9 +2082,16 @@ struct dw_hdmi_qp *dw_hdmi_qp_bind(struct platform_device *pdev,
+@@ -1326,9 +1328,16 @@ struct dw_hdmi_qp *dw_hdmi_qp_bind(struct platform_device *pdev,
  }
  EXPORT_SYMBOL_GPL(dw_hdmi_qp_bind);
  
@@ -69,7 +69,7 @@ diff --git a/drivers/gpu/drm/rockchip/dw_hdmi_qp-rockchip.c b/drivers/gpu/drm/ro
 index 116acc76c8fb2..421a364968dbb 100644
 --- a/drivers/gpu/drm/rockchip/dw_hdmi_qp-rockchip.c
 +++ b/drivers/gpu/drm/rockchip/dw_hdmi_qp-rockchip.c
-@@ -865,6 +865,15 @@ static void dw_hdmi_qp_rockchip_remove(struct platform_device *pdev)
+@@ -599,6 +599,15 @@ static void dw_hdmi_qp_rockchip_remove(struct platform_device *pdev)
  	component_del(&pdev->dev, &dw_hdmi_qp_rockchip_ops);
  }
  
@@ -85,7 +85,7 @@ index 116acc76c8fb2..421a364968dbb 100644
  static int __maybe_unused dw_hdmi_qp_rockchip_resume(struct device *dev)
  {
  	struct rockchip_hdmi_qp *hdmi = dev_get_drvdata(dev);
-@@ -880,7 +889,8 @@ static int __maybe_unused dw_hdmi_qp_rockchip_resume(struct device *dev)
+@@ -614,7 +623,8 @@ static int __maybe_unused dw_hdmi_qp_rockchip_resume(struct device *dev)
  }
  
  static const struct dev_pm_ops dw_hdmi_qp_rockchip_pm = {
@@ -99,7 +99,7 @@ diff --git a/include/drm/bridge/dw_hdmi_qp.h b/include/drm/bridge/dw_hdmi_qp.h
 index f2560dd5b5101..9e29bc1a14aca 100644
 --- a/include/drm/bridge/dw_hdmi_qp.h
 +++ b/include/drm/bridge/dw_hdmi_qp.h
-@@ -45,5 +45,6 @@ struct dw_hdmi_qp_plat_data {
+@@ -29,5 +29,6 @@ struct dw_hdmi_qp_plat_data {
  struct dw_hdmi_qp *dw_hdmi_qp_bind(struct platform_device *pdev,
  				   struct drm_encoder *encoder,
  				   const struct dw_hdmi_qp_plat_data *plat_data);
