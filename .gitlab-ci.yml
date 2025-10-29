@@ -94,6 +94,8 @@ build_patched_arm64:
       - buildlogs
 
 build_patched_armhf:
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_REF_NAME == "main"
   variables:
     BUILD_ARCH: armhf
     HOST_ARCH: armhf
@@ -108,6 +110,8 @@ build_patched_armhf:
       - buildlogs
 
 build_patched_i386:
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_REF_NAME == "main"
   variables:
     BUILD_ARCH: i386
     HOST_ARCH: i386
@@ -122,6 +126,8 @@ build_patched_i386:
       - buildlogs
 
 build_patched_amd64:
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_REF_NAME == "main"
   variables:
     BUILD_ARCH: amd64
     HOST_ARCH: amd64
@@ -219,6 +225,8 @@ build_linux_arm64:
       - linux/linux_*_arm64-*.build
 
 build_linux_armhf:
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_REF_NAME == "main"
   variables:
     BUILD_ARCH: armhf
     HOST_ARCH: armhf
@@ -233,6 +241,8 @@ build_linux_armhf:
       - linux/linux_*_armhf-*.build
 
 build_linux_i386:
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_REF_NAME == "main"
   variables:
     BUILD_ARCH: i386
     HOST_ARCH: i386
@@ -247,6 +257,8 @@ build_linux_i386:
       - linux/linux_*_armhf-*.build
 
 build_linux_amd64:
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_REF_NAME == "main"
   variables:
     BUILD_ARCH: amd64
     HOST_ARCH: amd64
