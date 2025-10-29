@@ -1,0 +1,259 @@
+From 55dfbb495b53cefcb1ad89d9aa3bcc8ac437a0b9 Mon Sep 17 00:00:00 2001
+From: "Lucie L. Hartmann" <lukas@mntre.com>
+Date: Wed, 29 Oct 2025 17:25:12 +0100
+Subject: [PATCH 2/2] arm64/pcie/drm/ttm: port arm64 pcie workarounds for GPUs
+ (esp. amdgpu)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This code is not authored by me, but rebased from commits by Mario Bălănică <mariobalanica02@gmail.com>:
+
+- CONFIG_ARM64_FORCE_PCIE_MMIO_DEVICE_MAPPINGS
+- CONFIG_ARM64_ALIGNMENT_FIXUPS
+- CONFIG_DRM_FORCE_DMA_WRITE_COMBINED_MAPPINGS
+
+Originally at: https://github.com/mariobalanica/arm-pcie-gpu-patches/tree/main
+---
+ arch/arm64/Kconfig                 | 27 +++++++++++++++++++++++-
+ arch/arm64/include/asm/exception.h |  1 +
+ arch/arm64/include/asm/pgtable.h   | 20 +++++++++++++-----
+ arch/arm64/kernel/Makefile         |  1 +
+ arch/arm64/mm/fault.c              |  6 ++++--
+ drivers/gpu/drm/Kconfig            | 16 +++++++++++++++
+ drivers/gpu/drm/ttm/ttm_tt.c       |  4 ++++
+ include/drm/drm_cache.h            |  3 +++
+ kernel/resource.c                  | 33 ++++++++++++++++++++++++++++++
+ 9 files changed, 103 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index 393d71124f5d..96e0f2386624 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -1730,6 +1730,32 @@ config ARM64_TAGGED_ADDR_ABI
+ 	  to system calls as pointer arguments. For details, see
+ 	  Documentation/arch/arm64/tagged-address-abi.rst.
+ 
++config ARM64_FORCE_PCIE_MMIO_DEVICE_MAPPINGS
++	bool "Force Device memory mappings for PCIe MMIO space"
++	default y
++	help
++	  PCIe device drivers may map MMIO space as Normal non-cacheable,
++	  for the purpose of enabling write combining or unaligned accesses.
++
++	  On many platforms (e.g. Ampere Altra, RK35xx), the PCIe interface
++	  cannot support unaligned outbound transactions. This may lead to
++	  data corruption, for instance, when a regular memcpy is performed by
++	  an application on a GPU's VRAM BAR.
++
++	  This option forces all software that maps PCIe MMIO space as Normal
++	  non-cacheable memory to use Device-nGnRE instead. If the strict alignment
++	  is not met, the CPU will raise alignment faults that can be further
++	  handled by the kernel by enabling CONFIG_ARM64_ALIGNMENT_FIXUPS.
++
++config ARM64_ALIGNMENT_FIXUPS
++	bool "Fix up misaligned multi-word loads and stores in 64-bit kernel/user space"
++	default y
++	help
++	  This option enables kernel/user space code to perform unaligned accesses
++	  to memory regions that do not normally support them (e.g. device mappings)
++	  by trapping alignment faults on common load/store instructions and breaking
++	  up the offending accesses into properly aligned ones.
++
+ menuconfig COMPAT
+ 	bool "Kernel support for 32-bit EL0"
+ 	depends on ARM64_4K_PAGES || EXPERT
+@@ -2499,4 +2525,3 @@ endmenu # "CPU Power Management"
+ source "drivers/acpi/Kconfig"
+ 
+ source "arch/arm64/kvm/Kconfig"
+-
+diff --git a/arch/arm64/include/asm/exception.h b/arch/arm64/include/asm/exception.h
+index d48fc16584cd..fa1f277563ac 100644
+--- a/arch/arm64/include/asm/exception.h
++++ b/arch/arm64/include/asm/exception.h
+@@ -70,6 +70,7 @@ void do_sp_pc_abort(unsigned long addr, unsigned long esr, struct pt_regs *regs)
+ void bad_el0_sync(struct pt_regs *regs, int reason, unsigned long esr);
+ void do_el0_cp15(unsigned long esr, struct pt_regs *regs);
+ int do_compat_alignment_fixup(unsigned long addr, struct pt_regs *regs);
++int do_alignment_fixup(unsigned long addr, unsigned int esr, struct pt_regs *regs);
+ void do_el0_svc(struct pt_regs *regs);
+ void do_el0_svc_compat(struct pt_regs *regs);
+ void do_el0_fpac(struct pt_regs *regs, unsigned long esr);
+diff --git a/arch/arm64/include/asm/pgtable.h b/arch/arm64/include/asm/pgtable.h
+index 192d86e1cc76..efb51abaf756 100644
+--- a/arch/arm64/include/asm/pgtable.h
++++ b/arch/arm64/include/asm/pgtable.h
+@@ -340,11 +340,6 @@ static inline pte_t pte_mkyoung(pte_t pte)
+ 	return set_pte_bit(pte, __pgprot(PTE_AF));
+ }
+ 
+-static inline pte_t pte_mkspecial(pte_t pte)
+-{
+-	return set_pte_bit(pte, __pgprot(PTE_SPECIAL));
+-}
+-
+ static inline pte_t pte_mkcont(pte_t pte)
+ {
+ 	return set_pte_bit(pte, __pgprot(PTE_CONT));
+@@ -812,6 +807,21 @@ static inline void __set_puds(struct mm_struct *mm,
+ 	__pgprot_modify(prot, PTE_ATTRINDX_MASK, \
+ 			PTE_ATTRINDX(MT_NORMAL_NC) | PTE_PXN | PTE_UXN)
+ 
++extern bool range_is_pci(phys_addr_t phys_addr, size_t size);
++
++static inline pte_t pte_mkspecial(pte_t pte)
++{
++#ifdef CONFIG_ARM64_FORCE_PCIE_MMIO_DEVICE_MAPPINGS
++	phys_addr_t phys = __pte_to_phys(pte);
++	pgprot_t prot = __pgprot(pte_val(pte) & ~__phys_to_pte_val(__pte_to_phys(__pte(~0ull))));
++
++	if ((pgprot_val(prot) != pgprot_val(pgprot_device(prot))) &&
++	    range_is_pci(phys, PAGE_SIZE))
++		pte = __pte(__phys_to_pte_val(phys) | pgprot_val(pgprot_device(prot)));
++#endif
++	return set_pte_bit(pte, __pgprot(PTE_SPECIAL));
++}
++
+ #define __HAVE_PHYS_MEM_ACCESS_PROT
+ struct file;
+ extern pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
+diff --git a/arch/arm64/kernel/Makefile b/arch/arm64/kernel/Makefile
+index a2faf0049dab..83e4ad464748 100644
+--- a/arch/arm64/kernel/Makefile
++++ b/arch/arm64/kernel/Makefile
+@@ -36,6 +36,7 @@ obj-y			:= debug-monitors.o entry.o irq.o fpsimd.o		\
+ 			   syscall.o proton-pack.o idle.o patching.o pi/	\
+ 			   rsi.o jump_label.o
+ 
++obj-$(CONFIG_ARM64_ALIGNMENT_FIXUPS)	+= alignment.o
+ obj-$(CONFIG_COMPAT)			+= sys32.o signal32.o			\
+ 					   sys_compat.o
+ obj-$(CONFIG_COMPAT)			+= sigreturn32.o
+diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
+index 11eb8d1adc84..8032d4b38551 100644
+--- a/arch/arm64/mm/fault.c
++++ b/arch/arm64/mm/fault.c
+@@ -801,8 +801,10 @@ static int __kprobes do_translation_fault(unsigned long far,
+ static int do_alignment_fault(unsigned long far, unsigned long esr,
+ 			      struct pt_regs *regs)
+ {
+-	if (IS_ENABLED(CONFIG_COMPAT_ALIGNMENT_FIXUPS) &&
+-	    compat_user_mode(regs))
++	if (!compat_user_mode(regs)) {
++		if (IS_ENABLED(CONFIG_ARM64_ALIGNMENT_FIXUPS))
++			return do_alignment_fixup(far, esr, regs);
++	} else if (IS_ENABLED(CONFIG_COMPAT_ALIGNMENT_FIXUPS))
+ 		return do_compat_alignment_fixup(far, regs);
+ 	do_bad_area(far, esr, regs);
+ 	return 0;
+diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
+index f7ea8e895c0c..f9a64f06ac71 100644
+--- a/drivers/gpu/drm/Kconfig
++++ b/drivers/gpu/drm/Kconfig
+@@ -183,6 +183,22 @@ config DRM_LOAD_EDID_FIRMWARE
+ 	  default case is N. Details and instructions how to build your own
+ 	  EDID data are given in Documentation/admin-guide/edid.rst.
+ 
++config DRM_FORCE_DMA_WRITE_COMBINED_MAPPINGS
++	bool "Force write-combined mappings for DMA"
++	default y
++	help
++	  PCIe GPU device drivers may use normal cached mappings for DMA memory.
++
++	  This requires the PCIe interface to be coherent with the CPU caches,
++	  which is not supported by many Arm platforms (e.g. RK35xx), leading to
++	  data corruption on inbound transactions.
++
++	  Enable this option to force write-combined mappings instead (Normal
++	  non-cacheable on Arm).
++
++	  Disable if the hardware supports coherency, as it might cause issues on
++	  certain platforms that ignore the PCIe NoSnoop TLP attribute.
++
+ source "drivers/gpu/drm/display/Kconfig"
+ 
+ config DRM_TTM
+diff --git a/drivers/gpu/drm/ttm/ttm_tt.c b/drivers/gpu/drm/ttm/ttm_tt.c
+index 698cd4bf5e46..fdc3a44925a7 100644
+--- a/drivers/gpu/drm/ttm/ttm_tt.c
++++ b/drivers/gpu/drm/ttm/ttm_tt.c
+@@ -153,6 +153,10 @@ static void ttm_tt_init_fields(struct ttm_tt *ttm,
+ 			       enum ttm_caching caching,
+ 			       unsigned long extra_pages)
+ {
++#ifdef CONFIG_DRM_FORCE_DMA_WRITE_COMBINED_MAPPINGS
++	if (caching == ttm_cached)
++		caching = ttm_write_combined;
++#endif
+ 	ttm->num_pages = (PAGE_ALIGN(bo->base.size) >> PAGE_SHIFT) + extra_pages;
+ 	ttm->page_flags = page_flags;
+ 	ttm->dma_address = NULL;
+diff --git a/include/drm/drm_cache.h b/include/drm/drm_cache.h
+index 08e0e3ffad13..ce86c55365a3 100644
+--- a/include/drm/drm_cache.h
++++ b/include/drm/drm_cache.h
+@@ -45,6 +45,9 @@ bool drm_need_swiotlb(int dma_bits);
+ 
+ static inline bool drm_arch_can_wc_memory(void)
+ {
++#ifdef CONFIG_DRM_FORCE_DMA_WRITE_COMBINED_MAPPINGS
++	return true;
++#endif
+ #if defined(CONFIG_PPC) && !defined(CONFIG_NOT_COHERENT_CACHE)
+ 	return false;
+ #elif defined(CONFIG_MIPS) && defined(CONFIG_CPU_LOONGSON64)
+diff --git a/kernel/resource.c b/kernel/resource.c
+index f9bb5481501a..5f5b3726e4cb 100644
+--- a/kernel/resource.c
++++ b/kernel/resource.c
+@@ -375,6 +375,7 @@ static int find_next_iomem_res(resource_size_t start, resource_size_t end,
+ 			.flags = p->flags,
+ 			.desc = p->desc,
+ 			.parent = p->parent,
++			.name = p->name,
+ 		};
+ 	}
+ 
+@@ -552,6 +553,38 @@ int __weak page_is_ram(unsigned long pfn)
+ }
+ EXPORT_SYMBOL_GPL(page_is_ram);
+ 
++static int pci_res_check(struct resource *res, void *arg)
++{
++	if (!res->name)
++		return 1;
++
++	return strncmp(res->name, "PCI", 3);
++}
++
++bool range_is_pci(phys_addr_t phys_addr, size_t size)
++{
++	u64 start, end;
++	int ret;
++
++	start = phys_addr;
++	end = phys_addr + size;
++
++	/* Check 32-bit MMIO */
++	ret = walk_iomem_res_desc(IORES_DESC_NONE, IORESOURCE_MEM,
++				  start, end, NULL, pci_res_check);
++	if (!ret)
++		return true;
++
++	/* Check 64-bit MMIO */
++	ret = walk_iomem_res_desc(IORES_DESC_NONE, IORESOURCE_MEM_64,
++				  start, end, NULL, pci_res_check);
++	if (!ret)
++		return true;
++
++	return false;
++}
++EXPORT_SYMBOL_GPL(range_is_pci);
++
+ static int __region_intersects(struct resource *parent, resource_size_t start,
+ 			       size_t size, unsigned long flags,
+ 			       unsigned long desc)
+-- 
+2.51.0
+
