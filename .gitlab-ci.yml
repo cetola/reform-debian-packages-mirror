@@ -40,7 +40,7 @@ stages:
     chown build -R .
     rm -rvf changes buildlogs chdist repo chroot-*.tar
     runuser -u build -- sh -x ./setup.sh
-    runuser -u build -- sed -i 's/^Architectures: .*/Architectures: source arm64 amd64/' ./repo/conf/distributions
+    runuser -u build -- sed -i 's/^Architectures: .*/Architectures: source arm64 armhf i386 amd64/' ./repo/conf/distributions
     runuser -u build -- reprepro --basedir ./repo export
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
     runuser -u build -- sh -c 'mkdir -p ~/.config/sbuild'
@@ -91,6 +91,34 @@ build_patched_arm64:
     paths:
       - output.log
       - changes-arm64
+      - buildlogs
+
+build_patched_armhf:
+  variables:
+    BUILD_ARCH: armhf
+    HOST_ARCH: armhf
+  extends: .build_patched
+  tags:
+    - armhf
+  artifacts:
+    when: always
+    paths:
+      - output.log
+      - changes-armhf
+      - buildlogs
+
+build_patched_i386:
+  variables:
+    BUILD_ARCH: i386
+    HOST_ARCH: i386
+  extends: .build_patched
+  tags:
+    - i386
+  artifacts:
+    when: always
+    paths:
+      - output.log
+      - changes-i386
       - buildlogs
 
 build_patched_amd64:
@@ -189,6 +217,34 @@ build_linux_arm64:
       - output.log
       - changes-arm64
       - linux/linux_*_arm64-*.build
+
+build_linux_armhf:
+  variables:
+    BUILD_ARCH: armhf
+    HOST_ARCH: armhf
+  extends: .build_linux
+  tags:
+    - armhf
+  artifacts:
+    when: always
+    paths:
+      - output.log
+      - changes-armhf
+      - linux/linux_*_armhf-*.build
+
+build_linux_i386:
+  variables:
+    BUILD_ARCH: i386
+    HOST_ARCH: i386
+  extends: .build_linux
+  tags:
+    - i386
+  artifacts:
+    when: always
+    paths:
+      - output.log
+      - changes-armhf
+      - linux/linux_*_armhf-*.build
 
 build_linux_amd64:
   variables:
@@ -299,10 +355,14 @@ reprepro:
     - arm64
   dependencies:
     - build_patched_arm64
+    - build_patched_armhf
     - build_patched_amd64
+    - build_patched_i386
     - build_custom
     - build_linux_arm64
+    - build_linux_armhf
     - build_linux_amd64
+    - build_linux_i386
     - build_qcacld
   artifacts:
     when: always
