@@ -56,10 +56,22 @@
 		pwms = <&pwm8 0 50000 0>;
 		enable-gpios = <&gpio2 RK_PB5 GPIO_ACTIVE_HIGH>;
 		brightness-levels = <0 1000>;
-		default-brightness-level = <500>;
+		default-brightness-level = <50>;
 		num-interpolated-steps = <100>;
 		pinctrl-0 = <&backlight_enable>;
 		pinctrl-names = "default";
+	};
+
+	gpio-keys {
+		compatible = "gpio-keys";
+		autorepeat;
+
+		wake {
+			label = "LPC GPIO Wakeup";
+			linux,code = <57>;
+			gpios = <&gpio4 RK_PB2 GPIO_ACTIVE_HIGH>;
+			wakeup-source;
+		};
 	};
 
 	pcie30_avdd1v8: pcie30-avdd1v8 {

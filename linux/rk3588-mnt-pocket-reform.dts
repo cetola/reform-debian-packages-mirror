@@ -47,6 +47,18 @@
 		dais = <&i2s0_8ch_p0>;
 	};
 
+	gpio-keys {
+		compatible = "gpio-keys";
+		autorepeat;
+
+		wake {
+			label = "LPC GPIO Wakeup";
+			linux,code = <57>;
+			gpios = <&gpio4 RK_PB2 GPIO_ACTIVE_HIGH>;
+			wakeup-source;
+		};
+	};
+
 	pcie30_avdd1v8: pcie30-avdd1v8 {
 		compatible = "regulator-fixed";
 		regulator-name = "pcie30_avdd1v8";
@@ -394,6 +406,7 @@
 
 &pcie2x1l2 {
 	reset-gpios = <&gpio3 RK_PD1 GPIO_ACTIVE_HIGH>;
+	pinctrl-names = "default";
 	pinctrl-0 = <&pcie2_0_rst>;
 	status = "okay";
 };
