@@ -152,7 +152,6 @@ Depends:
  wireplumber,
  wlr-randr,
  wofi,
- xterm,
  xwayland,
  ${misc:Depends},
 Description: MNT Reform Desktop Environment -- graphical desktop
