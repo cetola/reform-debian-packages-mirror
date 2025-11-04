@@ -60,7 +60,6 @@
 
 	gpio-keys {
 		compatible = "gpio-keys";
-		autorepeat;
 
 		wake {
 			label = "LPC GPIO Wakeup";

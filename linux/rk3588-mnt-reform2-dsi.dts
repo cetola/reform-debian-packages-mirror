@@ -62,9 +62,8 @@
 		pinctrl-names = "default";
 	};
 
-	gpio-keys {
+	/*gpio-keys {
 		compatible = "gpio-keys";
-		autorepeat;
 
 		wake {
 			label = "LPC GPIO Wakeup";
@@ -72,7 +71,7 @@
 			gpios = <&gpio4 RK_PB2 GPIO_ACTIVE_HIGH>;
 			wakeup-source;
 		};
-	};
+	};*/
 
 	pcie30_avdd1v8: pcie30-avdd1v8 {
 		compatible = "regulator-fixed";

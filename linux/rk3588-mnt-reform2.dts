@@ -51,9 +51,8 @@
 		dais = <&i2s0_8ch_p0>;
 	};
 
-	gpio-keys {
+	/*gpio-keys {
 		compatible = "gpio-keys";
-		autorepeat;
 
 		wake {
 			label = "LPC GPIO Wakeup";
@@ -61,7 +60,7 @@
 			gpios = <&gpio4 RK_PB2 GPIO_ACTIVE_HIGH>;
 			wakeup-source;
 		};
-	};
+	};*/
 
 	backlight: backlight {
 		compatible = "pwm-backlight";
