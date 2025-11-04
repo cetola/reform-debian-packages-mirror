@@ -1,0 +1,20 @@
+From 0a3686599b6f50cc7f3dabdcf0440691a4747add Mon Sep 17 00:00:00 2001
+From: "Lucie L. Hartmann" <lukas@mntre.com>
+Date: Tue, 4 Nov 2025 00:43:50 +0100
+Subject: [PATCH 04/11] add xdg-terminal-exec/sway-xdg-terminals.list
+
+---
+ share/xdg-terminal-exec/sway-xdg-terminals.list | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100644 share/xdg-terminal-exec/sway-xdg-terminals.list
+
+diff --git a/share/xdg-terminal-exec/sway-xdg-terminals.list b/share/xdg-terminal-exec/sway-xdg-terminals.list
+new file mode 100644
+index 0000000..5b2a087
+--- /dev/null
++++ b/share/xdg-terminal-exec/sway-xdg-terminals.list
+@@ -0,0 +1 @@
++org.gnome.Ptyxis.desktop:new-window
+-- 
+2.47.3
+

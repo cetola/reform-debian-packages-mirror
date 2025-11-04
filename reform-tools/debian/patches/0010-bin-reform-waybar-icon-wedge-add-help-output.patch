@@ -1,0 +1,45 @@
+From 45e2621db352c49f839aad80dee2dc752ad3e970 Mon Sep 17 00:00:00 2001
+From: Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
+Date: Tue, 4 Nov 2025 16:24:14 +0100
+Subject: [PATCH 10/11] bin/reform-waybar-icon-wedge: add --help output
+
+---
+ bin/reform-waybar-icon-wedge | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+diff --git a/bin/reform-waybar-icon-wedge b/bin/reform-waybar-icon-wedge
+index 03d84a1..640e7ca 100755
+--- a/bin/reform-waybar-icon-wedge
++++ b/bin/reform-waybar-icon-wedge
+@@ -10,6 +10,28 @@
+ # currently set gnome icon theme, and we can use this fact to redirect that theme
+ # using a symlink in a specially crafted XDG_DATA_DIR $HOME/.config/waybar-icon-wedge
+ 
++set -eu
++
++usage() {
++  echo "Run waybar with XDG_DATA_DIRS set to a directory containing a symlink" >&2
++  echo "of the currently selected gtk-theme to work around a waybar limitation" >&2
++  echo >&2
++  echo "Usage: $0 [--help]" >&2
++  echo >&2
++  echo "Options:" >&2
++  echo "  --help           Display this help and exit." >&2
++}
++
++if [ "$#" -gt 0 ]; then
++  if [ "$1" != "--help" ]; then
++    echo "E: too many arguments" >&2
++    usage
++    exit 1
++  fi
++  usage
++  exit 0
++fi
++
+ set -x
+ 
+ GNOME_ICON_THEME=$(gsettings get org.gnome.desktop.interface gtk-theme | tr -d "'")
+-- 
+2.47.3
+

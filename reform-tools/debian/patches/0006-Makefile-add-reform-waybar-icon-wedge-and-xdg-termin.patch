@@ -1,0 +1,33 @@
+From 7b93559a1bb7c40fd76e4944c5a74e8a0f655a30 Mon Sep 17 00:00:00 2001
+From: "Lucie L. Hartmann" <lukas@mntre.com>
+Date: Tue, 4 Nov 2025 00:48:56 +0100
+Subject: [PATCH 06/11] Makefile: add reform-waybar-icon-wedge and
+ xdg-terminal-exec config for sway
+
+---
+ Makefile | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/Makefile b/Makefile
+index eae4f54..455604e 100644
+--- a/Makefile
++++ b/Makefile
+@@ -44,6 +44,7 @@ man/%.1: bin/%
+ 		setup-encrypted-disk) echo "setup encrypted disk" ;;          \
+ 		setup-encrypted-nvme) echo "use setup-encrypted-disk" ;;      \
+ 		standby)        echo "suspend/wakeup tweaks" ;;               \
++		waybar-icon-wedge) echo "launch waybar with custom icon theme" ;; \
+ 		*) echo "unknown tool: $$1" 2>&1; exit 1 ;;                   \
+ 	esac; };                                                              \
+ 	whatis="$$(tool2whatis "$*")";                                        \
+@@ -139,6 +140,7 @@ install: $(MAN1) plymouth/background.png
+ 	$(INSTALLDATA) -t $(DESTDIR)$(sysconfdir)/profile.d etc/profile.d/reform-kwin.sh
+ 	$(INSTALL)     -d $(DESTDIR)$(datadir)/doc/reform-tools/examples
+ 	$(INSTALLDATA) -t $(DESTDIR)$(datadir)/doc/reform-tools/examples examples/keyboard_rainbow.py
++	$(INSTALLDATA) -t $(DESTDIR)$(datadir)/xdg-terminal-exec share/xdg-terminal-exec/sway-xdg-terminals.list
+ 
+ .PHONY: clean
+ clean:
+-- 
+2.47.3
+

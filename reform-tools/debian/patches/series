@@ -1,0 +1,11 @@
+0001-add-reform-waybar-icon-wedge-for-launching-waybar-wi.patch
+0002-reform-waybar-icon-wedge-fix-target-path.patch
+0003-modernize-reform-tray.py-a-bit.patch
+0004-add-xdg-terminal-exec-sway-xdg-terminals.list.patch
+0005-reform-hw-setup-remove-rk3588-ethernet-hack.patch
+0006-Makefile-add-reform-waybar-icon-wedge-and-xdg-termin.patch
+0007-bin-reform-waybar-icon-wedge-shfmt.patch
+0008-bin-reform-flash-uboot-better-error-message-if-boot-.patch
+0009-machines-MNT-with-RCORE-RK3588-Module.conf-update-to.patch
+0010-bin-reform-waybar-icon-wedge-add-help-output.patch
+0011-Makefile-create-usr-xdg-terminal-exec-directory.patch

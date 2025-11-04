@@ -1,0 +1,47 @@
+From e539c840ffd1a22ecf956e4b16e6381f640b4f5b Mon Sep 17 00:00:00 2001
+From: "Lucie L. Hartmann" <lukas@mntre.com>
+Date: Tue, 4 Nov 2025 00:40:05 +0100
+Subject: [PATCH 03/11] modernize reform-tray.py a bit
+
+---
+ libexec/reform-tools/reform-tray.py | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/libexec/reform-tools/reform-tray.py b/libexec/reform-tools/reform-tray.py
+index 2e8d3b9..af6be65 100755
+--- a/libexec/reform-tools/reform-tray.py
++++ b/libexec/reform-tools/reform-tray.py
+@@ -62,23 +62,23 @@ menuitems = [
+     MenuItem(
+         "Help",
+         "help-about-symbolic",
+-        ["x-terminal-emulator", "bash", "-c", "reform-help --desktop; bash"],
++        ["xdg-terminal-exec", "bash", "-c", "reform-help --desktop; bash"],
+         None,
+     ),
+     MenuItem(
+-        "High Brightness",
++        "Higher Brightness",
+         "weather-clear-symbolic",
+-        ["brightnessctl", "set", "100%"],
++        ["brightnessctl", "set", "10%+"],
+         None,
+     ),
+     MenuItem(
+-        "Low Brightness",
++        "Lower Brightness",
+         "weather-clear-night-symbolic",
+-        ["brightnessctl", "set", "10%"],
++        ["brightnessctl", "set", "10%-"],
+         None,
+     ),
+-    MenuItem("Terminal", "utilities-terminal-symbolic", ["x-terminal-emulator"], None),
+-    MenuItem("File Manager", "folder-symbolic", ["thunar", os.environ["HOME"]], None),
++    MenuItem("Terminal", "utilities-terminal-symbolic", ["xdg-terminal-exec"], None),
++    MenuItem("File Manager", "folder-symbolic", ["xdg-open", os.environ["HOME"]], None),
+     MenuItem(
+         "System Monitor",
+         "utilities-system-monitor-symbolic",
+-- 
+2.47.3
+

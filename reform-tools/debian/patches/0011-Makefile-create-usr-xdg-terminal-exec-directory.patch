@@ -1,0 +1,24 @@
+From 751ee900ae4bd4d50d62917e686795455849b418 Mon Sep 17 00:00:00 2001
+From: Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
+Date: Tue, 4 Nov 2025 16:25:33 +0100
+Subject: [PATCH 11/11] Makefile: create /usr/xdg-terminal-exec directory
+
+---
+ Makefile | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Makefile b/Makefile
+index 455604e..39e5279 100644
+--- a/Makefile
++++ b/Makefile
+@@ -140,6 +140,7 @@ install: $(MAN1) plymouth/background.png
+ 	$(INSTALLDATA) -t $(DESTDIR)$(sysconfdir)/profile.d etc/profile.d/reform-kwin.sh
+ 	$(INSTALL)     -d $(DESTDIR)$(datadir)/doc/reform-tools/examples
+ 	$(INSTALLDATA) -t $(DESTDIR)$(datadir)/doc/reform-tools/examples examples/keyboard_rainbow.py
++	$(INSTALL)     -d $(DESTDIR)$(datadir)/xdg-terminal-exec
+ 	$(INSTALLDATA) -t $(DESTDIR)$(datadir)/xdg-terminal-exec share/xdg-terminal-exec/sway-xdg-terminals.list
+ 
+ .PHONY: clean
+-- 
+2.47.3
+

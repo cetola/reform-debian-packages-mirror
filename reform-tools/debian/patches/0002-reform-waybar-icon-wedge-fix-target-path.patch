@@ -1,0 +1,27 @@
+From 136f876c47a460a210fe3b5ced183588e34426c4 Mon Sep 17 00:00:00 2001
+From: "Lucie L. Hartmann" <lukas@mntre.com>
+Date: Tue, 4 Nov 2025 00:33:34 +0100
+Subject: [PATCH 02/11] reform-waybar-icon-wedge: fix target path
+
+---
+ bin/reform-waybar-icon-wedge | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/bin/reform-waybar-icon-wedge b/bin/reform-waybar-icon-wedge
+index 5a157b0..68b4761 100755
+--- a/bin/reform-waybar-icon-wedge
++++ b/bin/reform-waybar-icon-wedge
+@@ -18,8 +18,8 @@ DESIRED_ICON_THEME_PATH="/usr/share/icons/Papirus-Dark"
+ if [ -d "/usr/share/icons/${GNOME_ICON_THEME}" ] && [ -d "${DESIRED_ICON_THEME_PATH}" ]; then
+ 	# very basic safety
+ 
+-	mkdir -p "${HOME}/.config/waybar-icon-wedge"
+-	LINK_TARGET="${HOME}/.config/waybar-icon-wedge/${GNOME_ICON_THEME}"
++	mkdir -p "${HOME}/.config/waybar-icon-wedge/icons"
++	LINK_TARGET="${HOME}/.config/waybar-icon-wedge/icons/${GNOME_ICON_THEME}"
+ 
+ 	if [ -L "${LINK_TARGET}" ]; then
+ 		rm "${LINK_TARGET}"
+-- 
+2.47.3
+

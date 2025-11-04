@@ -1,0 +1,28 @@
+From a9866d2fedbce807a71b846cbfa4839b4721adfc Mon Sep 17 00:00:00 2001
+From: Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
+Date: Tue, 4 Nov 2025 16:08:59 +0100
+Subject: [PATCH 08/11] bin/reform-flash-uboot: better error message if
+ /boot/flash.bin does not exist
+
+---
+ bin/reform-flash-uboot | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/bin/reform-flash-uboot b/bin/reform-flash-uboot
+index 6063950..4cd7ec3 100755
+--- a/bin/reform-flash-uboot
++++ b/bin/reform-flash-uboot
+@@ -219,6 +219,10 @@ if [ "$#" -eq 0 ]; then
+ fi
+ 
+ if [ -z "$IMAGE" ]; then
++  if [ ! -e /boot/flash.bin ]; then
++    echo "E: /boot/flash.bin does not exist" >&2
++    exit 1
++  fi
+   if ! echo "$UBOOT_SHA1  /boot/flash.bin" | sha1sum --strict --check >/dev/null 2>&1; then
+     echo "Incorrect checksum for /boot/flash.bin" >&2
+     echo "Either flash a custom image with --image, or run without --offline to download the latest uboot version" >&2
+-- 
+2.47.3
+
