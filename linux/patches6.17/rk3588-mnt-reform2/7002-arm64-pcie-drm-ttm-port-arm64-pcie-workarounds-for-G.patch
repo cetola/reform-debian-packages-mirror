@@ -65,11 +65,6 @@ index 393d71124f5d..96e0f2386624 100644
  menuconfig COMPAT
  	bool "Kernel support for 32-bit EL0"
  	depends on ARM64_4K_PAGES || EXPERT
-@@ -2499,4 +2525,3 @@ endmenu # "CPU Power Management"
- source "drivers/acpi/Kconfig"
- 
- source "arch/arm64/kvm/Kconfig"
--
 diff --git a/arch/arm64/include/asm/exception.h b/arch/arm64/include/asm/exception.h
 index d48fc16584cd..fa1f277563ac 100644
 --- a/arch/arm64/include/asm/exception.h
