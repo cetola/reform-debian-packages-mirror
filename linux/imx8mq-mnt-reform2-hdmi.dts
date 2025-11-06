@@ -161,7 +161,7 @@
 			hdmi: hdmi@32c00000 {
 				status = "okay";
 
-				compatible = "cdn,imx8mq-hdmi";
+				compatible = "fsl,imx8mq-mhdp8501";
 				reg = <0x32c00000 0x100000>,
 					<0x32e40000 0x40000>;
 				interrupts = <GIC_SPI 16 IRQ_TYPE_LEVEL_HIGH>,
