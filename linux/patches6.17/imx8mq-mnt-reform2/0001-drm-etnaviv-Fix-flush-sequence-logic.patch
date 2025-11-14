@@ -1,13 +1,24 @@
-From a5c1211e99519d88293c8c4e5ec02aeebf02c94a Mon Sep 17 00:00:00 2001
+From a042beac6e6f8ac1e923784cfff98b47cbabb185 Mon Sep 17 00:00:00 2001
 From: Tomeu Vizoso <tomeu@tomeuvizoso.net>
-Date: Thu, 8 May 2025 16:56:24 +0200
-Subject: [PATCH] drm/etnaviv: Fix flush sequence logic
+Date: Tue, 21 Oct 2025 11:37:23 +0200
+Subject: [PATCH] drm/etnaviv: fix flush sequence logic
 
-We should be comparing the last submitted sequence number with that of
-the address space we may be switching to.
+The current logic uses the flush sequence from the current address
+space. This is harmless when deducing the flush requirements for the
+current submit, as either the incoming address space is the same one
+as the currently active one or we switch context, in which case the
+flush is unconditional.
+
+However, this sequence is also stored as the current flush sequence
+of the GPU. If we switch context the stored flush sequence will no
+longer belong to the currently active address space. This incoherency
+can then cause missed flushes, resulting in translation errors.
 
 Fixes: 27b67278e007 ("drm/etnaviv: rework MMU handling")
 Signed-off-by: Tomeu Vizoso <tomeu@tomeuvizoso.net>
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+Reviewed-by: Christian Gmeiner <cgmeiner@igalia.com>
+Link: https://lore.kernel.org/r/20251021093723.3887980-1-l.stach@pengutronix.de
 ---
  drivers/gpu/drm/etnaviv/etnaviv_buffer.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
@@ -26,5 +37,5 @@ index b13a17276d07c..88385dc3b30d8 100644
  	bool has_blt = !!(gpu->identity.minor_features5 &
  			  chipMinorFeatures5_BLT_ENGINE);
 -- 
-2.47.2
+2.47.3
 
