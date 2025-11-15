@@ -115,11 +115,11 @@ build_patched_i386:
     - when: never
     - if: $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_REF_NAME == "main"
   variables:
-    BUILD_ARCH: i386
+    BUILD_ARCH: arm64
     HOST_ARCH: i386
   extends: .build_patched
   tags:
-    - i386
+    - arm64
   artifacts:
     when: always
     paths:
@@ -132,11 +132,11 @@ build_patched_amd64:
     - when: never
     - if: $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_REF_NAME == "main"
   variables:
-    BUILD_ARCH: amd64
+    BUILD_ARCH: arm64
     HOST_ARCH: amd64
   extends: .build_patched
   tags:
-    - amd64
+    - arm64
   artifacts:
     when: always
     paths:
@@ -249,11 +249,11 @@ build_linux_i386:
     - when: never
     - if: $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_REF_NAME == "main"
   variables:
-    BUILD_ARCH: i386
+    BUILD_ARCH: arm64
     HOST_ARCH: i386
   extends: .build_linux
   tags:
-    - i386
+    - arm64
   artifacts:
     when: always
     paths:
@@ -266,11 +266,11 @@ build_linux_amd64:
     - when: never
     - if: $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_REF_NAME == "main"
   variables:
-    BUILD_ARCH: amd64
+    BUILD_ARCH: arm64
     HOST_ARCH: amd64
   extends: .build_linux
   tags:
-    - amd64
+    - arm64
   artifacts:
     when: always
     paths:
