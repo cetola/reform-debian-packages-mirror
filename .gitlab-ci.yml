@@ -95,7 +95,6 @@ build_patched_arm64:
 
 build_patched_armhf:
   rules:
-    - when: never
     - if: $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_REF_NAME == "main"
   variables:
     BUILD_ARCH: armhf
@@ -112,7 +111,6 @@ build_patched_armhf:
 
 build_patched_i386:
   rules:
-    - when: never
     - if: $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_REF_NAME == "main"
   variables:
     BUILD_ARCH: arm64
@@ -129,7 +127,6 @@ build_patched_i386:
 
 build_patched_amd64:
   rules:
-    - when: never
     - if: $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_REF_NAME == "main"
   variables:
     BUILD_ARCH: arm64
@@ -229,7 +226,6 @@ build_linux_arm64:
 
 build_linux_armhf:
   rules:
-    - when: never
     - if: $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_REF_NAME == "main"
   variables:
     BUILD_ARCH: armhf
@@ -246,7 +242,6 @@ build_linux_armhf:
 
 build_linux_i386:
   rules:
-    - when: never
     - if: $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_REF_NAME == "main"
   variables:
     BUILD_ARCH: arm64
@@ -263,7 +258,6 @@ build_linux_i386:
 
 build_linux_amd64:
   rules:
-    - when: never
     - if: $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_REF_NAME == "main"
   variables:
     BUILD_ARCH: arm64
