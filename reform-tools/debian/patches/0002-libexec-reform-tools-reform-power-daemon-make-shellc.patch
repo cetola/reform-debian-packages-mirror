@@ -1,0 +1,80 @@
+From 83f5a0be57d724c56fcda68b96aed0e5998f8a1a Mon Sep 17 00:00:00 2001
+From: Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
+Date: Fri, 21 Nov 2025 01:52:31 +0100
+Subject: [PATCH 2/2] libexec/reform-tools/reform-power-daemon: make shellcheck
+ happy
+
+---
+ Makefile                                 |  2 +-
+ libexec/reform-tools/reform-power-daemon | 14 +++++++-------
+ 2 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 877e4c4..8b50daf 100644
+--- a/Makefile
++++ b/Makefile
+@@ -165,7 +165,7 @@ lint:
+ 		bin kernel/* initramfs-tools/*/* flash-kernel/*/*
+ 	black --check --diff bin/reform-compstat libexec/reform-tools/reform-tray.py libexec/reform-tools/reform-wallpaper.py examples/keyboard_rainbow.py
+ 	black --line-length 120 --check --diff bin/reform-mcu-tool
+-	shellcheck bin/* kernel/* initramfs-tools/*/* flash-kernel/*/*
++	shellcheck bin/* kernel/* initramfs-tools/*/* flash-kernel/*/* libexec/reform-tools/reform-power-daemon
+ 
+ test:
+ 	# check the validity of gschema overrides
+diff --git a/libexec/reform-tools/reform-power-daemon b/libexec/reform-tools/reform-power-daemon
+index 5357c0e..a1164ea 100755
+--- a/libexec/reform-tools/reform-power-daemon
++++ b/libexec/reform-tools/reform-power-daemon
+@@ -28,11 +28,11 @@ kbd_ver="$(reform-mcu-tool list --json | jq --raw-output 'map(select(.device.nam
+ echo "System Controller firmware version: $sys_ver"
+ echo "Keyboard firmware version: $kbd_ver"
+ 
+-if (( $sys_ver < $min_sys_ver )); then
++if (( sys_ver < min_sys_ver )); then
+ 	echo "Warning: Please upgrade your System Controller firmware using gnome-firmware (at least version $min_sys_ver required)." >&2
+ fi
+ 
+-if (( $kbd_ver < $min_kbd_ver )); then
++if (( kbd_ver < min_kbd_ver )); then
+ 	echo "Warning: Please upgrade your Keyboard firmware using gnome-firmware (at least version $min_kbd_ver required)." >&2
+ fi
+ 
+@@ -43,13 +43,13 @@ min_gpu_freq="300000000"
+ prev_status=""
+ 
+ # Policy when powered by batteries
+-bat_display_backlight_level="40%"
++#bat_display_backlight_level="40%"
+ bat_max_gpu_freq="300000000"
+-bat_cpu_governor="powersave"
++#bat_cpu_governor="powersave"
+ bat_keyboard_backlight='xLBRT\x05'
+ 
+ # Policy when powered by AC adapter
+-ac_display_backlight_level="70%"
++#ac_display_backlight_level="70%"
+ ac_max_gpu_freq="1000000000"
+ ac_cpu_governor="schedutil" # TODO could also be: "performance", especially on Classic Reform
+ ac_keyboard_backlight='xLBRT\x30'
+@@ -75,7 +75,7 @@ while sleep 1; do
+ 
+ 		# apply keyboard brightness. requires firmware 20251118+
+ 		for hidraw in /dev/input/by-id/usb-MNT_Pocket_Reform_Input_*hidraw; do
+-			printf "$ac_keyboard_backlight" > "$hidraw"
++			printf "%b" "$ac_keyboard_backlight" > "$hidraw"
+ 		done
+ 
+ 		for i in 0 4 6; do
+@@ -95,7 +95,7 @@ while sleep 1; do
+ 
+ 		# apply keyboard brightness. requires firmware 20251118+
+ 		for hidraw in /dev/input/by-id/usb-MNT_Pocket_Reform_Input_*hidraw; do
+-			printf "$bat_keyboard_backlight" > "$hidraw"
++			printf "%b" "$bat_keyboard_backlight" > "$hidraw"
+ 		done
+ 
+ 		for i in 0 4 6; do
+-- 
+2.47.3
+

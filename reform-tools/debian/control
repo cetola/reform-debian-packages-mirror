@@ -11,7 +11,12 @@ Build-Depends:
  dh-sequence-dkms,
  help2man,
  imagemagick,
+ libevdev-dev,
  libglib2.0-bin <!nocheck>,
+ libplymouth-dev,
+ libudev-dev,
+ libxkbcommon-dev,
+ pkgconf,
  python3-psutil,
  python3-usb1,
 Vcs-Git: https://salsa.debian.org/reform-team/reform-tools.git
@@ -72,6 +77,21 @@ Description: MNT System Tools for MNT Reform and MNT Pocket Reform
  files for initramfs, flash-kernel, pulseaudio, alsa, u-boot-menu, udev and
  NetworkManager.
 
+Package: plymouth-theme-reform
+Architecture: any
+Section: misc
+Depends:
+ plymouth,
+ ${misc:Depends},
+ ${shlibs:Depends},
+Provides:
+ plymouth-theme,
+Description: boot animation, logger and I/O multiplexer - MNT Reform themes
+ This package includes the Plymouth system boot splash themes Monobar and Y2K
+ for the MNT Reform, MNT Pocket Reform and MNT Reform Next.
+
+# FIXME: the plymouth plugin contains symlinks which rely on this change
+# in src:plymouth: https://bugs.debian.org/1112280
 Package: reform-desktop-full
 Architecture: all
 Section: metapackages
@@ -253,8 +273,6 @@ Depends:
  ${misc:Depends},
 Recommends:
  flash-kernel,
- linux-headers-mnt-reform-arm64,
- linux-image-mnt-reform-arm64,
  reform-qcacld2,
 Suggests:
  firmware-atheros,
