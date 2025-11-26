@@ -345,7 +345,7 @@ if dpkg --compare-versions "$KVER" ge "6.16"; then
 
  [[debianrelease]]
 +name_regex = '(reform|trixie|trixie-backports)'
-+revision_regex = '\d+(~exp\d+)?\+reform[0-9]+T[0-9]+Z'
++revision_regex = '\d+(~exp\d+|~bpo13\+\d)?\+reform[0-9]+T[0-9]+Z'
 +
 +[[debianrelease]]
  name_regex = 'trixie-backports'
