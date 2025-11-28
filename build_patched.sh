@@ -46,10 +46,23 @@ for p in patches/*; do
 	our_version=$(reprepro --list-format '${version}_${source}\n' -T deb listfilter "$OURSUITE" "\$Source (== $p)" | sed 's/.*_.*(\(.*\))$/\1/;s/_.*//' | uniq)
 	OUR_BASESUITE=$BASESUITE
 	their_version=$(chdist_base apt-get source --only-source -t "$OUR_BASESUITE" --no-act "$p" | sed "s/^Selected version '\\([^']*\\)' ($OUR_BASESUITE) for .*/\\1/;t;d")
-	if test -z "$their_version" && [ "$OUR_BASESUITE" = "experimental" ]; then
-		# if the package was not in experimental, try again with unstable
-		echo "I: package was not found in experimental, trying again with unstable" >&2
-		OUR_BASESUITE=unstable
+	if test -z "$their_version"; then
+		case $OUR_BASESUITE in
+		experimental)
+			# if the package was not in experimental, try again with unstable
+			echo "I: package was not found in experimental, trying again with unstable" >&2
+			OUR_BASESUITE=unstable
+			;;
+		*-backports)
+			# if the package was not in foo-backports, try again with foo
+			echo "I: package was not found in $OUR_BASESUITE, trying again with ${OUR_BASESUITE%-backports}" >&2
+			OUR_BASESUITE=${OUR_BASESUITE%-backports}
+			;;
+		*)
+			echo "E: no fallback distribution for $OUR_BASESUITE" >&2
+			exit 1
+			;;
+		esac
 		their_version=$(chdist_base apt-get source --only-source -t "$OUR_BASESUITE" --no-act "$p" | sed "s/^Selected version '\\([^']*\\)' ($OUR_BASESUITE) for .*/\\1/;t;d")
 	fi
 	if test -z "$their_version"; then
