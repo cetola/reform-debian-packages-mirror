@@ -1,6 +1,0 @@
-#!/bin/sh
-
-# place ezurio-qcacld-2.0-dkms into the repositories until it can be uploaded
-# to trixie-backports because the version in trixie does not support linux 6.15
-
-exit 0
