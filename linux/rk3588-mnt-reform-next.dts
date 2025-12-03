@@ -211,8 +211,8 @@
 };
 
 &display_subsystem {
-	clocks = <&hdptxphy0>, <&hdptxphy1>;
-	clock-names = "pll_hdmiphy0", "pll_hdmiphy1";
+	clocks = <&hdptxphy1>;
+	clock-names = "pll_hdmiphy1";
 };
 
 &gmac0 {
@@ -249,14 +249,36 @@
 	status = "okay";
 };
 
-&hdmi0 {
-	enable-gpios = <&gpio4 RK_PA0 GPIO_ACTIVE_HIGH>;
+&edp0 {
+	enable-gpios = <&gpio4 RK_PA0 GPIO_ACTIVE_LOW>;
+	force-hpd;
 	status = "okay";
+
+	aux-bus {
+		panel {
+			compatible = "edp-panel";
+			backlight = <&backlight>;
+			power-supply = <&vcc3v3_pcie30>;
+			no-hpd;
+
+			port {
+				panel_in_edp: endpoint {
+					remote-endpoint = <&edp_out_panel>;
+				};
+			};
+		};
+	};
 };
 
-&hdmi0_in {
-	hdmi0_in_vp2: endpoint {
-		remote-endpoint = <&vp2_out_hdmi0>;
+&edp0_in {
+	edp0_in_vp2: endpoint {
+		remote-endpoint = <&vp2_out_edp0>;
+	};
+};
+
+&edp0_out {
+	edp_out_panel: endpoint {
+		remote-endpoint = <&panel_in_edp>;
 	};
 };
 
@@ -339,7 +361,7 @@
 };
 
 &i2c1 {
-  pinctrl-names = "default";
+	pinctrl-names = "default";
 	pinctrl-0 = <&i2c1m2_xfer>;
 	status = "okay";
 
@@ -401,10 +423,10 @@
 &i2s0_8ch {
 	pinctrl-names = "default";
 	pinctrl-0 = <&i2s0_lrck
-		     &i2s0_mclk
-		     &i2s0_sclk
-		     &i2s0_sdi0
-		     &i2s0_sdo0>;
+				 &i2s0_mclk
+				 &i2s0_sclk
+				 &i2s0_sdi0
+				 &i2s0_sdo0>;
 	status = "okay";
 
 	i2s0_8ch_p0: port {
@@ -519,7 +541,7 @@
 
 		pinctrl-names = "default", "pmic-power-off";
 		pinctrl-0 = <&pmic_pins>, <&rk806_dvs1_null>,
-			    <&rk806_dvs2_null>, <&rk806_dvs3_null>;
+					<&rk806_dvs2_null>, <&rk806_dvs3_null>;
 		pinctrl-1 = <&rk806_dvs1_pwrdn>;
 
 		/* TODO: missing some thresholds */
@@ -927,7 +949,7 @@
 &gpio3 {
 	internal-hdmi-hog {
 		gpios = <RK_PB3 GPIO_ACTIVE_HIGH>;
-		output-low;
+		output-high; /* select eDP AUX */
 		line-name = "Internal HDMI DDC/eDP AUX select";
 		gpio-hog;
 	};
@@ -941,15 +963,15 @@
 };
 
 &gpio4 {
-  /* there are no resistor straps for config options
-  like LED_MODE on RCORE R1, so use a GPIO hog
-  to configure the LED_MODE at PHY reset time */
-  eth-phy-strap-hog {
-    gpios = <RK_PC3 GPIO_ACTIVE_LOW>;
-    output-low;
-    line-name = "ETH PHY LED Mode Strap";
-    gpio-hog;
-  };
+	/* there are no resistor straps for config options
+	like LED_MODE on RCORE R1, so use a GPIO hog
+	to configure the LED_MODE at PHY reset time */
+	eth-phy-strap-hog {
+		gpios = <RK_PC3 GPIO_ACTIVE_LOW>;
+		output-low;
+		line-name = "ETH PHY LED Mode Strap";
+		gpio-hog;
+	};
 };
 
 &u2phy0 {
@@ -1042,6 +1064,9 @@
 };
 
 &vop {
+	// see also https://github.com/torvalds/linux/commit/53862b991e79d8816d5ff54b5954d6a0fe1dcd4c
+	assigned-clocks = <&cru DCLK_VOP2_SRC>;
+	assigned-clock-parents = <&cru PLL_V0PLL>;
 	status = "okay";
 };
 
@@ -1053,8 +1078,8 @@
 };
 
 &vp2 {
-	vp2_out_hdmi0: endpoint@ROCKCHIP_VOP2_EP_HDMI0 {
-		reg = <ROCKCHIP_VOP2_EP_HDMI0>;
-		remote-endpoint = <&hdmi0_in_vp2>;
+	vp2_out_edp0: endpoint@ROCKCHIP_VOP2_EP_EDP0 {
+		reg = <ROCKCHIP_VOP2_EP_EDP0>;
+		remote-endpoint = <&edp0_in_vp2>;
 	};
 };
