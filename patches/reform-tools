@@ -113,8 +113,47 @@ END
 END
 	;;
 trixie-backports)
-	# trixie-backports already has all the modifications from above
-	:
+	mkdir debian/patches
+	echo 0001-Revert-schemas-20_reform.gschema.override-move-scree.patch >debian/patches/series
+	cat <<'END' >debian/patches/0001-Revert-schemas-20_reform.gschema.override-move-scree.patch
+From b0a47afec9fc963a4711b39e4ffe597f789f3c92 Mon Sep 17 00:00:00 2001
+From: Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
+Date: Sun, 7 Dec 2025 20:58:08 +0100
+Subject: [PATCH] Revert "schemas/20_reform.gschema.override: move
+ screen-brightness-{up,down} from org.gnome.settings-daemon.plugins.media-keys
+ to org.gnome.shell.keybindings"
+
+This reverts commit 7cf8299ee2d8b54d1ced069ba7459542db069890.
+---
+ schemas/20_reform.gschema.override | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/schemas/20_reform.gschema.override b/schemas/20_reform.gschema.override
+index 78f8875..3135f12 100644
+--- a/schemas/20_reform.gschema.override
++++ b/schemas/20_reform.gschema.override
+@@ -55,6 +55,8 @@ attach-modal-dialogs = false
+ help = @as []
+ keyboard-brightness-down-static = @as []
+ keyboard-brightness-up-static = @as []
++screen-brightness-down-static = ['XF86MonBrightnessDown', '<Super>F1']
++screen-brightness-up-static = ['XF86MonBrightnessUp', '<Super>F2']
+ custom-keybindings = ['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']
+ 
+ # /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/
+@@ -90,8 +92,6 @@ open-new-window-application-9 = @as []
+ screenshot = ['<Shift><Super>s']
+ show-screenshot-ui = ['<Shift><Super>x']
+ show-screen-recording-ui = ['<Shift><Super>r']
+-screen-brightness-down = ['XF86MonBrightnessDown', '<Super>F1']
+-screen-brightness-up = ['XF86MonBrightnessUp', '<Super>F2']
+ 
+ ## window actions
+ [org.gnome.desktop.wm.keybindings]
+-- 
+2.47.3
+
+END
 	;;
 *)
 	echo "E: unknown distribution in d/changelog: $(dpkg-parsechangelog --show-field=Distribution)" >&2
