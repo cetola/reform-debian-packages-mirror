@@ -3,9 +3,19 @@ set -e
 
 case "$(dpkg-parsechangelog --show-field=Distribution)" in
 reform)
+	# in case both the package in Debian as well as the local overlay already
+	# have patches, we need to merge the series file
+	if [ -e debian/patches/series ] && [ -e "$(dirname -- "$0")/../reform-tools/debian/patches/series" ]; then
+		quilt pop -a
+		mv debian/patches/series debian/patches/series.bak
+	fi
 	# all modifications to reform-tools are stored in the reform-tools/debian
 	# directory in the parent directory of this script
 	cp -a "$(dirname -- "$0")/../reform-tools/debian" .
+	if [ -e debian/patches/series.bak ]; then
+		cat debian/patches/series.bak >> debian/patches/series
+		rm debian/patches/series.bak
+	fi
 	;;
 trixie)
 	# trixie has no postinst
