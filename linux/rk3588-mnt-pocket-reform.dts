@@ -47,15 +47,18 @@
 		dais = <&i2s0_8ch_p0>;
 	};
 
-	/*gpio-keys {
+	gpio-keys {
 		compatible = "gpio-keys";
-		wake {
+		pinctrl-0 = <&lpc_wakeup>;
+		pinctrl-names = "default";
+
+		key-wakeup {
 			label = "LPC GPIO Wakeup";
-			linux,code = <57>;
+			linux,code = <KEY_WAKEUP>;
 			gpios = <&gpio4 RK_PB2 GPIO_ACTIVE_HIGH>;
 			wakeup-source;
 		};
-	};*/
+	};
 
 	pcie30_avdd1v8: pcie30-avdd1v8 {
 		compatible = "regulator-fixed";
@@ -884,6 +887,12 @@
 };
 
 &pinctrl {
+	keys {
+		lpc_wakeup: lpc-wakeup {
+			rockchip,pins = <4 RK_PB2 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+	};
+
 	pcie2 {
 		pcie2_0_rst: pcie2-0-rst {
 			rockchip,pins = <3 RK_PD1 RK_FUNC_GPIO &pcfg_pull_none>;
