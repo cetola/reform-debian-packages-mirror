@@ -51,16 +51,18 @@
 		dais = <&i2s0_8ch_p0>;
 	};
 
-	/*gpio-keys {
+	gpio-keys {
 		compatible = "gpio-keys";
+		pinctrl-0 = <&lpc_wakeup>;
+		pinctrl-names = "default";
 
-		wake {
+		key-wakeup {
 			label = "LPC GPIO Wakeup";
-			linux,code = <57>;
+			linux,code = <KEY_WAKEUP>;
 			gpios = <&gpio4 RK_PB2 GPIO_ACTIVE_HIGH>;
 			wakeup-source;
 		};
-	};*/
+	};
 
 	backlight: backlight {
 		compatible = "pwm-backlight";
@@ -913,6 +915,12 @@
 	backlight {
 		backlight_enable: backlight-enable {
 			rockchip,pins = <2 RK_PB5 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
+	keys {
+		lpc_wakeup: lpc-wakeup {
+			rockchip,pins = <4 RK_PB2 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 	};
 
