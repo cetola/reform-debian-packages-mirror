@@ -287,7 +287,11 @@
 };
 
 &hdmi1 {
-	enable-gpios = <&gpio4 RK_PB4 GPIO_ACTIVE_HIGH>;
+	/* external HDMI */
+	/* for 6.17 */
+	tmds-enable-gpios = <&gpio4 RK_PB4 GPIO_ACTIVE_HIGH>;
+	/* for 6.18 */
+	frl-enable-gpios = <&gpio4 RK_PB4 GPIO_ACTIVE_HIGH>;
 	status = "okay";
 
 	pinctrl-names = "default";
