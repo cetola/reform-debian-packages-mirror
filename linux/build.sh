@@ -421,7 +421,11 @@ if dpkg --compare-versions "$KVER" ge "6.8"; then
 	# linux-*-arm64 to the version from Debian which will in turn pull
 	# in the wrong kernel. This will only not be a disaster at the point
 	# where *all* required patches were upstreamed (haha).
-	if dpkg --compare-versions "$KVER" ge "6.10"; then
+	if dpkg --compare-versions "$KVER" ge "6.18"; then
+		# extra packages are built again since 6.11 and the method before stopped
+		# working with 6.18 so we switch back to extra.control.in
+		control="linux/debian/templates/extra.control.in"
+	elif dpkg --compare-versions "$KVER" ge "6.10"; then
 		# Since 1f3a3d27318a99feef7ffcdb4e302d164250af64
 		# extra.control.in is broken, so we use headers.meta.control.in
 		# instead. We cannot use sourcebin.meta.control.in because even
