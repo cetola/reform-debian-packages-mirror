@@ -1,34 +1,38 @@
 #!/bin/sh
+#
+# https://github.com/mpv-player/mpv/pull/14690
 
 set -e
 
 patch -p1 << 'EOF'
-diff -Nru mpv-0.40.0/debian/patches/0002-meson-add-detection-logic-for-v4l2request-support.patch mpv-0.40.0/debian/patches/0002-meson-add-detection-logic-for-v4l2request-support.patch
---- mpv-0.40.0/debian/patches/0002-meson-add-detection-logic-for-v4l2request-support.patch	1970-01-01 01:00:00.000000000 +0100
-+++ mpv-0.40.0/debian/patches/0002-meson-add-detection-logic-for-v4l2request-support.patch	2025-11-06 00:34:18.000000000 +0100
-@@ -0,0 +1,54 @@
-+From ad0dc6c988c68409158405c29f3937a5e27aed96 Mon Sep 17 00:00:00 2001
+diff -Nru mpv-0.41.0/debian/patches/0001-meson-add-detection-logic-for-v4l2request-support.patch mpv-0.41.0/debian/patches/0001-meson-add-detection-logic-for-v4l2request-support.patch
+--- mpv-0.41.0/debian/patches/0001-meson-add-detection-logic-for-v4l2request-support.patch	1970-01-01 01:00:00.000000000 +0100
++++ mpv-0.41.0/debian/patches/0001-meson-add-detection-logic-for-v4l2request-support.patch	2025-12-30 11:11:30.000000000 +0100
+@@ -0,0 +1,56 @@
++From e44fc753084f8a21f8206bc4e351d59c6ae35f48 Mon Sep 17 00:00:00 2001
 +From: Jonas Karlman <jonas@kwiboo.se>
 +Date: Sun, 18 Aug 2024 17:42:14 -0700
-+Subject: [PATCH 2/3] meson: add detection logic for v4l2request support
++Subject: [PATCH 1/2] meson: add detection logic for v4l2request support
 +
 +We will probably adjust this to look for a specific libavutil version after
 +v4l2request support is merged upstream, but this check is fine for now.
 +---
-+ meson.build   | 9 +++++++++
-+ meson.options | 1 +
-+ 2 files changed, 10 insertions(+)
++ meson.build   | 11 +++++++++++
++ meson.options |  1 +
++ 2 files changed, 12 insertions(+)
 +
 +diff --git a/meson.build b/meson.build
-+index 7572769e0e..46c69ea025 100644
++index e37564b034..68b5c0899d 100644
 +--- a/meson.build
 ++++ b/meson.build
-+@@ -1411,6 +1411,14 @@ if features['ios-gl']
++@@ -1430,6 +1430,16 @@ if features['ios-gl']
 +     sources += files('video/out/hwdec/hwdec_ios_gl.m')
 + endif
 + 
 ++v4l2request = get_option('v4l2request').require(
-++    cc.has_header_symbol('libavutil/hwcontext.h', 'AV_HWDEVICE_TYPE_V4L2REQUEST')
+++    cc.has_header_symbol('libavutil/hwcontext.h',
+++                         'AV_HWDEVICE_TYPE_V4L2REQUEST',
+++                         dependencies: libavutil)
 ++)
 ++features += {'v4l2request': v4l2request.allowed()}
 ++if features['v4l2request']
@@ -38,7 +42,7 @@ diff -Nru mpv-0.40.0/debian/patches/0002-meson-add-detection-logic-for-v4l2reque
 + libva = dependency('libva', version: '>= 1.1.0', required: get_option('vaapi'))
 + 
 + vaapi_drm = dependency('libva-drm', version: '>= 1.1.0', required:
-+@@ -1868,6 +1876,7 @@ summary({'d3d11': features['d3d11'],
++@@ -1901,6 +1911,7 @@ summary({'cocoa': features['cocoa'] and features['swift'],
 +          'libmpv': get_option('libmpv'),
 +          'lua': features['lua'],
 +          'opengl': features['gl'],
@@ -47,10 +51,10 @@ diff -Nru mpv-0.40.0/debian/patches/0002-meson-add-detection-logic-for-v4l2reque
 +          'wayland': features['wayland'],
 +          'x11': features['x11']},
 +diff --git a/meson.options b/meson.options
-+index dae0a333ef..3dba7a1451 100644
++index 52782f73d6..a793115400 100644
 +--- a/meson.options
 ++++ b/meson.options
-+@@ -99,6 +99,7 @@ option('d3d-hwaccel', type: 'feature', value: 'auto', description: 'D3D11VA hwac
++@@ -101,6 +101,7 @@ option('d3d-hwaccel', type: 'feature', value: 'auto', description: 'D3D11VA hwac
 + option('d3d9-hwaccel', type: 'feature', value: 'auto', description: 'DXVA2 hwaccel')
 + option('gl-dxinterop-d3d9', type: 'feature', value: 'auto', description: 'OpenGL/DirectX DXVA2 hwaccel')
 + option('ios-gl', type: 'feature', value: 'auto', description: 'iOS OpenGL ES interop support')
@@ -59,16 +63,16 @@ diff -Nru mpv-0.40.0/debian/patches/0002-meson-add-detection-logic-for-v4l2reque
 + option('videotoolbox-pl', type: 'feature', value: 'auto', description: 'Videotoolbox with libplacebo')
 + 
 +-- 
-+2.51.1
++2.47.3
 +
-diff -Nru mpv-0.40.0/debian/patches/0003-vo-hwdec-drmprime-add-separate-hwdecs-for-v4l2reques.patch mpv-0.40.0/debian/patches/0003-vo-hwdec-drmprime-add-separate-hwdecs-for-v4l2reques.patch
---- mpv-0.40.0/debian/patches/0003-vo-hwdec-drmprime-add-separate-hwdecs-for-v4l2reques.patch	1970-01-01 01:00:00.000000000 +0100
-+++ mpv-0.40.0/debian/patches/0003-vo-hwdec-drmprime-add-separate-hwdecs-for-v4l2reques.patch	2025-11-06 00:34:18.000000000 +0100
-@@ -0,0 +1,444 @@
-+From bb4e53c380fe6472ba130ab4a1fcf6778690f5cd Mon Sep 17 00:00:00 2001
+diff -Nru mpv-0.41.0/debian/patches/0002-vo-hwdec-drmprime-add-separate-hwdecs-for-v4l2reques.patch mpv-0.41.0/debian/patches/0002-vo-hwdec-drmprime-add-separate-hwdecs-for-v4l2reques.patch
+--- mpv-0.41.0/debian/patches/0002-vo-hwdec-drmprime-add-separate-hwdecs-for-v4l2reques.patch	1970-01-01 01:00:00.000000000 +0100
++++ mpv-0.41.0/debian/patches/0002-vo-hwdec-drmprime-add-separate-hwdecs-for-v4l2reques.patch	2025-12-30 11:16:27.000000000 +0100
+@@ -0,0 +1,435 @@
++From 370fd8b5575c26c1a2a9e18ca313af6b10007d37 Mon Sep 17 00:00:00 2001
 +From: Philip Langdale <philipl@overt.org>
 +Date: Sun, 18 Aug 2024 17:43:41 -0700
-+Subject: [PATCH 3/3] vo: hwdec: drmprime: add separate hwdecs for v4l2request
++Subject: [PATCH 2/2] vo: hwdec: drmprime: add separate hwdecs for v4l2request
 +
 +With all the machinery in place, we can now add the v4l2request hwdecs with a
 +different hw device type, and a different initialisation path. This applies to
@@ -85,9 +89,9 @@ diff -Nru mpv-0.40.0/debian/patches/0003-vo-hwdec-drmprime-add-separate-hwdecs-f
 + video/out/gpu/hwdec.c                    |   6 ++
 + video/out/hwdec/hwdec_drmprime.c         | 125 +++++++++++++++++------
 + video/out/hwdec/hwdec_drmprime_overlay.c |  81 +++++++++++++--
-+ video/out/vo_dmabuf_wayland.c            |   3 +
++ video/out/vo_dmabuf_wayland.c            |   1 +
 + video/v4l2request.c                      |  34 ++++++
-+ 7 files changed, 212 insertions(+), 41 deletions(-)
++ 7 files changed, 210 insertions(+), 41 deletions(-)
 + create mode 100644 video/v4l2request.c
 +
 +diff --git a/video/hwdec.c b/video/hwdec.c
@@ -105,10 +109,10 @@ diff -Nru mpv-0.40.0/debian/patches/0003-vo-hwdec-drmprime-add-separate-hwdecs-f
 +     &hwcontext_fns_vaapi,
 + #endif
 +diff --git a/video/hwdec.h b/video/hwdec.h
-+index c83d20783d..ad74fb9f0d 100644
++index e7734e5d7e..bf337389cb 100644
 +--- a/video/hwdec.h
 ++++ b/video/hwdec.h
-+@@ -121,6 +121,7 @@ extern const struct hwcontext_fns hwcontext_fns_cuda;
++@@ -119,6 +119,7 @@ extern const struct hwcontext_fns hwcontext_fns_cuda;
 + extern const struct hwcontext_fns hwcontext_fns_d3d11;
 + extern const struct hwcontext_fns hwcontext_fns_drmprime;
 + extern const struct hwcontext_fns hwcontext_fns_dxva2;
@@ -128,7 +132,7 @@ diff -Nru mpv-0.40.0/debian/patches/0003-vo-hwdec-drmprime-add-separate-hwdecs-f
 ++extern const struct ra_hwdec_driver ra_hwdec_v4l2request_overlay;
 + 
 + const struct ra_hwdec_driver *const ra_hwdec_drivers[] = {
-+ #if HAVE_VAAPI
++ #if HAVE_D3D_HWACCEL
 +@@ -73,6 +75,10 @@ const struct ra_hwdec_driver *const ra_hwdec_drivers[] = {
 +     &ra_hwdec_drmprime,
 +     &ra_hwdec_drmprime_overlay,
@@ -446,26 +450,17 @@ diff -Nru mpv-0.40.0/debian/patches/0003-vo-hwdec-drmprime-add-separate-hwdecs-f
 + };
 ++#endif
 +diff --git a/video/out/vo_dmabuf_wayland.c b/video/out/vo_dmabuf_wayland.c
-+index 70614c82a6..c7b0c4a1fb 100644
++index 6b7c511d9a..df97cd57f4 100644
 +--- a/video/out/vo_dmabuf_wayland.c
 ++++ b/video/out/vo_dmabuf_wayland.c
-+@@ -52,6 +52,7 @@ enum hwdec_type {
-+     HWDEC_NONE,
-+     HWDEC_VAAPI,
-+     HWDEC_DRMPRIME,
-++	HWDEC_V4L2REQUEST,
-+ };
++@@ -860,6 +860,7 @@ static int preinit(struct vo *vo)
++     // Initialize all possible hwdec drivers.
++     ra_hwdec_ctx_init(&p->hwdec_ctx, vo->hwdec_devs, "vaapi", false);
++     ra_hwdec_ctx_init(&p->hwdec_ctx, vo->hwdec_devs, "drmprime", false);
+++    ra_hwdec_ctx_init(&p->hwdec_ctx, vo->hwdec_devs, "v4l2request", false);
 + 
-+ struct buffer {
-+@@ -843,6 +844,8 @@ static int preinit(struct vo *vo)
-+             p->hwdec_type = HWDEC_VAAPI;
-+         } else if (strcmp(hw->driver->name, "drmprime") == 0) {
-+             p->hwdec_type = HWDEC_DRMPRIME;
-++        } else if (strcmp(hw->driver->name, "v4l2request") == 0) {
-++            p->hwdec_type = HWDEC_V4L2REQUEST;
-+         }
-+     }
-+ 
++     p->src = (struct mp_rect){0, 0, 0, 0};
++     return 0;
 +diff --git a/video/v4l2request.c b/video/v4l2request.c
 +new file mode 100644
 +index 0000000000..2aa4d14fea
@@ -507,23 +502,21 @@ diff -Nru mpv-0.40.0/debian/patches/0003-vo-hwdec-drmprime-add-separate-hwdecs-f
 ++    .create_dev = v4l2request_create_standalone,
 ++};
 +-- 
-+2.51.1
++2.47.3
 +
-diff -Nru mpv-0.40.0/debian/patches/series mpv-0.40.0/debian/patches/series
---- mpv-0.40.0/debian/patches/series	1970-01-01 01:00:00.000000000 +0100
-+++ mpv-0.40.0/debian/patches/series	2025-11-06 00:35:06.000000000 +0100
-@@ -1,2 +1,4 @@
- 0001-demux_mkv-fix-compilation-after-deprecated-definitio.patch
- 0002-player-create-missing-folders-for-watch-history-path.patch
-+0002-meson-add-detection-logic-for-v4l2request-support.patch
-+0003-vo-hwdec-drmprime-add-separate-hwdecs-for-v4l2reques.patch
+diff -Nru mpv-0.41.0/debian/patches/series mpv-0.41.0/debian/patches/series
+--- mpv-0.41.0/debian/patches/series	1970-01-01 01:00:00.000000000 +0100
++++ mpv-0.41.0/debian/patches/series	2025-12-30 11:12:14.000000000 +0100
+@@ -0,0 +1,2 @@
++0001-meson-add-detection-logic-for-v4l2request-support.patch
++0002-vo-hwdec-drmprime-add-separate-hwdecs-for-v4l2reques.patch
 diff -Nru mpv-0.40.0/debian/rules mpv-0.40.0/debian/rules
---- mpv-0.40.0/debian/rules	2025-03-30 13:51:50.000000000 +0200
-+++ mpv-0.40.0/debian/rules	2025-11-06 00:35:09.000000000 +0100
+--- mpv-0.40.0/debian/rules	2025-10-28 19:14:05.000000000 +0100
++++ mpv-0.40.0/debian/rules	2025-12-30 10:45:18.000000000 +0100
 @@ -18,6 +18,7 @@
+ 		-Dbuild-date=false \
  		-Dcdda=enabled \
  		-Ddvdnav=enabled \
- 		-Dsdl2=enabled \
 +		-Dv4l2request=enabled \
  		$(ARCH_CONFIGURE)
  
