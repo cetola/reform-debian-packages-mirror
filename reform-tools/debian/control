@@ -138,7 +138,7 @@ Depends:
  lxpolkit,
  mesa-utils,
  mesa-vulkan-drivers,
- minetest,
+ luanti,
  modemmanager,
  mpv,
  network-manager-gnome,
