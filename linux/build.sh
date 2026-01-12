@@ -333,6 +333,58 @@ if test "$KVER" = 6.8; then
 END
 fi
 
+if dpkg --compare-versions "$KVER" ge "6.18"; then
+	cat <<'END' | env --chdir=linux patch -p1
+From 134f03523beff6d070a4b2569e9d76254028620b Mon Sep 17 00:00:00 2001
+From: Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
+Date: Mon, 12 Jan 2026 17:18:36 +0100
+Subject: [PATCH] Add breaks on reform-tools and flash-kernel versions before
+ support for /usr/lib/linux-image-$kvers as a symlink
+
+---
+ debian/config/arm64/defines.toml   | 2 ++
+ debian/config/armhf/defines.toml   | 2 ++
+ debian/config/riscv64/defines.toml | 2 ++
+ 3 files changed, 6 insertions(+)
+
+diff --git a/debian/config/arm64/defines.toml b/debian/config/arm64/defines.toml
+index db3b4c4a68..b79d1ce130 100644
+--- a/debian/config/arm64/defines.toml
++++ b/debian/config/arm64/defines.toml
+@@ -53,4 +53,6 @@ kernel_stem = 'vmlinuz'
+ [relations.image]
+ breaks = [
+   'u-boot-efi-dtb (<< 5)',
++  'reform-tools (<< 1.83)',
++  'flash-kernel (<< 3.110)'
+ ]
+diff --git a/debian/config/armhf/defines.toml b/debian/config/armhf/defines.toml
+index 535c229f0a..afaff9fa8f 100644
+--- a/debian/config/armhf/defines.toml
++++ b/debian/config/armhf/defines.toml
+@@ -26,4 +26,6 @@ kernel_stem = 'vmlinuz'
+ [relations.image]
+ breaks = [
+   'u-boot-efi-dtb (<< 5)',
++  'reform-tools (<< 1.83)',
++  'flash-kernel (<< 3.110)'
+ ]
+diff --git a/debian/config/riscv64/defines.toml b/debian/config/riscv64/defines.toml
+index 1bfdb72f01..4ffe5f402c 100644
+--- a/debian/config/riscv64/defines.toml
++++ b/debian/config/riscv64/defines.toml
+@@ -19,4 +19,6 @@ kernel_stem = 'vmlinux'
+ [relations.image]
+ breaks = [
+   'u-boot-efi-dtb (<< 5)',
++  'reform-tools (<< 1.83)',
++  'flash-kernel (<< 3.110)'
+ ]
+--
+2.47.3
+END
+fi
+
 if dpkg --compare-versions "$KVER" ge "6.16"; then
 	# below setting should go into linux/debian/config.local/defines.toml but
 	# as the list of debianrelease cannot be overridden, the catch-all '.*' will
