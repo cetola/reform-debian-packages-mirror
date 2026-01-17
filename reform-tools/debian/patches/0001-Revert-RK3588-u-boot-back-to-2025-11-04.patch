@@ -1,0 +1,82 @@
+From ac4242caa6e16c19758e79aa99c10badbad391a1 Mon Sep 17 00:00:00 2001
+From: Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
+Date: Sat, 17 Jan 2026 12:08:27 +0100
+Subject: [PATCH] Revert RK3588 u-boot back to 2025-11-04.
+
+Version 2026-01-11 sometimes does not allow linux to see the nxme.
+
+This reverts parts of commit 4da8f20c4e7a111eff888d4dec65f566eda865d4.
+---
+ machines/MNT Pocket Reform with RCORE RK3588 Module.conf | 4 ++--
+ machines/MNT Reform 2 with RCORE RK3588 Module.conf      | 4 ++--
+ machines/MNT Reform 2 with RCORE-DSI RK3588 Module.conf  | 4 ++--
+ machines/MNT Reform Next with RCORE RK3588 Module.conf   | 4 ++--
+ 4 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/machines/MNT Pocket Reform with RCORE RK3588 Module.conf b/machines/MNT Pocket Reform with RCORE RK3588 Module.conf
+index cab9d0a..290fa31 100644
+--- a/machines/MNT Pocket Reform with RCORE RK3588 Module.conf	
++++ b/machines/MNT Pocket Reform with RCORE RK3588 Module.conf	
+@@ -13,9 +13,9 @@ DEV_SD="mmcblk1"
+ DEV_SSD="nvme0n1"
+ DEV_USB="sda"
+ # the current u-boot hashes from source.mnt.re
+-UBOOT_SHA1="32c4a4458bee405d2118e499033b33cbe85a95ef"
++UBOOT_SHA1="8e9de7899be22527c6b0a29969c8ae5f8d57ab5d"
+ UBOOT_PROJECT="reform-rk3588-uboot"
+-UBOOT_TAG="2026-01-11"
++UBOOT_TAG="2025-11-04"
+ # idbloader.img is expected at an offset of 32768 bytes and u-boot follows 8355840 bytes after
+ UBOOT_OFFSET=32768
+ FLASHBIN_OFFSET=0
+diff --git a/machines/MNT Reform 2 with RCORE RK3588 Module.conf b/machines/MNT Reform 2 with RCORE RK3588 Module.conf
+index 347fbd8..0e20637 100644
+--- a/machines/MNT Reform 2 with RCORE RK3588 Module.conf	
++++ b/machines/MNT Reform 2 with RCORE RK3588 Module.conf	
+@@ -13,9 +13,9 @@ DEV_SD="mmcblk1"
+ DEV_SSD="nvme0n1"
+ DEV_USB="sda"
+ # the current u-boot hashes from source.mnt.re
+-UBOOT_SHA1="2284b0a7f139de55b0718fd3b4f2e15d5bc1bd13"
++UBOOT_SHA1="78878f1da85943b1b9be8b30a86a3ea9c2ed3900"
+ UBOOT_PROJECT="reform-rk3588-uboot"
+-UBOOT_TAG="2026-01-11"
++UBOOT_TAG="2025-11-04"
+ # idbloader.img is expected at an offset of 32768 bytes and u-boot follows 8355840 bytes after
+ UBOOT_OFFSET=32768
+ FLASHBIN_OFFSET=0
+diff --git a/machines/MNT Reform 2 with RCORE-DSI RK3588 Module.conf b/machines/MNT Reform 2 with RCORE-DSI RK3588 Module.conf
+index b7aeeff..899a588 100644
+--- a/machines/MNT Reform 2 with RCORE-DSI RK3588 Module.conf	
++++ b/machines/MNT Reform 2 with RCORE-DSI RK3588 Module.conf	
+@@ -13,9 +13,9 @@ DEV_SD="mmcblk1"
+ DEV_SSD="nvme0n1"
+ DEV_USB="sda"
+ # the current u-boot hashes from source.mnt.re
+-UBOOT_SHA1="d597f88d8276e4b95251a81535002380de29ab8a"
++UBOOT_SHA1="876b4f5f125a40afaceac7258504ee15b212f36d"
+ UBOOT_PROJECT="reform-rk3588-uboot"
+-UBOOT_TAG="2026-01-11"
++UBOOT_TAG="2025-11-04"
+ # idbloader.img is expected at an offset of 32768 bytes and u-boot follows 8355840 bytes after
+ UBOOT_OFFSET=32768
+ FLASHBIN_OFFSET=0
+diff --git a/machines/MNT Reform Next with RCORE RK3588 Module.conf b/machines/MNT Reform Next with RCORE RK3588 Module.conf
+index 2c8aade..9e6b99a 100644
+--- a/machines/MNT Reform Next with RCORE RK3588 Module.conf	
++++ b/machines/MNT Reform Next with RCORE RK3588 Module.conf	
+@@ -13,9 +13,9 @@ DEV_SD="mmcblk1"
+ DEV_SSD="nvme0n1"
+ DEV_USB="sda"
+ # the current u-boot hashes from source.mnt.re
+-UBOOT_SHA1="fab38259edbf6cb0103f682c1294863782882095"
++UBOOT_SHA1="60ab4d93e531d3234208a477f7d66c0a82e27b74"
+ UBOOT_PROJECT="reform-rk3588-uboot"
+-UBOOT_TAG="2026-01-11"
++UBOOT_TAG="2025-11-04"
+ # idbloader.img is expected at an offset of 32768 bytes and u-boot follows 8355840 bytes after
+ UBOOT_OFFSET=32768
+ FLASHBIN_OFFSET=0
+-- 
+2.47.3
+
