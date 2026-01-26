@@ -626,17 +626,22 @@ if dpkg --compare-versions "$KVER" ge "6.8"; then
 	cp rk3588-mnt-reform2-dsi.dts linux/arch/arm64/boot/dts/rockchip/rk3588-mnt-reform2-dsi.dts
 	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/rockchip/rk3588-mnt-pocket-reform.dts
 	cp rk3588-mnt-pocket-reform.dts linux/arch/arm64/boot/dts/rockchip/rk3588-mnt-pocket-reform.dts
-	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/rockchip/rk3588-mnt-reform-next.dts
-	cp rk3588-mnt-reform-next.dts linux/arch/arm64/boot/dts/rockchip/rk3588-mnt-reform-next.dts
 	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/rockchip/Makefile
 	if ! grep --silent --fixed-strings --line-regexp 'dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform2.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile; then
 		# rk3588-mnt-reform2.dtb is included since 6.15
 		sed -i '/^dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-rock-5b.dtb$/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform2.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
 	fi
 	sed -i '/rk3588-mnt-reform2.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform2-dsi.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
-	sed -i '/rk3588-mnt-reform2-dsi.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform-next.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
-	sed -i '/rk3588-mnt-reform-next.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-pocket-reform.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
+	sed -i '/rk3588-mnt-reform2-dsi.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-pocket-reform.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
 fi
+
+# reform next needs 6.16 or later
+if dpkg --compare-versions "$KVER" ge "6.16"; then
+	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/rockchip/rk3588-mnt-reform-next.dts
+	cp rk3588-mnt-reform-next.dts linux/arch/arm64/boot/dts/rockchip/rk3588-mnt-reform-next.dts
+	sed -i '/rk3588-mnt-pocket-reform.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform-next.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
+fi
+
 # finalize dts.patch
 env --chdir=linux QUILT_PATCHES=debian/patches quilt refresh
 
