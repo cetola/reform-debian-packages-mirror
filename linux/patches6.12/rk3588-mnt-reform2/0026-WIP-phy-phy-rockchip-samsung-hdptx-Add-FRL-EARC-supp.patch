@@ -159,7 +159,7 @@ index 9f084697dd05..45db96be3f64 100644
  	REG_SEQ0(LANE_REG(0303), 0x0c),
  	REG_SEQ0(LANE_REG(0307), 0x20),
 @@ -560,6 +661,40 @@ static const struct reg_sequence rk_hdtpx_tmds_lane_init_seq[] = {
- 	REG_SEQ0(LANE_REG(0606), 0x1c),
+ 	REG_SEQ0(LANE_REG(061e), 0x0a),
  };
  
 +static const struct reg_sequence rk_hdtpx_frl_ropll_lane_init_seq[] = {
