@@ -43,6 +43,7 @@ Depends:
  rsync,
  systemd,
  tzdata,
+ xdg-terminal-exec,
  ${misc:Depends},
 Recommends:
  bmaptool,
