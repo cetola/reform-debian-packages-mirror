@@ -1,0 +1,46 @@
+From 841d9cc5ea9e08b1b6fd5c4171dd177831b11522 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Mario=20B=C4=83l=C4=83nic=C4=83?=
+ <mariobalanica02@gmail.com>
+Date: Wed, 8 Oct 2025 17:22:10 -0400
+Subject: [PATCH 1/2] PCI: dw-rockchip: Disable root port BARs
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Root port BARs waste MMIO space, preventing large devices like GPUs from
+assigning their BARs.
+
+Signed-off-by: Mario Bălănică <mariobalanica02@gmail.com>
+---
+ drivers/pci/controller/dwc/pcie-dw-rockchip.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/pci/controller/dwc/pcie-dw-rockchip.c b/drivers/pci/controller/dwc/pcie-dw-rockchip.c
+index 93171a392879..0e7e8f0a4730 100644
+--- a/drivers/pci/controller/dwc/pcie-dw-rockchip.c
++++ b/drivers/pci/controller/dwc/pcie-dw-rockchip.c
+@@ -66,6 +66,8 @@
+ #define  PCIE_LINKUP_MASK		GENMASK(17, 16)
+ #define  PCIE_LTSSM_STATUS_MASK		GENMASK(5, 0)
+ 
++#define PCIE_TYPE0_HDR_DBI2_OFFSET	0x100000
++
+ struct rockchip_pcie {
+ 	struct dw_pcie pci;
+ 	void __iomem *apb_base;
+@@ -258,6 +260,12 @@ static int rockchip_pcie_host_init(struct dw_pcie_rp *pp)
+ 	rockchip_pcie_configure_l1ss(pci);
+ 	rockchip_pcie_enable_l0s(pci);
+ 
++	/* Disable root port BARs to avoid wasting MMIO space */
++	dw_pcie_dbi_ro_wr_en(pci);
++	dw_pcie_writel_dbi(pci, PCIE_TYPE0_HDR_DBI2_OFFSET + PCI_BASE_ADDRESS_0, 0);
++	dw_pcie_writel_dbi(pci, PCIE_TYPE0_HDR_DBI2_OFFSET + PCI_BASE_ADDRESS_1, 0);
++	dw_pcie_dbi_ro_wr_dis(pci);
++
+ 	return 0;
+ }
+ 
+-- 
+2.51.0
+
