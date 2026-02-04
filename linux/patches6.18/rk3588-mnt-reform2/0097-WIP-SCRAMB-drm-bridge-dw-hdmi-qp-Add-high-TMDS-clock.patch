@@ -50,8 +50,8 @@ index 443ac24cb97cf..12b4c52b0d112 100644
 +	bool scramb_enabled;
 +
  	struct regmap *regm;
+ 	int main_irq;
  
- 	unsigned long tmds_char_rate;
 @@ -851,28 +860,103 @@ static int dw_hdmi_qp_config_audio_infoframe(struct dw_hdmi_qp *hdmi,
  	return 0;
  }

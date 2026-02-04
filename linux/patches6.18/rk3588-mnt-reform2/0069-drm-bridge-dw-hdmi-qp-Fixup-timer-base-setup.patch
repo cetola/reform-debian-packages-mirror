@@ -35,8 +35,8 @@ index 8be73f71e314d..9115a7644a171 100644
  
 +	unsigned long ref_clk_rate;
  	struct regmap *regm;
+ 	int main_irq;
  
- 	unsigned long tmds_char_rate;
 @@ -1222,13 +1223,11 @@ static void dw_hdmi_qp_init_hw(struct dw_hdmi_qp *hdmi)
  {
  	dw_hdmi_qp_write(hdmi, 0, MAINUNIT_0_INT_MASK_N);

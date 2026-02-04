@@ -50,7 +50,7 @@ index 12b4c52b0d112..66802415b8923 100644
  /*
   * Unless otherwise noted, entries in this table are 100% optimization.
   * Values can be obtained from dw_hdmi_qp_compute_n() but that function is
-@@ -171,9 +188,13 @@ struct dw_hdmi_qp {
+@@ -171,10 +188,14 @@ struct dw_hdmi_qp {
  	struct delayed_work scramb_work;
  	bool scramb_enabled;
  
@@ -58,6 +58,7 @@ index 12b4c52b0d112..66802415b8923 100644
 +	bool flt_no_timeout;
 +
  	struct regmap *regm;
+ 	int main_irq;
  
 -	unsigned long tmds_char_rate;
 +	//TODO: store tmds_char_rate in struct dw_hdmi_qp_link_config
