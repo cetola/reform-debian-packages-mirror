@@ -648,12 +648,22 @@ fi
 # finalize dts.patch
 env --chdir=linux QUILT_PATCHES=debian/patches quilt refresh
 
-# add config *after* adding patches or otherwise kconfigeditor2 will throw
-# (nonfatal) warnings about config options that don't exist (yet)
-if [ ! -d kernel-team ]; then
-	git clone https://salsa.debian.org/kernel-team/kernel-team.git
+KERNEL_TEAM_SHA1="46aafc2cd99579c98536e03f12a6077b73c340a2"
+if [ -d "kernel-team" ]; then
+	if [ "$(git -C "kernel-team" rev-parse HEAD)" = "$KERNEL_TEAM_SHA1" ]; then
+		git -C "kernel-team" fetch
+	fi
+	git -C "kernel-team" reset --hard "$KERNEL_TEAM_SHA1"
+	git -C "kernel-team" clean -fdx
+else
+	git init "kernel-team"
+	git -C "kernel-team" remote add origin "https://salsa.debian.org/kernel-team/kernel-team.git"
+	git -C "kernel-team" fetch --depth 1 origin "$KERNEL_TEAM_SHA1"
+	git -C "kernel-team" checkout FETCH_HEAD
 fi
 
+# add config *after* adding patches or otherwise kconfigeditor2 will throw
+# (nonfatal) warnings about config options that don't exist (yet)
 cat config >>linux/debian/config/arm64/config
 # we don't care that ":" runs even when control-real succeeds
 # shellcheck disable=SC2015
