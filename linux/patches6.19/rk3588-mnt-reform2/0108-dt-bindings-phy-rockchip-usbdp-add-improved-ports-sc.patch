@@ -1,7 +1,7 @@
-From b4b3c816d39cd1a8d4b993cfeb05b25087e0f9b0 Mon Sep 17 00:00:00 2001
+From cd580d877b258865a8f21ea77569905ab56a0836 Mon Sep 17 00:00:00 2001
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 Date: Fri, 22 Aug 2025 18:49:35 +0200
-Subject: [PATCH 108/142] dt-bindings: phy: rockchip-usbdp: add improved ports
+Subject: [PATCH 036/159] dt-bindings: phy: rockchip-usbdp: add improved ports
  scheme
 
 Currently the Rockchip USBDP PHY as a very simply port scheme: It just

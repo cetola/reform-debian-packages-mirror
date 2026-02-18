@@ -1,8 +1,8 @@
-From 3fb6285999c4284ec83a47353ac61d2e2b297915 Mon Sep 17 00:00:00 2001
+From 3ad9e6f8b84c72a29c5dfe99ddf2872b90555665 Mon Sep 17 00:00:00 2001
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 Date: Mon, 20 Oct 2025 20:21:02 +0200
-Subject: [PATCH 4/8] PCI: dw-rockchip: Add helper function for enhanced LTSSM
- control mode
+Subject: [PATCH 031/159] PCI: dw-rockchip: Add helper function for enhanced
+ LTSSM control mode
 
 Remove code duplocation and improve readability by introducing a new
 function to setup the enhanced LTSSM mode.
@@ -13,10 +13,10 @@ Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
  1 file changed, 13 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/pci/controller/dwc/pcie-dw-rockchip.c b/drivers/pci/controller/dwc/pcie-dw-rockchip.c
-index 8e584016e2447..ad659e2c6cca0 100644
+index 7900591ef61b2..1e047d56d0298 100644
 --- a/drivers/pci/controller/dwc/pcie-dw-rockchip.c
 +++ b/drivers/pci/controller/dwc/pcie-dw-rockchip.c
-@@ -511,13 +511,23 @@ static irqreturn_t rockchip_pcie_ep_sys_irq_thread(int irq, void *arg)
+@@ -551,13 +551,23 @@ static irqreturn_t rockchip_pcie_ep_sys_irq_thread(int irq, void *arg)
  	return IRQ_HANDLED;
  }
  
@@ -41,7 +41,7 @@ index 8e584016e2447..ad659e2c6cca0 100644
  
  	if (!IS_ENABLED(CONFIG_PCIE_ROCKCHIP_DW_HOST))
  		return -ENODEV;
-@@ -534,10 +544,7 @@ static int rockchip_pcie_configure_rc(struct platform_device *pdev,
+@@ -574,10 +584,7 @@ static int rockchip_pcie_configure_rc(struct platform_device *pdev,
  		return ret;
  	}
  
@@ -53,7 +53,7 @@ index 8e584016e2447..ad659e2c6cca0 100644
  	rockchip_pcie_writel_apb(rockchip,
  				 PCIE_CLIENT_SET_MODE(PCIE_CLIENT_MODE_RC),
  				 PCIE_CLIENT_GENERAL_CON);
-@@ -581,14 +588,7 @@ static int rockchip_pcie_configure_ep(struct platform_device *pdev,
+@@ -621,14 +628,7 @@ static int rockchip_pcie_configure_ep(struct platform_device *pdev,
  		return ret;
  	}
  
