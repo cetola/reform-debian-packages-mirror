@@ -1,7 +1,7 @@
-From 39ade14668efc858435ecb2b20bf82771df19599 Mon Sep 17 00:00:00 2001
+From 82c22b1a37a66b37f7ccac208b70666585345043 Mon Sep 17 00:00:00 2001
 From: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
 Date: Wed, 4 Dec 2024 13:26:13 +0200
-Subject: [PATCH 098/142] [WIP-YUV420] drm/rockchip: vop2: Add YUV420 output
+Subject: [PATCH 068/159] [WIP-YUV420] drm/rockchip: vop2: Add YUV420 output
  format support
 
 TODO: proper colorspace conversion handling
@@ -9,9 +9,9 @@ TODO: proper colorspace conversion handling
 Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
 ---
  drivers/gpu/drm/rockchip/rockchip_drm_drv.h  |  2 +
- drivers/gpu/drm/rockchip/rockchip_drm_vop2.c | 44 ++++++++++++++++++++
+ drivers/gpu/drm/rockchip/rockchip_drm_vop2.c | 43 ++++++++++++++++++++
  drivers/gpu/drm/rockchip/rockchip_drm_vop2.h |  3 ++
- 3 files changed, 49 insertions(+)
+ 3 files changed, 48 insertions(+)
 
 diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_drv.h b/drivers/gpu/drm/rockchip/rockchip_drm_drv.h
 index 2e86ad00979c4..084a383da304a 100644
@@ -27,10 +27,10 @@ index 2e86ad00979c4..084a383da304a 100644
   * Rockchip drm private structure.
   *
 diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c b/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
-index 40f6401f6e938..29422ddc74c0c 100644
+index 7173f1729a152..033bff7a3a8dc 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
 +++ b/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
-@@ -656,6 +656,39 @@ static void vop2_setup_scale(struct vop2 *vop2, const struct vop2_win *win,
+@@ -657,6 +657,39 @@ static void vop2_setup_scale(struct vop2 *vop2, const struct vop2_win *win,
  	}
  }
  
@@ -70,18 +70,18 @@ index 40f6401f6e938..29422ddc74c0c 100644
  static int vop2_convert_csc_mode(int csc_mode)
  {
  	switch (csc_mode) {
-@@ -1549,6 +1582,7 @@ static void vop2_post_config(struct drm_crtc *crtc)
+@@ -1555,6 +1588,7 @@ static void vop2_post_config(struct drm_crtc *crtc)
  	struct vop2_video_port *vp = to_vop2_video_port(crtc);
  	struct vop2 *vop2 = vp->vop2;
  	struct drm_display_mode *mode = &crtc->state->adjusted_mode;
 +	struct rockchip_crtc_state *vcstate = to_rockchip_crtc_state(crtc->state);
+ 	u64 bgcolor = crtc->state->background_color;
  	u16 vtotal = mode->crtc_vtotal;
  	u16 hdisplay = mode->crtc_hdisplay;
- 	u16 hact_st = mode->crtc_htotal - mode->crtc_hsync_start;
-@@ -1595,6 +1629,16 @@ static void vop2_post_config(struct drm_crtc *crtc)
- 	}
- 
- 	vop2_vp_write(vp, RK3568_VP_DSP_BG, 0);
+@@ -1606,6 +1640,15 @@ static void vop2_post_config(struct drm_crtc *crtc)
+ 	val |= FIELD_PREP(RK3568_VP_DSP_BG__DSP_BG_GREEN, DRM_ARGB64_GETG_BPC(bgcolor, 10));
+ 	val |= FIELD_PREP(RK3568_VP_DSP_BG__DSP_BG_BLUE, DRM_ARGB64_GETB_BPC(bgcolor, 10));
+ 	vop2_vp_write(vp, RK3568_VP_DSP_BG, val);
 +
 +	if (vcstate->output_mode == ROCKCHIP_OUT_MODE_YUV420) {
 +		val = RK3568_VP_BCSH_CTRL__BCSH_R2Y_EN;
@@ -90,16 +90,15 @@ index 40f6401f6e938..29422ddc74c0c 100644
 +	} else {
 +		val = 0;
 +	}
-+
 +	vop2_vp_write(vp, RK3568_VP_BCSH_CTRL, val);
  }
  
  static int us_to_vertical_line(struct drm_display_mode *mode, int us)
 diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_vop2.h b/drivers/gpu/drm/rockchip/rockchip_drm_vop2.h
-index f6f2d8f846e39..cfef6cfaab8f2 100644
+index b8198714c1c91..95f13de1ae6cd 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_drm_vop2.h
 +++ b/drivers/gpu/drm/rockchip/rockchip_drm_vop2.h
-@@ -671,6 +671,9 @@ enum dst_factor_mode {
+@@ -674,6 +674,9 @@ enum dst_factor_mode {
  #define RK3568_VP_POST_SCL_CTRL__VSCALEDOWN		BIT(1)
  #define RK3568_VP_POST_SCL_CTRL__HSCALEDOWN		BIT(0)
  
