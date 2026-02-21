@@ -144,7 +144,6 @@ Depends:
  mesa-vulkan-drivers,
  modemmanager,
  mpv,
- ncurses-bin,
  network-manager-gnome,
  neverball,
  nfs-common,
