@@ -25,14 +25,13 @@ index 1db3691c29cf8..be08908e04f55 100644
 +/* General Debug Register */
 +#define PCIE_CLIENT_GENERAL_DEBUG	0x104
 +
- /* Hot Reset Control Register */
- #define PCIE_CLIENT_HOT_RESET_CTRL	0x180
- #define  PCIE_LTSSM_APP_DLY2_EN		BIT(1)
-@@ -810,6 +813,12 @@ static int rockchip_pcie_probe(struct platform_device *pdev)
+ /* RASDES TBA information */
+ #define PCIE_CLIENT_CDM_RASDES_TBA_INFO_CMN	0x154
+ #define  PCIE_CLIENT_CDM_RASDES_TBA_L1_1	BIT(4)
+@@ -778,6 +781,11 @@ static int rockchip_pcie_probe(struct platform_device *pdev)
  	return ret;
  }
  
-+
 +static inline void rockchip_pcie_link_status_clear(struct rockchip_pcie *rockchip)
 +{
 +	rockchip_pcie_writel_apb(rockchip, PCIE_CLIENT_GENERAL_DEBUG, 0x0);
@@ -41,7 +40,7 @@ index 1db3691c29cf8..be08908e04f55 100644
  static int rockchip_pcie_suspend(struct device *dev)
  {
  	struct rockchip_pcie *rockchip = dev_get_drvdata(dev);
-@@ -823,6 +832,11 @@ static int rockchip_pcie_suspend(struct device *dev)
+@@ -791,6 +799,11 @@ static int rockchip_pcie_suspend(struct device *dev)
  
  	rockchip->intx = rockchip_pcie_readl_apb(rockchip, PCIE_CLIENT_INTR_MASK_LEGACY);
  

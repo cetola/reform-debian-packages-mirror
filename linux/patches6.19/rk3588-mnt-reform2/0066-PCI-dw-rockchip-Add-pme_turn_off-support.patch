@@ -35,7 +35,7 @@ index 8bd2952ba0381..f08ac3e5de4ac 100644
  
  /* Power Management Control Register */
  #define PCIE_CLIENT_POWER_CON		0x2c
-@@ -314,8 +320,46 @@ static int rockchip_pcie_host_init(struct dw_pcie_rp *pp)
+@@ -333,8 +339,46 @@ static int rockchip_pcie_host_init(struct dw_pcie_rp *pp)
  	return 0;
  }
  
