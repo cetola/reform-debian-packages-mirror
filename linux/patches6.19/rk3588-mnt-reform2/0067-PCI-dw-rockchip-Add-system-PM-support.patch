@@ -1,7 +1,7 @@
-From 830314d7e0c01fb29c56f20e933baa131108f04b Mon Sep 17 00:00:00 2001
+From 1e1850a6a221bb091a9a3f72c242b55949c80354 Mon Sep 17 00:00:00 2001
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 Date: Mon, 20 Oct 2025 20:49:34 +0200
-Subject: [PATCH 035/159] PCI: dw-rockchip: Add system PM support
+Subject: [PATCH 034/134] PCI: dw-rockchip: Add system PM support
 
 Add system PM support for Rockchip PCIe Designware Controllers.
 
@@ -23,10 +23,10 @@ Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
  1 file changed, 93 insertions(+)
 
 diff --git a/drivers/pci/controller/dwc/pcie-dw-rockchip.c b/drivers/pci/controller/dwc/pcie-dw-rockchip.c
-index f08ac3e5de4ac..c3349b9adc8b5 100644
+index c90e5262a0111..920d0fcdd83b2 100644
 --- a/drivers/pci/controller/dwc/pcie-dw-rockchip.c
 +++ b/drivers/pci/controller/dwc/pcie-dw-rockchip.c
-@@ -96,6 +96,7 @@ struct rockchip_pcie {
+@@ -103,6 +103,7 @@ struct rockchip_pcie {
  	struct gpio_desc *rst_gpio;
  	struct regulator *vpcie3v3;
  	struct irq_domain *irq_domain;
@@ -34,7 +34,7 @@ index f08ac3e5de4ac..c3349b9adc8b5 100644
  	const struct rockchip_pcie_of_data *data;
  	bool supports_clkreq;
  };
-@@ -809,6 +810,92 @@ static int rockchip_pcie_probe(struct platform_device *pdev)
+@@ -774,6 +775,92 @@ static int rockchip_pcie_probe(struct platform_device *pdev)
  	return ret;
  }
  
@@ -127,7 +127,7 @@ index f08ac3e5de4ac..c3349b9adc8b5 100644
  static const struct rockchip_pcie_of_data rockchip_pcie_rc_of_data_rk3568 = {
  	.mode = DW_PCIE_RC_TYPE,
  };
-@@ -839,11 +926,17 @@ static const struct of_device_id rockchip_pcie_of_match[] = {
+@@ -804,11 +891,17 @@ static const struct of_device_id rockchip_pcie_of_match[] = {
  	{},
  };
  

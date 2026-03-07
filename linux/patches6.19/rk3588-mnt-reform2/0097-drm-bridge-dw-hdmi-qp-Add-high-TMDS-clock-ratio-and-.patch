@@ -1,7 +1,7 @@
-From fb2bfe6725f767ccf254789244108e272b220e37 Mon Sep 17 00:00:00 2001
+From c22119bbc3dd175ffeb9865c5410df85248709be Mon Sep 17 00:00:00 2001
 From: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
 Date: Fri, 13 Sep 2024 17:30:35 +0300
-Subject: [PATCH 132/159] drm/bridge: dw-hdmi-qp: Add high TMDS clock ratio and
+Subject: [PATCH 088/134] drm/bridge: dw-hdmi-qp: Add high TMDS clock ratio and
  scrambling support
 
 Add support for HDMI 2.0 display modes, e.g. 4K@60Hz, by permitting TMDS
@@ -18,7 +18,7 @@ Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
  1 file changed, 167 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.c
-index e1755dc78f9c9..8ceb699dfa427 100644
+index ab7fed6214e06..e4e8ccccc5898 100644
 --- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.c
 +++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.c
 @@ -2,6 +2,7 @@
@@ -37,7 +37,7 @@ index e1755dc78f9c9..8ceb699dfa427 100644
  #include <drm/drm_atomic.h>
  #include <drm/drm_atomic_helper.h>
  #include <drm/drm_bridge.h>
-@@ -37,8 +39,10 @@
+@@ -38,8 +40,10 @@
  #define DDC_SEGMENT_ADDR	0x30
  
  #define HDMI14_MAX_TMDSCLK	340000000
@@ -49,7 +49,7 @@ index e1755dc78f9c9..8ceb699dfa427 100644
  
  /*
   * Unless otherwise noted, entries in this table are 100% optimization.
-@@ -162,6 +166,11 @@ struct dw_hdmi_qp {
+@@ -163,6 +167,11 @@ struct dw_hdmi_qp {
  	} phy;
  
  	unsigned long ref_clk_rate;
@@ -61,7 +61,7 @@ index e1755dc78f9c9..8ceb699dfa427 100644
  	struct regmap *regm;
  	int main_irq;
  
-@@ -861,28 +870,98 @@ static int dw_hdmi_qp_config_audio_infoframe(struct dw_hdmi_qp *hdmi,
+@@ -862,28 +871,98 @@ static int dw_hdmi_qp_config_audio_infoframe(struct dw_hdmi_qp *hdmi,
  	return 0;
  }
  
@@ -165,7 +165,7 @@ index e1755dc78f9c9..8ceb699dfa427 100644
  	} else {
  		dev_dbg(hdmi->dev, "%s mode=DVI\n", __func__);
  		op_mode = OPMODE_DVI;
-@@ -893,7 +972,7 @@ static void dw_hdmi_qp_bridge_atomic_enable(struct drm_bridge *bridge,
+@@ -894,7 +973,7 @@ static void dw_hdmi_qp_bridge_atomic_enable(struct drm_bridge *bridge,
  	dw_hdmi_qp_mod(hdmi, HDCP2_BYPASS, HDCP2_BYPASS, HDCP2LOGIC_CONFIG0);
  	dw_hdmi_qp_mod(hdmi, op_mode, OPMODE_DVI, LINK_CONFIG0);
  
@@ -174,7 +174,7 @@ index e1755dc78f9c9..8ceb699dfa427 100644
  }
  
  static void dw_hdmi_qp_bridge_atomic_disable(struct drm_bridge *bridge,
-@@ -903,13 +982,74 @@ static void dw_hdmi_qp_bridge_atomic_disable(struct drm_bridge *bridge,
+@@ -904,13 +983,74 @@ static void dw_hdmi_qp_bridge_atomic_disable(struct drm_bridge *bridge,
  
  	hdmi->tmds_char_rate = 0;
  
@@ -251,7 +251,7 @@ index e1755dc78f9c9..8ceb699dfa427 100644
  	const struct drm_edid *drm_edid;
  
  	if (hdmi->no_hpd) {
-@@ -920,7 +1060,15 @@ dw_hdmi_qp_bridge_detect(struct drm_bridge *bridge, struct drm_connector *connec
+@@ -921,7 +1061,15 @@ dw_hdmi_qp_bridge_detect(struct drm_bridge *bridge, struct drm_connector *connec
  			return connector_status_disconnected;
  	}
  
@@ -268,7 +268,7 @@ index e1755dc78f9c9..8ceb699dfa427 100644
  }
  
  static const struct drm_edid *
-@@ -944,12 +1092,12 @@ dw_hdmi_qp_bridge_tmds_char_rate_valid(const struct drm_bridge *bridge,
+@@ -945,12 +1093,12 @@ dw_hdmi_qp_bridge_tmds_char_rate_valid(const struct drm_bridge *bridge,
  {
  	struct dw_hdmi_qp *hdmi = bridge->driver_private;
  
@@ -287,7 +287,7 @@ index e1755dc78f9c9..8ceb699dfa427 100644
  		dev_dbg(hdmi->dev, "Unsupported TMDS char rate: %lld\n", rate);
  		return MODE_CLOCK_HIGH;
  	}
-@@ -1189,7 +1337,7 @@ static const struct drm_bridge_funcs dw_hdmi_qp_bridge_funcs = {
+@@ -1218,7 +1366,7 @@ static const struct drm_bridge_funcs dw_hdmi_qp_bridge_funcs = {
  	.atomic_reset = drm_atomic_helper_bridge_reset,
  	.atomic_enable = dw_hdmi_qp_bridge_atomic_enable,
  	.atomic_disable = dw_hdmi_qp_bridge_atomic_disable,
@@ -296,7 +296,7 @@ index e1755dc78f9c9..8ceb699dfa427 100644
  	.edid_read = dw_hdmi_qp_bridge_edid_read,
  	.hdmi_tmds_char_rate_valid = dw_hdmi_qp_bridge_tmds_char_rate_valid,
  	.hdmi_clear_infoframe = dw_hdmi_qp_bridge_clear_infoframe,
-@@ -1271,6 +1419,8 @@ struct dw_hdmi_qp *dw_hdmi_qp_bind(struct platform_device *pdev,
+@@ -1306,6 +1454,8 @@ struct dw_hdmi_qp *dw_hdmi_qp_bind(struct platform_device *pdev,
  	if (IS_ERR(hdmi))
  		return ERR_CAST(hdmi);
  

@@ -1,7 +1,7 @@
-From 82c22b1a37a66b37f7ccac208b70666585345043 Mon Sep 17 00:00:00 2001
+From 828f451bf9ad41c2bd932edee66cdb2d75b385e2 Mon Sep 17 00:00:00 2001
 From: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
 Date: Wed, 4 Dec 2024 13:26:13 +0200
-Subject: [PATCH 068/159] [WIP-YUV420] drm/rockchip: vop2: Add YUV420 output
+Subject: [PATCH 053/134] [WIP-YUV420] drm/rockchip: vop2: Add YUV420 output
  format support
 
 TODO: proper colorspace conversion handling
@@ -27,10 +27,10 @@ index 2e86ad00979c4..084a383da304a 100644
   * Rockchip drm private structure.
   *
 diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c b/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
-index 7173f1729a152..033bff7a3a8dc 100644
+index b9a8f2b6ac617..80e7f0f2d98f5 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
 +++ b/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
-@@ -657,6 +657,39 @@ static void vop2_setup_scale(struct vop2 *vop2, const struct vop2_win *win,
+@@ -645,6 +645,39 @@ static void vop2_setup_scale(struct vop2 *vop2, const struct vop2_win *win,
  	}
  }
  
@@ -70,7 +70,7 @@ index 7173f1729a152..033bff7a3a8dc 100644
  static int vop2_convert_csc_mode(int csc_mode)
  {
  	switch (csc_mode) {
-@@ -1555,6 +1588,7 @@ static void vop2_post_config(struct drm_crtc *crtc)
+@@ -1553,6 +1586,7 @@ static void vop2_post_config(struct drm_crtc *crtc)
  	struct vop2_video_port *vp = to_vop2_video_port(crtc);
  	struct vop2 *vop2 = vp->vop2;
  	struct drm_display_mode *mode = &crtc->state->adjusted_mode;
@@ -78,7 +78,7 @@ index 7173f1729a152..033bff7a3a8dc 100644
  	u64 bgcolor = crtc->state->background_color;
  	u16 vtotal = mode->crtc_vtotal;
  	u16 hdisplay = mode->crtc_hdisplay;
-@@ -1606,6 +1640,15 @@ static void vop2_post_config(struct drm_crtc *crtc)
+@@ -1604,6 +1638,15 @@ static void vop2_post_config(struct drm_crtc *crtc)
  	val |= FIELD_PREP(RK3568_VP_DSP_BG__DSP_BG_GREEN, DRM_ARGB64_GETG_BPC(bgcolor, 10));
  	val |= FIELD_PREP(RK3568_VP_DSP_BG__DSP_BG_BLUE, DRM_ARGB64_GETB_BPC(bgcolor, 10));
  	vop2_vp_write(vp, RK3568_VP_DSP_BG, val);

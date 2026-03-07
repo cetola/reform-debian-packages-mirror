@@ -1,7 +1,7 @@
-From c71442a18d62a8dbdb3500f96bb93f941463032f Mon Sep 17 00:00:00 2001
+From fb69915026534f8fd6fe5535eee53b9939d2d007 Mon Sep 17 00:00:00 2001
 From: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
 Date: Mon, 1 Dec 2025 21:37:56 +0200
-Subject: [PATCH 133/159] drm/rockchip: dw_hdmi_qp: Do not send HPD events for
+Subject: [PATCH 089/134] drm/rockchip: dw_hdmi_qp: Do not send HPD events for
  all connectors
 
 In order to optimize the HPD event handling and run the detect cycle on
@@ -20,7 +20,7 @@ Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
  1 file changed, 20 insertions(+), 24 deletions(-)
 
 diff --git a/drivers/gpu/drm/rockchip/dw_hdmi_qp-rockchip.c b/drivers/gpu/drm/rockchip/dw_hdmi_qp-rockchip.c
-index 8604342f99432..413d4514448a8 100644
+index 1a09bcc96c3ec..65dfaee151789 100644
 --- a/drivers/gpu/drm/rockchip/dw_hdmi_qp-rockchip.c
 +++ b/drivers/gpu/drm/rockchip/dw_hdmi_qp-rockchip.c
 @@ -92,6 +92,7 @@ struct rockchip_hdmi_qp {
@@ -49,7 +49,7 @@ index 8604342f99432..413d4514448a8 100644
  }
  
  static irqreturn_t dw_hdmi_qp_rk3576_hardirq(int irq, void *dev_id)
-@@ -475,13 +472,12 @@ static int dw_hdmi_qp_rockchip_bind(struct device *dev, struct device *master,
+@@ -466,13 +463,12 @@ static int dw_hdmi_qp_rockchip_bind(struct device *dev, struct device *master,
  	struct dw_hdmi_qp_plat_data plat_data = {};
  	const struct rockchip_hdmi_qp_cfg *cfg;
  	struct drm_device *drm = data;
@@ -64,7 +64,7 @@ index 8604342f99432..413d4514448a8 100644
  
  	if (!pdev->dev.of_node)
  		return -ENODEV;
-@@ -582,17 +578,9 @@ static int dw_hdmi_qp_rockchip_bind(struct device *dev, struct device *master,
+@@ -573,17 +569,9 @@ static int dw_hdmi_qp_rockchip_bind(struct device *dev, struct device *master,
  	if (plat_data.cec_irq < 0)
  		return plat_data.cec_irq;
  
@@ -85,7 +85,7 @@ index 8604342f99432..413d4514448a8 100644
  
  	drm_encoder_helper_add(encoder, &dw_hdmi_qp_rockchip_encoder_helper_funcs);
  	drm_simple_encoder_init(drm, encoder, DRM_MODE_ENCODER_TMDS);
-@@ -606,12 +594,20 @@ static int dw_hdmi_qp_rockchip_bind(struct device *dev, struct device *master,
+@@ -597,12 +585,20 @@ static int dw_hdmi_qp_rockchip_bind(struct device *dev, struct device *master,
  				     "Failed to bind dw-hdmi-qp");
  	}
  

@@ -1,7 +1,7 @@
-From c2cbd5c19750f4b3449b8aeb1dd895dfe1f6d53c Mon Sep 17 00:00:00 2001
+From 2cd50aab58cb71b28b4410a4f8ed83516e7b3205 Mon Sep 17 00:00:00 2001
 From: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
 Date: Fri, 7 Nov 2025 10:13:18 +0530
-Subject: [PATCH 076/159] PCI: qcom: Check for the presence of a device instead
+Subject: [PATCH 061/134] PCI: qcom: Check for the presence of a device instead
  of Link up during suspend
 
 The suspend handler checks for the PCIe Link up to decide when to turn off
@@ -20,10 +20,10 @@ Signed-off-by: Sebastian Reichel <sre@kernel.org>
  1 file changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/pci/controller/dwc/pcie-qcom.c b/drivers/pci/controller/dwc/pcie-qcom.c
-index 5a318487b2b3f..4b6f0223d6123 100644
+index 67a16af69ddc7..5108c3c9b141d 100644
 --- a/drivers/pci/controller/dwc/pcie-qcom.c
 +++ b/drivers/pci/controller/dwc/pcie-qcom.c
-@@ -2012,6 +2012,7 @@ static int qcom_pcie_probe(struct platform_device *pdev)
+@@ -2028,6 +2028,7 @@ static int qcom_pcie_probe(struct platform_device *pdev)
  static int qcom_pcie_suspend_noirq(struct device *dev)
  {
  	struct qcom_pcie *pcie;
@@ -31,7 +31,7 @@ index 5a318487b2b3f..4b6f0223d6123 100644
  	int ret = 0;
  
  	pcie = dev_get_drvdata(dev);
-@@ -2047,8 +2048,9 @@ static int qcom_pcie_suspend_noirq(struct device *dev)
+@@ -2063,8 +2064,9 @@ static int qcom_pcie_suspend_noirq(struct device *dev)
  	 * powerdown state. This will affect the lifetime of the storage devices
  	 * like NVMe.
  	 */

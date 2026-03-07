@@ -1,7 +1,7 @@
-From 10f75f29081df2ccb8196457f80ee1272d9f364c Mon Sep 17 00:00:00 2001
+From 242a78b3e7fa58a5709042df82bdc66e494dba96 Mon Sep 17 00:00:00 2001
 From: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
 Date: Fri, 7 Nov 2025 10:13:17 +0530
-Subject: [PATCH 075/159] PCI: host-common: Add an API to check for any device
+Subject: [PATCH 060/134] PCI: host-common: Add an API to check for any device
  under the Root Ports
 
 Some controller drivers need to check if there is any device available
@@ -21,7 +21,7 @@ Signed-off-by: Sebastian Reichel <sre@kernel.org>
  2 files changed, 23 insertions(+)
 
 diff --git a/drivers/pci/controller/pci-host-common.c b/drivers/pci/controller/pci-host-common.c
-index c473e7c03baca..a886222032275 100644
+index d6258c1cffe5e..bd099bcab78b6 100644
 --- a/drivers/pci/controller/pci-host-common.c
 +++ b/drivers/pci/controller/pci-host-common.c
 @@ -17,6 +17,27 @@

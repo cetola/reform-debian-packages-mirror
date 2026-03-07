@@ -1,18 +1,18 @@
-From f6ec59af0cd84868bd0ec3661940a7413c9e8a76 Mon Sep 17 00:00:00 2001
+From 2cca63671cf652a7868a332486c0d6b5e95d172d Mon Sep 17 00:00:00 2001
 From: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
-Date: Fri, 19 Jan 2024 19:51:32 +0200
-Subject: [PATCH 065/159] [DEBUG] phy: rockchip: samsung-hdptx: Add verbose
+Date: Tue, 17 Feb 2026 20:36:26 +0200
+Subject: [PATCH 132/134] [DEBUG] phy: rockchip: samsung-hdptx: Add verbose
  logging
 
 ---
- .../phy/rockchip/phy-rockchip-samsung-hdptx.c | 23 +++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ .../phy/rockchip/phy-rockchip-samsung-hdptx.c | 27 +++++++++++++++++--
+ 1 file changed, 25 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/phy/rockchip/phy-rockchip-samsung-hdptx.c b/drivers/phy/rockchip/phy-rockchip-samsung-hdptx.c
-index a474400f4aa79..fe296f358e89c 100644
+index 3bde7fbb34b1c..0684e1a0d1a17 100644
 --- a/drivers/phy/rockchip/phy-rockchip-samsung-hdptx.c
 +++ b/drivers/phy/rockchip/phy-rockchip-samsung-hdptx.c
-@@ -1070,6 +1070,8 @@ static void rk_hdptx_phy_disable(struct rk_hdptx_phy *hdptx)
+@@ -1028,6 +1028,8 @@ static void rk_hdptx_phy_disable(struct rk_hdptx_phy *hdptx)
  {
  	u32 val;
  
@@ -21,7 +21,7 @@ index a474400f4aa79..fe296f358e89c 100644
  	reset_control_assert(hdptx->rsts[RST_APB].rstc);
  	usleep_range(20, 30);
  	reset_control_deassert(hdptx->rsts[RST_APB].rstc);
-@@ -1769,6 +1771,8 @@ static int rk_hdptx_phy_power_off(struct phy *phy)
+@@ -1717,6 +1719,8 @@ static int rk_hdptx_phy_power_off(struct phy *phy)
  {
  	struct rk_hdptx_phy *hdptx = phy_get_drvdata(phy);
  
@@ -30,7 +30,7 @@ index a474400f4aa79..fe296f358e89c 100644
  	return rk_hdptx_phy_consumer_put(hdptx, false);
  }
  
-@@ -2201,6 +2205,8 @@ static int rk_hdptx_phy_clk_prepare(struct clk_hw *hw)
+@@ -2149,6 +2153,8 @@ static int rk_hdptx_phy_clk_prepare(struct clk_hw *hw)
  {
  	struct rk_hdptx_phy *hdptx = to_rk_hdptx_phy(hw);
  
@@ -39,7 +39,7 @@ index a474400f4aa79..fe296f358e89c 100644
  	return rk_hdptx_phy_consumer_get(hdptx);
  }
  
-@@ -2208,6 +2214,8 @@ static void rk_hdptx_phy_clk_unprepare(struct clk_hw *hw)
+@@ -2156,6 +2162,8 @@ static void rk_hdptx_phy_clk_unprepare(struct clk_hw *hw)
  {
  	struct rk_hdptx_phy *hdptx = to_rk_hdptx_phy(hw);
  
@@ -48,46 +48,31 @@ index a474400f4aa79..fe296f358e89c 100644
  	rk_hdptx_phy_consumer_put(hdptx, true);
  }
  
-@@ -2347,6 +2355,8 @@ static unsigned long rk_hdptx_phy_clk_recalc_rate(struct clk_hw *hw,
+@@ -2287,10 +2295,13 @@ static unsigned long rk_hdptx_phy_clk_recalc_rate(struct clk_hw *hw,
+ 	int ret;
+ 
+ 	ret = regmap_read(hdptx->grf, GRF_HDPTX_CON0, &status);
+-	if (ret || !(status & HDPTX_I_PLL_EN))
++	if (ret || !(status & HDPTX_I_PLL_EN)) {
++		dev_dbg(hdptx->dev, "%s ret=%d status=%x\n", __func__, ret, status);
+ 		return 0;
++	}
  
  	rate = rk_hdptx_phy_clk_calc_rate_from_pll_cfg(hdptx);
- 
 +	dev_dbg(hdptx->dev, "%s from_pll=%llu\n", __func__, rate);
-+
+ 
  	if (hdptx->hdmi_cfg.mode == PHY_HDMI_MODE_FRL)
  		return rate;
- 
-@@ -2358,6 +2368,9 @@ static long rk_hdptx_phy_clk_round_rate(struct clk_hw *hw, unsigned long rate,
- {
- 	struct rk_hdptx_phy *hdptx = to_rk_hdptx_phy(hw);
- 
-+	dev_dbg(hdptx->dev, "%s req=%lu par=%lu cfg=%llu\n",
-+		__func__, rate, *parent_rate, hdptx->hdmi_cfg.rate);
-+
- 	if (hdptx->hdmi_cfg.mode == PHY_HDMI_MODE_FRL)
- 		return hdptx->hdmi_cfg.rate;
- 
-@@ -2375,6 +2388,9 @@ static long rk_hdptx_phy_clk_round_rate(struct clk_hw *hw, unsigned long rate,
- 
- 		if (ret)
- 			return ret;
-+
-+		dev_dbg(hdptx->dev, "clk_round_rate updated tmds=%llu\n",
-+			hdptx->hdmi_cfg.rate);
+@@ -2322,6 +2339,8 @@ static int rk_hdptx_phy_clk_set_rate(struct clk_hw *hw, unsigned long rate,
+ 		hdptx->hdmi_cfg.rate = link_rate;
  	}
  
++	dev_dbg(hdptx->dev, "%s req=%lu par=%lu cfg=%llu\n", __func__,
++		rate, parent_rate, hdptx->hdmi_cfg.rate);
  	/*
-@@ -2391,6 +2407,9 @@ static int rk_hdptx_phy_clk_set_rate(struct clk_hw *hw, unsigned long rate,
- 	struct rk_hdptx_phy *hdptx = to_rk_hdptx_phy(hw);
- 	unsigned long long link_rate = rate;
- 
-+	dev_dbg(hdptx->dev, "%s req=%lu par=%lu cfg=%llu\n",
-+		__func__, rate, parent_rate, hdptx->hdmi_cfg.rate);
-+
- 	if (hdptx->hdmi_cfg.mode != PHY_HDMI_MODE_FRL)
- 		link_rate = DIV_ROUND_CLOSEST_ULL(rate * hdptx->hdmi_cfg.bpc, 8);
- 
-@@ -2452,6 +2471,8 @@ static int rk_hdptx_phy_runtime_suspend(struct device *dev)
+ 	 * The link rate would be normally programmed in HW during
+ 	 * phy_ops.power_on() or clk_ops.prepare() callbacks, but it might
+@@ -2373,6 +2392,8 @@ static int rk_hdptx_phy_runtime_suspend(struct device *dev)
  {
  	struct rk_hdptx_phy *hdptx = dev_get_drvdata(dev);
  
@@ -96,7 +81,7 @@ index a474400f4aa79..fe296f358e89c 100644
  	clk_bulk_disable_unprepare(hdptx->nr_clks, hdptx->clks);
  
  	return 0;
-@@ -2462,6 +2483,8 @@ static int rk_hdptx_phy_runtime_resume(struct device *dev)
+@@ -2383,6 +2404,8 @@ static int rk_hdptx_phy_runtime_resume(struct device *dev)
  	struct rk_hdptx_phy *hdptx = dev_get_drvdata(dev);
  	int ret;
  

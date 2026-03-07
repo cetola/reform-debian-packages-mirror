@@ -1,7 +1,7 @@
-From a31848db7f3381249c84f1cb861a2e7ab74d1cc3 Mon Sep 17 00:00:00 2001
+From 631d8bc4e34267edb515343c4898b775a363c019 Mon Sep 17 00:00:00 2001
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 Date: Mon, 22 Dec 2025 20:25:56 +0100
-Subject: [PATCH 029/159] Revert "PCI: dw-rockchip: Simplify regulator setup
+Subject: [PATCH 028/134] Revert "PCI: dw-rockchip: Simplify regulator setup
  with devm_regulator_get_enable_optional()"
 
 This reverts commit c930b10f17c03858cfe19b9873ba5240128b4d1b. We need
@@ -13,10 +13,10 @@ Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
  1 file changed, 17 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/pci/controller/dwc/pcie-dw-rockchip.c b/drivers/pci/controller/dwc/pcie-dw-rockchip.c
-index 2db1d0a7b3b76..f86f414fa41a4 100644
+index 5b17da63151d5..dd482e74f8910 100644
 --- a/drivers/pci/controller/dwc/pcie-dw-rockchip.c
 +++ b/drivers/pci/controller/dwc/pcie-dw-rockchip.c
-@@ -88,6 +88,7 @@ struct rockchip_pcie {
+@@ -95,6 +95,7 @@ struct rockchip_pcie {
  	unsigned int clk_cnt;
  	struct reset_control *rst;
  	struct gpio_desc *rst_gpio;
@@ -24,7 +24,7 @@ index 2db1d0a7b3b76..f86f414fa41a4 100644
  	struct irq_domain *irq_domain;
  	const struct rockchip_pcie_of_data *data;
  	bool supports_clkreq;
-@@ -700,15 +701,22 @@ static int rockchip_pcie_probe(struct platform_device *pdev)
+@@ -666,15 +667,22 @@ static int rockchip_pcie_probe(struct platform_device *pdev)
  		return ret;
  
  	/* DON'T MOVE ME: must be enable before PHY init */
@@ -53,7 +53,7 @@ index 2db1d0a7b3b76..f86f414fa41a4 100644
  
  	ret = reset_control_deassert(rockchip->rst);
  	if (ret)
-@@ -741,6 +749,9 @@ static int rockchip_pcie_probe(struct platform_device *pdev)
+@@ -707,6 +715,9 @@ static int rockchip_pcie_probe(struct platform_device *pdev)
  	clk_bulk_disable_unprepare(rockchip->clk_cnt, rockchip->clks);
  deinit_phy:
  	rockchip_pcie_phy_deinit(rockchip);

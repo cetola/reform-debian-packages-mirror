@@ -1,7 +1,7 @@
-From 87cf9f00eca4d65d4fa0916d97c4ac0abbefbf3b Mon Sep 17 00:00:00 2001
+From d76fa7c0d7eff1fd4c36cbd2ed9c0cabf32594e9 Mon Sep 17 00:00:00 2001
 From: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
 Date: Fri, 10 Jan 2025 22:48:01 +0200
-Subject: [PATCH 130/159] drm/bridge: Add ->detect_ctx hook and
+Subject: [PATCH 086/134] drm/bridge: Add ->detect_ctx hook and
  drm_bridge_detect_ctx()
 
 Add an atomic variant of the ->detect callback and a new helper to call
@@ -20,10 +20,10 @@ Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
  2 files changed, 88 insertions(+)
 
 diff --git a/drivers/gpu/drm/drm_bridge.c b/drivers/gpu/drm/drm_bridge.c
-index 8f355df883d8a..1fe03bcf2fc1a 100644
+index d6f11c68bb6a4..baecf04757c0c 100644
 --- a/drivers/gpu/drm/drm_bridge.c
 +++ b/drivers/gpu/drm/drm_bridge.c
-@@ -1280,6 +1280,64 @@ drm_bridge_detect(struct drm_bridge *bridge, struct drm_connector *connector)
+@@ -1344,6 +1344,64 @@ drm_bridge_detect(struct drm_bridge *bridge, struct drm_connector *connector)
  }
  EXPORT_SYMBOL_GPL(drm_bridge_detect);
  
@@ -89,7 +89,7 @@ index 8f355df883d8a..1fe03bcf2fc1a 100644
   * drm_bridge_get_modes - fill all modes currently valid for the sink into the
   * @connector
 diff --git a/include/drm/drm_bridge.h b/include/drm/drm_bridge.h
-index dbafe136833f8..095e672eb5b5f 100644
+index 4f19f7064ee31..31ef1496fe639 100644
 --- a/include/drm/drm_bridge.h
 +++ b/include/drm/drm_bridge.h
 @@ -547,6 +547,33 @@ struct drm_bridge_funcs {
@@ -126,7 +126,7 @@ index dbafe136833f8..095e672eb5b5f 100644
  	/**
  	 * @get_modes:
  	 *
-@@ -1410,6 +1437,9 @@ drm_atomic_helper_bridge_propagate_bus_fmt(struct drm_bridge *bridge,
+@@ -1542,6 +1569,9 @@ drm_atomic_helper_bridge_propagate_bus_fmt(struct drm_bridge *bridge,
  
  enum drm_connector_status
  drm_bridge_detect(struct drm_bridge *bridge, struct drm_connector *connector);

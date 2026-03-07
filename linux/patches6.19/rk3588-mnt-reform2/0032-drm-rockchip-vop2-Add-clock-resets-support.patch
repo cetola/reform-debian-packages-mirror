@@ -1,7 +1,7 @@
-From 4224e0f832b58297f570ccf09e7104bbbdeeb3c4 Mon Sep 17 00:00:00 2001
+From c49fefb6fdfa1f0fe06d0b4491cef1f8ccff7974 Mon Sep 17 00:00:00 2001
 From: Detlev Casanova <detlev.casanova@collabora.com>
 Date: Fri, 15 Nov 2024 11:20:41 -0500
-Subject: [PATCH 015/159] drm/rockchip: vop2: Add clock resets support
+Subject: [PATCH 016/134] drm/rockchip: vop2: Add clock resets support
 
 At the end of initialization, each VP clock needs to be reset before
 they can be used.
@@ -24,7 +24,7 @@ Signed-off-by: Detlev Casanova <detlev.casanova@collabora.com>
  2 files changed, 29 insertions(+)
 
 diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c b/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
-index 498df0ce4680c..df80bc34ecf74 100644
+index a195f5c819a2d..69798c2a18a77 100644
 --- a/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
 +++ b/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
 @@ -17,6 +17,7 @@
@@ -35,7 +35,7 @@ index 498df0ce4680c..df80bc34ecf74 100644
  #include <linux/swab.h>
  
  #include <drm/drm.h>
-@@ -1607,6 +1608,26 @@ static int us_to_vertical_line(struct drm_display_mode *mode, int us)
+@@ -1605,6 +1606,26 @@ static int us_to_vertical_line(struct drm_display_mode *mode, int us)
  	return us * mode->clock / mode->htotal / 1000;
  }
  
@@ -62,7 +62,7 @@ index 498df0ce4680c..df80bc34ecf74 100644
  static void vop2_crtc_atomic_enable(struct drm_crtc *crtc,
  				    struct drm_atomic_state *state)
  {
-@@ -1791,6 +1812,8 @@ static void vop2_crtc_atomic_enable(struct drm_crtc *crtc,
+@@ -1789,6 +1810,8 @@ static void vop2_crtc_atomic_enable(struct drm_crtc *crtc,
  
  	vop2_vp_write(vp, RK3568_VP_DSP_CTRL, dsp_ctrl);
  
@@ -71,7 +71,7 @@ index 498df0ce4680c..df80bc34ecf74 100644
  	vop2_crtc_atomic_try_set_gamma(vop2, vp, crtc, crtc_state);
  
  	drm_crtc_vblank_on(crtc);
-@@ -2365,6 +2388,11 @@ static int vop2_create_crtcs(struct vop2 *vop2)
+@@ -2363,6 +2386,11 @@ static int vop2_create_crtcs(struct vop2 *vop2)
  		vp->id = vp_data->id;
  		vp->data = vp_data;
  

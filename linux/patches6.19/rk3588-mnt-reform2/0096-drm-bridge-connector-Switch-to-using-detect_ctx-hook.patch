@@ -1,7 +1,7 @@
-From af2b8f611186c0b53b67dbb13f9ff6825b40b2de Mon Sep 17 00:00:00 2001
+From 1b2f3c8e6f26f275252c333e6ad3d3cf367d1496 Mon Sep 17 00:00:00 2001
 From: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
 Date: Fri, 10 Jan 2025 23:04:23 +0200
-Subject: [PATCH 131/159] drm/bridge-connector: Switch to using ->detect_ctx
+Subject: [PATCH 087/134] drm/bridge-connector: Switch to using ->detect_ctx
  hook
 
 In preparation to allow bridge drivers relying on the HDMI connector
@@ -21,10 +21,10 @@ Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
  1 file changed, 38 insertions(+), 35 deletions(-)
 
 diff --git a/drivers/gpu/drm/display/drm_bridge_connector.c b/drivers/gpu/drm/display/drm_bridge_connector.c
-index a2d30cf9e06df..0142c612545f1 100644
+index 258132c6b8b56..3e7cf0eeb2cd2 100644
 --- a/drivers/gpu/drm/display/drm_bridge_connector.c
 +++ b/drivers/gpu/drm/display/drm_bridge_connector.c
-@@ -200,39 +200,6 @@ static void drm_bridge_connector_disable_hpd(struct drm_connector *connector)
+@@ -208,39 +208,6 @@ static void drm_bridge_connector_disable_hpd(struct drm_connector *connector)
   * Bridge Connector Functions
   */
  
@@ -64,7 +64,7 @@ index a2d30cf9e06df..0142c612545f1 100644
  static void drm_bridge_connector_force(struct drm_connector *connector)
  {
  	struct drm_bridge_connector *bridge_connector =
-@@ -270,7 +237,6 @@ static void drm_bridge_connector_reset(struct drm_connector *connector)
+@@ -278,7 +245,6 @@ static void drm_bridge_connector_reset(struct drm_connector *connector)
  
  static const struct drm_connector_funcs drm_bridge_connector_funcs = {
  	.reset = drm_bridge_connector_reset,
@@ -72,7 +72,7 @@ index a2d30cf9e06df..0142c612545f1 100644
  	.force = drm_bridge_connector_force,
  	.fill_modes = drm_helper_probe_single_connector_modes,
  	.atomic_duplicate_state = drm_atomic_helper_connector_duplicate_state,
-@@ -283,6 +249,42 @@ static const struct drm_connector_funcs drm_bridge_connector_funcs = {
+@@ -291,6 +257,42 @@ static const struct drm_connector_funcs drm_bridge_connector_funcs = {
   * Bridge Connector Helper Functions
   */
  
@@ -115,7 +115,7 @@ index a2d30cf9e06df..0142c612545f1 100644
  static int drm_bridge_connector_get_modes_edid(struct drm_connector *connector,
  					       struct drm_bridge *bridge)
  {
-@@ -290,7 +292,7 @@ static int drm_bridge_connector_get_modes_edid(struct drm_connector *connector,
+@@ -298,7 +300,7 @@ static int drm_bridge_connector_get_modes_edid(struct drm_connector *connector,
  	const struct drm_edid *drm_edid;
  	int n;
  
@@ -124,7 +124,7 @@ index a2d30cf9e06df..0142c612545f1 100644
  	if (status != connector_status_connected)
  		goto no_edid;
  
-@@ -376,6 +378,7 @@ static int drm_bridge_connector_atomic_check(struct drm_connector *connector,
+@@ -384,6 +386,7 @@ static int drm_bridge_connector_atomic_check(struct drm_connector *connector,
  
  static const struct drm_connector_helper_funcs drm_bridge_connector_helper_funcs = {
  	.get_modes = drm_bridge_connector_get_modes,

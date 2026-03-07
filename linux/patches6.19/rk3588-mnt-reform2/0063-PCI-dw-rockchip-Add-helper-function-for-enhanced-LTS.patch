@@ -1,7 +1,7 @@
-From 3ad9e6f8b84c72a29c5dfe99ddf2872b90555665 Mon Sep 17 00:00:00 2001
+From 199f743a70a50328e5f24b56fd3a710c873623fe Mon Sep 17 00:00:00 2001
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
 Date: Mon, 20 Oct 2025 20:21:02 +0200
-Subject: [PATCH 031/159] PCI: dw-rockchip: Add helper function for enhanced
+Subject: [PATCH 030/134] PCI: dw-rockchip: Add helper function for enhanced
  LTSSM control mode
 
 Remove code duplocation and improve readability by introducing a new
@@ -9,14 +9,14 @@ function to setup the enhanced LTSSM mode.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 ---
- drivers/pci/controller/dwc/pcie-dw-rockchip.c | 26 +++++++++----------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ drivers/pci/controller/dwc/pcie-dw-rockchip.c | 24 ++++++++++---------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/pci/controller/dwc/pcie-dw-rockchip.c b/drivers/pci/controller/dwc/pcie-dw-rockchip.c
-index 7900591ef61b2..1e047d56d0298 100644
+index 0228f7b6f100b..7040d014e978c 100644
 --- a/drivers/pci/controller/dwc/pcie-dw-rockchip.c
 +++ b/drivers/pci/controller/dwc/pcie-dw-rockchip.c
-@@ -542,18 +542,25 @@ static irqreturn_t rockchip_pcie_ep_sys_irq_thread(int irq, void *arg)
+@@ -543,17 +543,25 @@ static irqreturn_t rockchip_pcie_ep_sys_irq_thread(int irq, void *arg)
  	return IRQ_HANDLED;
  }
  
@@ -42,12 +42,11 @@ index 7900591ef61b2..1e047d56d0298 100644
 -	/* LTSSM enable control mode */
 -	val = FIELD_PREP_WM16(PCIE_LTSSM_ENABLE_ENHANCE, 1);
 -	rockchip_pcie_writel_apb(rockchip, val, PCIE_CLIENT_HOT_RESET_CTRL);
--
 +	rockchip_pcie_enable_enhanced_ltssm_control_mode(rockchip, 0);
+ 
  	rockchip_pcie_writel_apb(rockchip,
  				 PCIE_CLIENT_SET_MODE(PCIE_CLIENT_MODE_RC),
- 				 PCIE_CLIENT_GENERAL_CON);
-@@ -586,14 +593,7 @@ static int rockchip_pcie_configure_ep(struct platform_device *pdev,
+@@ -587,13 +595,7 @@ static int rockchip_pcie_configure_ep(struct platform_device *pdev,
  		return ret;
  	}
  
@@ -58,11 +57,10 @@ index 7900591ef61b2..1e047d56d0298 100644
 -	val = FIELD_PREP_WM16(PCIE_LTSSM_ENABLE_ENHANCE, 1) |
 -	      FIELD_PREP_WM16(PCIE_LTSSM_APP_DLY2_EN, 1);
 -	rockchip_pcie_writel_apb(rockchip, val, PCIE_CLIENT_HOT_RESET_CTRL);
--
 +	rockchip_pcie_enable_enhanced_ltssm_control_mode(rockchip, PCIE_LTSSM_APP_DLY2_EN);
+ 
  	rockchip_pcie_writel_apb(rockchip,
  				 PCIE_CLIENT_SET_MODE(PCIE_CLIENT_MODE_EP),
- 				 PCIE_CLIENT_GENERAL_CON);
 -- 
 2.47.3
 
