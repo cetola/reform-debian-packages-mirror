@@ -42,7 +42,12 @@ else
 	mkdir -p "$WORKDIR"
 	# we cannot use env --chdir=... because chdist_base is a shell function
 	cd "$WORKDIR"
-	chdist_base apt-get source --only-source --download-only -t "$BASESUITE" linux
+	ret=0
+	chdist_base apt-get source --only-source --download-only -t "$BASESUITE" linux || ret=$?
+	if [ "$ret" != 0 ] && [ "$BASESUITE" = "experimental" ]; then
+		# fall back to unstable if linux cannot be found in experimental
+		chdist_base apt-get source --only-source --download-only -t unstable linux
+	fi
 	cd -
 	dpkg-source -x "$WORKDIR"/linux_*.dsc linux
 	rm -r "$WORKDIR"
