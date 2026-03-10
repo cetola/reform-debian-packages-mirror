@@ -1,0 +1,108 @@
+#!/bin/sh
+# https://mastodon.social/@mntmn/116196287253171739
+
+set -eu
+
+patch -p1 <<'EOF'
+--- a/debian/control	2026-03-15 14:20:33.793556463 +0100
++++ b/debian/control	2026-03-15 14:21:03.558640921 +0100
+@@ -3,6 +3,7 @@
+ Maintainer: Debian Multimedia Maintainers <debian-multimedia@lists.debian.org>
+ Uploaders: Matteo F. Vescovi <mfv@debian.org>
+ Build-Depends: architecture-is-64-bit,
++               wayland-protocols,
+                cmake,
+                debhelper-compat (= 13),
+                dh-python,
+EOF
+
+patch -p1 <<'EOF'
+--- a/debian/rules	2026-03-04 13:46:30.000000000 +0100
++++ b/debian/rules	2026-03-15 14:18:37.387412773 +0100
+@@ -30,6 +30,9 @@
+ 
+ override_dh_auto_configure:
+ 	dh_auto_configure -- \
++		-DWITH_GHOST_WAYLAND=ON \
++		-DWITH_GHOST_WAYLAND_DYNLOAD=ON \
++		-DWITH_GHOST_WAYLAND_LIBDECOR=ON \
+ 		-DCMAKE_SKIP_RPATH=ON \
+ 		-DPYTHON_VERSION=$(PY3VERS) \
+ 		-DWITH_CODEC_FFMPEG=ON \
+EOF
+
+echo rk3588.patch >>debian/patches/series
+cat <<'EOF' >debian/patches/rk3588.patch
+From: Lucie Lukas Hartmann <lukas@mntre.com>
+Subject: blender 5.0 patch for panvk on rk3588
+
+diff --git a/intern/ghost/intern/GHOST_ContextVK.cc b/intern/ghost/intern/GHOST_ContextVK.cc
+index f4724a88e5f..409e7813361 100644
+--- a/intern/ghost/intern/GHOST_ContextVK.cc
++++ b/intern/ghost/intern/GHOST_ContextVK.cc
+@@ -439,7 +439,7 @@ struct GHOST_InstanceVK {
+           !device_vk.features.features.dualSrcBlend || !device_vk.features.features.logicOp ||
+           !device_vk.features.features.imageCubeArray)
+       {
+-        continue;
++        //continue;
+       }
+ 
+       int device_score = 0;
+@@ -508,13 +508,13 @@ struct GHOST_InstanceVK {
+     queue_create_infos.push_back(graphic_queue_create_info);
+ 
+     VkPhysicalDeviceFeatures device_features = {};
+-    device_features.geometryShader = VK_TRUE;
++    //device_features.geometryShader = VK_TRUE;
+     device_features.logicOp = VK_TRUE;
+     device_features.dualSrcBlend = VK_TRUE;
+     device_features.imageCubeArray = VK_TRUE;
+     device_features.multiDrawIndirect = VK_TRUE;
+-    device_features.multiViewport = VK_TRUE;
+-    device_features.shaderClipDistance = VK_TRUE;
++    //device_features.multiViewport = VK_TRUE;
++    //device_features.shaderClipDistance = VK_TRUE;
+     device_features.drawIndirectFirstInstance = VK_TRUE;
+     device_features.fragmentStoresAndAtomics = VK_TRUE;
+     device_features.samplerAnisotropy = device.features.features.samplerAnisotropy;
+diff --git a/source/blender/draw/engines/eevee/eevee_pipeline.cc b/source/blender/draw/engines/eevee/eevee_pipeline.cc
+index e547e559f00..537d1cee9f6 100644
+--- a/source/blender/draw/engines/eevee/eevee_pipeline.cc
++++ b/source/blender/draw/engines/eevee/eevee_pipeline.cc
+@@ -273,6 +273,8 @@ PassMain::Sub *ShadowPipeline::surface_material_add(::Material *material, GPUMat
+ 
+ void ShadowPipeline::render(View &view)
+ {
++  return;
++  // FIXME disabled ShadowPipeline
+   inst_.manager->submit(render_ps_, view);
+ }
+ 
+diff --git a/source/blender/gpu/vulkan/vk_backend.cc b/source/blender/gpu/vulkan/vk_backend.cc
+index 6c9d490d208..855375b8b85 100644
+--- a/source/blender/gpu/vulkan/vk_backend.cc
++++ b/source/blender/gpu/vulkan/vk_backend.cc
+@@ -148,7 +148,7 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
+ 
+ #ifndef __APPLE__
+   if (features.features.geometryShader == VK_FALSE) {
+-    missing_capabilities.append("geometry shaders");
++    //missing_capabilities.append("geometry shaders");
+   }
+   if (features.features.logicOp == VK_FALSE) {
+     missing_capabilities.append("logical operations");
+@@ -164,10 +164,10 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
+     missing_capabilities.append("multi draw indirect");
+   }
+   if (features.features.multiViewport == VK_FALSE) {
+-    missing_capabilities.append("multi viewport");
++    //missing_capabilities.append("multi viewport");
+   }
+   if (features.features.shaderClipDistance == VK_FALSE) {
+-    missing_capabilities.append("shader clip distance");
++    //missing_capabilities.append("shader clip distance");
+   }
+   if (features.features.drawIndirectFirstInstance == VK_FALSE) {
+     missing_capabilities.append("draw indirect first instance");
+EOF
