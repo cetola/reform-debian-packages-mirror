@@ -651,6 +651,7 @@ if dpkg --compare-versions "$KVER" ge "6.17"; then
 	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/qcom/qcs8550-mnt-reform2.dts
 	cp qcs6490-mnt-reform2.dts linux/arch/arm64/boot/dts/qcom/qcs6490-mnt-reform2.dts
 	cp qcs8550-mnt-reform2.dts linux/arch/arm64/boot/dts/qcom/qcs8550-mnt-reform2.dts
+	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/qcom/Makefile
 	sed -i '/qcs6490-rb3gen2-vision-mezzanine.dtb/a dtb-$(CONFIG_ARCH_QCOM) += qcs6490-mnt-reform2.dtb' linux/arch/arm64/boot/dts/qcom/Makefile
 	sed -i '/qcs8550-aim300-aiot.dtb/a dtb-$(CONFIG_ARCH_QCOM) += qcs8550-mnt-reform2.dtb' linux/arch/arm64/boot/dts/qcom/Makefile
 fi
