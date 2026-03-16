@@ -595,10 +595,10 @@
 
 &gpu {
 	status = "okay";
+};
 
-	zap-shader {
-		firmware-name = "qcom/qcs8550/a740_zap.mbn";
-	};
+&gpu_zap_shader {
+	firmware-name = "qcom/qcs8550/a740_zap.mbn";
 };
 
 &mdss {
@@ -927,11 +927,7 @@
 
 &usb_1 {
 	status = "okay";
-};
-
-&usb_1_dwc3 {
 	dr_mode = "host";
-	status = "okay";
 };
 
 /*&usb_1_dwc3_hs {
