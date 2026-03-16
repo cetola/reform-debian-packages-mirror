@@ -1,0 +1,116 @@
+// SPDX-License-Identifier: BSD-3-Clause
+/*
+ * Copyright (c) 2026, Linaro Ltd.
+ * Copyright (c) 2026, MNT Research GmbH
+ */
+
+#include <dt-bindings/gpio/gpio.h>
+
+#include "qcs6490-mnt-quasar.dtsi"
+
+/*
+# USB layout
+
+## usb_1
+
+HS -> syscon jumper
+SS0 -> TUSB8041 (SS pins)
+SS1 -> X (DP connector on Quasar)
+
+## usb_2
+
+HS -> TUSB8041 (HS pins)
+No SS phy
+
+*/
+
+/ {
+	model = "MNT Pocket Reform with QCS6490 Quasar Module";
+	compatible = "mntre,pocket-reform", "mntre,quasar-qcs6490", "qcom,qcm6490";
+	chassis-type = "laptop";
+};
+
+/*
+ * The HS pins on the mainboard connector come from a hub
+ * and connect to the HS pins on the TI TUSB8041
+ */
+&hub_2_0_som {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	/* TI TUSB8041 high-speed */
+	hub_2_0: hub@1 {
+		compatible = "usb451,8142";
+		reg = <1>;
+		peer-hub = <&hub_3_0>;
+
+		// reset-gpios = <&tlmm 0 GPIO_ACTIVE_LOW>;
+	};
+};
+
+&mdss_dsi {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	vdda-supply = <&vreg_l6b_1p2>;
+	status = "okay";
+
+	panel@0 {
+		compatible = "jdi,lt070me05000";
+		reg = <0>;
+
+		/* CHECK: not sure if DSI controller is alive in .prepare on qcom */
+		init-in-enable;
+
+		/* Reset and dcdc_en are wired to syscon */
+		// reset-gpios = <&tlmm 44 GPIO_ACTIVE_LOW>;
+		/* Actually backlight enable */
+		enable-gpios = <&tlmm 94 GPIO_ACTIVE_HIGH>;
+
+		pinctrl-0 = <&mdp_vsync>;
+		pinctrl-names = "default";
+
+		port {
+			panel_in: endpoint {
+				remote-endpoint = <&mdss_dsi0_out>;
+			};
+		};
+	};
+};
+
+&mdss_dsi0_out {
+	data-lanes = <0 1 2 3>;
+	remote-endpoint = <&panel_in>;
+};
+
+&mdss_dsi_phy {
+	vdds-supply = <&vreg_l10c_0p88>;
+	status = "okay";
+};
+
+&tlmm {
+	mdp_vsync: mdp-vsync-state {
+		pins = "gpio80";
+		function = "mdp_vsync";
+		drive-strength = <2>;
+		bias-pull-down;
+	};
+};
+
+&usb_1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	/* TI TUSB8041 super-speed */
+	hub_3_0: hub@1 {
+		compatible = "usb451,8140";
+		reg = <1>;
+		peer-hub = <&hub_2_0>;
+
+		// reset-gpios = <&tlmm 0 GPIO_ACTIVE_LOW>;
+	};
+};
+
+/* FIXME: this port should connect to the hub somehow? */
+// &usb_1_dwc3_hs {
+// 	remote-endpoint = <&usb3_con_hs_in>;
+// };
