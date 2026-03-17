@@ -36,6 +36,17 @@ cat <<'EOF' >debian/patches/rk3588.patch
 From: Lucie Lukas Hartmann <lukas@mntre.com>
 Subject: blender 5.0 patch for panvk on rk3588
 
+--- a/release/datafiles/userdef/userdef_default.c
++++ b/release/datafiles/userdef/userdef_default.c
+@@ -114,7 +114,7 @@ const UserDef U_default = {
+ #ifdef __APPLE__
+     .gpu_backend = GPU_BACKEND_METAL,
+ #else
+-    .gpu_backend = GPU_BACKEND_OPENGL,
++    .gpu_backend = GPU_BACKEND_VULKAN,
+ #endif
+     .gpu_shader_workers = 0,
+     .shader_compilation_method = USER_SHADER_COMPILE_THREAD,
 diff --git a/intern/ghost/intern/GHOST_ContextVK.cc b/intern/ghost/intern/GHOST_ContextVK.cc
 index f4724a88e5f..409e7813361 100644
 --- a/intern/ghost/intern/GHOST_ContextVK.cc
