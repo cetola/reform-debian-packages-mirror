@@ -1,0 +1,29 @@
+diff --git a/drivers/gpu/drm/rockchip/Kconfig b/drivers/gpu/drm/rockchip/Kconfig
+index b7b025814e72..eaf1a41c77fc 100644
+--- a/drivers/gpu/drm/rockchip/Kconfig
++++ b/drivers/gpu/drm/rockchip/Kconfig
+@@ -42,7 +42,6 @@ config ROCKCHIP_VOP2
+ 
+ config ROCKCHIP_ANALOGIX_DP
+ 	bool "Rockchip specific extensions for Analogix DP driver"
+-	depends on ROCKCHIP_VOP
+ 	select DRM_DISPLAY_HELPER
+ 	select DRM_DISPLAY_DP_HELPER
+ 	help
+diff --git a/drivers/gpu/drm/rockchip/analogix_dp-rockchip.c b/drivers/gpu/drm/rockchip/analogix_dp-rockchip.c
+index d30f0983a53a..9a0556a94363 100644
+--- a/drivers/gpu/drm/rockchip/analogix_dp-rockchip.c
++++ b/drivers/gpu/drm/rockchip/analogix_dp-rockchip.c
+@@ -288,9 +288,9 @@ static void rockchip_dp_drm_encoder_disable(struct drm_encoder *encoder,
+ 	if (!new_crtc_state || !new_crtc_state->self_refresh_active)
+ 		return;
+ 
+-	ret = rockchip_drm_wait_vact_end(crtc, PSR_WAIT_LINE_FLAG_TIMEOUT_MS);
+-	if (ret)
+-		DRM_DEV_ERROR(dp->dev, "line flag irq timed out\n");
++	// ret = rockchip_drm_wait_vact_end(crtc, PSR_WAIT_LINE_FLAG_TIMEOUT_MS);
++	// if (ret)
++	// 	DRM_DEV_ERROR(dp->dev, "line flag irq timed out\n");
+ }
+ 
+ static int

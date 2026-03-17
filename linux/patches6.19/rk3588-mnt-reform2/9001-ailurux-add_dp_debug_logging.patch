@@ -1,0 +1,2201 @@
+diff --git a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
+index efe534977d12..496ac34a5142 100644
+--- a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
++++ b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
+@@ -39,6 +39,7 @@ static const bool verify_fast_training;
+ 
+ static void analogix_dp_init_dp(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	analogix_dp_reset(dp);
+ 
+ 	analogix_dp_swreset(dp);
+@@ -57,6 +58,7 @@ static void analogix_dp_init_dp(struct analogix_dp_device *dp)
+ 
+ static int analogix_dp_detect_hpd(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	int timeout_loop = 0;
+ 
+ 	while (timeout_loop < DP_TIMEOUT_LOOP_COUNT) {
+@@ -96,6 +98,7 @@ static int analogix_dp_detect_hpd(struct analogix_dp_device *dp)
+ 
+ static bool analogix_dp_detect_sink_psr(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	unsigned char psr_version;
+ 	int ret;
+ 
+@@ -111,6 +114,7 @@ static bool analogix_dp_detect_sink_psr(struct analogix_dp_device *dp)
+ 
+ static int analogix_dp_enable_sink_psr(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	unsigned char psr_en;
+ 	int ret;
+ 
+@@ -159,6 +163,7 @@ static int
+ analogix_dp_enable_rx_to_enhanced_mode(struct analogix_dp_device *dp,
+ 				       bool enable)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	u8 data;
+ 	int ret;
+ 
+@@ -180,6 +185,7 @@ analogix_dp_enable_rx_to_enhanced_mode(struct analogix_dp_device *dp,
+ static int analogix_dp_is_enhanced_mode_available(struct analogix_dp_device *dp,
+ 						  u8 *enhanced_mode_support)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	u8 data;
+ 	int ret;
+ 
+@@ -196,6 +202,7 @@ static int analogix_dp_is_enhanced_mode_available(struct analogix_dp_device *dp,
+ 
+ static int analogix_dp_set_enhanced_mode(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	u8 data;
+ 	int ret;
+ 
+@@ -214,6 +221,7 @@ static int analogix_dp_set_enhanced_mode(struct analogix_dp_device *dp)
+ 
+ static int analogix_dp_training_pattern_dis(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	int ret;
+ 
+ 	analogix_dp_set_training_pattern(dp, DP_NONE);
+@@ -226,6 +234,7 @@ static int analogix_dp_training_pattern_dis(struct analogix_dp_device *dp)
+ 
+ static int analogix_dp_link_start(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	u8 buf[4];
+ 	int lane, lane_count, retval;
+ 
+@@ -295,6 +304,7 @@ static int analogix_dp_link_start(struct analogix_dp_device *dp)
+ 
+ static unsigned char analogix_dp_get_lane_status(u8 link_status[2], int lane)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	int shift = (lane & 1) * 4;
+ 	u8 link_value = link_status[lane >> 1];
+ 
+@@ -303,6 +313,7 @@ static unsigned char analogix_dp_get_lane_status(u8 link_status[2], int lane)
+ 
+ static int analogix_dp_clock_recovery_ok(u8 link_status[2], int lane_count)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	int lane;
+ 	u8 lane_status;
+ 
+@@ -317,6 +328,7 @@ static int analogix_dp_clock_recovery_ok(u8 link_status[2], int lane_count)
+ static int analogix_dp_channel_eq_ok(u8 link_status[2], u8 link_align,
+ 				     int lane_count)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	int lane;
+ 	u8 lane_status;
+ 
+@@ -336,6 +348,7 @@ static int analogix_dp_channel_eq_ok(u8 link_status[2], u8 link_align,
+ static unsigned char
+ analogix_dp_get_adjust_request_voltage(u8 adjust_request[2], int lane)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	int shift = (lane & 1) * 4;
+ 	u8 link_value = adjust_request[lane >> 1];
+ 
+@@ -346,6 +359,7 @@ static unsigned char analogix_dp_get_adjust_request_pre_emphasis(
+ 					u8 adjust_request[2],
+ 					int lane)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	int shift = (lane & 1) * 4;
+ 	u8 link_value = adjust_request[lane >> 1];
+ 
+@@ -354,6 +368,7 @@ static unsigned char analogix_dp_get_adjust_request_pre_emphasis(
+ 
+ static void analogix_dp_reduce_link_rate(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	analogix_dp_training_pattern_dis(dp);
+ 	analogix_dp_set_enhanced_mode(dp);
+ 
+@@ -363,6 +378,7 @@ static void analogix_dp_reduce_link_rate(struct analogix_dp_device *dp)
+ static void analogix_dp_get_adjust_training_lane(struct analogix_dp_device *dp,
+ 						 u8 adjust_request[2])
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	int lane, lane_count;
+ 	u8 voltage_swing, pre_emphasis, training_lane;
+ 
+@@ -386,6 +402,7 @@ static void analogix_dp_get_adjust_training_lane(struct analogix_dp_device *dp,
+ 
+ static int analogix_dp_process_clock_recovery(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	int lane, lane_count, retval;
+ 	u8 voltage_swing, pre_emphasis, training_lane;
+ 	u8 link_status[2], adjust_request[2];
+@@ -452,6 +469,7 @@ static int analogix_dp_process_clock_recovery(struct analogix_dp_device *dp)
+ 
+ static int analogix_dp_process_equalizer_training(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	int lane_count, retval;
+ 	u32 reg;
+ 	u8 link_align, link_status[2], adjust_request[2];
+@@ -525,6 +543,7 @@ static int analogix_dp_process_equalizer_training(struct analogix_dp_device *dp)
+ static void analogix_dp_get_max_rx_bandwidth(struct analogix_dp_device *dp,
+ 					     u8 *bandwidth)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	u8 data;
+ 
+ 	/*
+@@ -540,6 +559,7 @@ static void analogix_dp_get_max_rx_bandwidth(struct analogix_dp_device *dp,
+ static void analogix_dp_get_max_rx_lane_count(struct analogix_dp_device *dp,
+ 					      u8 *lane_count)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	u8 data;
+ 
+ 	/*
+@@ -553,6 +573,7 @@ static void analogix_dp_get_max_rx_lane_count(struct analogix_dp_device *dp,
+ static int analogix_dp_full_link_train(struct analogix_dp_device *dp,
+ 				       u32 max_lanes, u32 max_rate)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	int retval = 0;
+ 	bool training_finished = false;
+ 
+@@ -618,6 +639,7 @@ static int analogix_dp_full_link_train(struct analogix_dp_device *dp,
+ 
+ static int analogix_dp_fast_link_train(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	int ret;
+ 	u8 link_align, link_status[2];
+ 
+@@ -689,6 +711,7 @@ static int analogix_dp_fast_link_train(struct analogix_dp_device *dp)
+ 
+ static int analogix_dp_train_link(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	if (dp->fast_train_enable)
+ 		return analogix_dp_fast_link_train(dp);
+ 
+@@ -698,6 +721,7 @@ static int analogix_dp_train_link(struct analogix_dp_device *dp)
+ 
+ static int analogix_dp_config_video(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	int timeout_loop = 0;
+ 	int done_count = 0;
+ 
+@@ -757,6 +781,7 @@ static int analogix_dp_config_video(struct analogix_dp_device *dp)
+ static int analogix_dp_enable_scramble(struct analogix_dp_device *dp,
+ 				       bool enable)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	u8 data;
+ 	int ret;
+ 
+@@ -820,6 +845,7 @@ static irqreturn_t analogix_dp_irq_thread(int irq, void *arg)
+ 
+ static int analogix_dp_fast_link_train_detection(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	int ret;
+ 	u8 spread;
+ 
+@@ -836,6 +862,7 @@ static int analogix_dp_fast_link_train_detection(struct analogix_dp_device *dp)
+ 
+ static int analogix_dp_commit(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	int ret;
+ 
+ 	/* Keep the panel disabled while we configure video */
+@@ -879,6 +906,7 @@ static int analogix_dp_commit(struct analogix_dp_device *dp)
+ 
+ static int analogix_dp_enable_psr(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	struct dp_sdp psr_vsc;
+ 	int ret;
+ 	u8 sink;
+@@ -907,6 +935,7 @@ static int analogix_dp_enable_psr(struct analogix_dp_device *dp)
+ 
+ static int analogix_dp_disable_psr(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	struct dp_sdp psr_vsc;
+ 	int ret;
+ 	u8 sink;
+@@ -949,6 +978,7 @@ static int analogix_dp_disable_psr(struct analogix_dp_device *dp)
+ 
+ static int analogix_dp_get_modes(struct drm_connector *connector)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	struct analogix_dp_device *dp = to_dp(connector);
+ 	const struct drm_edid *drm_edid;
+ 	int num_modes = 0;
+@@ -975,6 +1005,7 @@ static int analogix_dp_get_modes(struct drm_connector *connector)
+ static struct drm_encoder *
+ analogix_dp_best_encoder(struct drm_connector *connector)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	struct analogix_dp_device *dp = to_dp(connector);
+ 
+ 	return dp->encoder;
+@@ -984,6 +1015,7 @@ analogix_dp_best_encoder(struct drm_connector *connector)
+ static int analogix_dp_atomic_check(struct drm_connector *connector,
+ 				    struct drm_atomic_state *state)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	struct analogix_dp_device *dp = to_dp(connector);
+ 	struct drm_connector_state *conn_state;
+ 	struct drm_crtc_state *crtc_state;
+@@ -1016,6 +1048,7 @@ static const struct drm_connector_helper_funcs analogix_dp_connector_helper_func
+ static enum drm_connector_status
+ analogix_dp_detect(struct drm_connector *connector, bool force)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	struct analogix_dp_device *dp = to_dp(connector);
+ 	enum drm_connector_status status = connector_status_disconnected;
+ 
+@@ -1041,6 +1074,7 @@ static int analogix_dp_bridge_attach(struct drm_bridge *bridge,
+ 				     struct drm_encoder *encoder,
+ 				     enum drm_bridge_attach_flags flags)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	struct analogix_dp_device *dp = to_dp(bridge);
+ 	struct drm_connector *connector = NULL;
+ 	int ret = 0;
+@@ -1088,6 +1122,7 @@ static
+ struct drm_crtc *analogix_dp_get_old_crtc(struct analogix_dp_device *dp,
+ 					  struct drm_atomic_state *state)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	struct drm_encoder *encoder = dp->encoder;
+ 	struct drm_connector *connector;
+ 	struct drm_connector_state *conn_state;
+@@ -1107,6 +1142,7 @@ static
+ struct drm_crtc *analogix_dp_get_new_crtc(struct analogix_dp_device *dp,
+ 					  struct drm_atomic_state *state)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	struct drm_encoder *encoder = dp->encoder;
+ 	struct drm_connector *connector;
+ 	struct drm_connector_state *conn_state;
+@@ -1125,6 +1161,7 @@ struct drm_crtc *analogix_dp_get_new_crtc(struct analogix_dp_device *dp,
+ static void analogix_dp_bridge_atomic_pre_enable(struct drm_bridge *bridge,
+ 						 struct drm_atomic_state *old_state)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	struct analogix_dp_device *dp = to_dp(bridge);
+ 	struct drm_crtc *crtc;
+ 	struct drm_crtc_state *old_crtc_state;
+@@ -1143,6 +1180,7 @@ static void analogix_dp_bridge_atomic_pre_enable(struct drm_bridge *bridge,
+ 
+ static int analogix_dp_set_bridge(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	int ret;
+ 
+ 	pm_runtime_get_sync(dp->dev);
+@@ -1180,6 +1218,7 @@ static int analogix_dp_set_bridge(struct analogix_dp_device *dp)
+ static void analogix_dp_bridge_atomic_enable(struct drm_bridge *bridge,
+ 					     struct drm_atomic_state *old_state)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	struct analogix_dp_device *dp = to_dp(bridge);
+ 	struct drm_crtc *crtc;
+ 	struct drm_crtc_state *old_crtc_state;
+@@ -1217,6 +1256,7 @@ static void analogix_dp_bridge_atomic_enable(struct drm_bridge *bridge,
+ 
+ static void analogix_dp_bridge_disable(struct drm_bridge *bridge)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	struct analogix_dp_device *dp = to_dp(bridge);
+ 
+ 	if (dp->dpms_mode != DRM_MODE_DPMS_ON)
+@@ -1240,6 +1280,7 @@ static void analogix_dp_bridge_disable(struct drm_bridge *bridge)
+ static void analogix_dp_bridge_atomic_disable(struct drm_bridge *bridge,
+ 					      struct drm_atomic_state *old_state)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	struct analogix_dp_device *dp = to_dp(bridge);
+ 	struct drm_crtc *old_crtc, *new_crtc;
+ 	struct drm_crtc_state *old_crtc_state = NULL;
+@@ -1278,6 +1319,7 @@ static void analogix_dp_bridge_atomic_disable(struct drm_bridge *bridge,
+ static void analogix_dp_bridge_atomic_post_disable(struct drm_bridge *bridge,
+ 						   struct drm_atomic_state *old_state)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	struct analogix_dp_device *dp = to_dp(bridge);
+ 	struct drm_crtc *crtc;
+ 	struct drm_crtc_state *new_crtc_state;
+@@ -1300,6 +1342,7 @@ static void analogix_dp_bridge_mode_set(struct drm_bridge *bridge,
+ 				const struct drm_display_mode *orig_mode,
+ 				const struct drm_display_mode *mode)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	struct analogix_dp_device *dp = to_dp(bridge);
+ 	struct drm_display_info *display_info = &dp->connector.display_info;
+ 	struct video_info *video = &dp->video_info;
+@@ -1387,6 +1430,7 @@ static const struct drm_bridge_funcs analogix_dp_bridge_funcs = {
+ 
+ static int analogix_dp_dt_parse_pdata(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	struct device_node *dp_node = dp->dev->of_node;
+ 	struct video_info *video_info = &dp->video_info;
+ 
+@@ -1422,6 +1466,7 @@ static int analogix_dp_dt_parse_pdata(struct analogix_dp_device *dp)
+ static ssize_t analogix_dpaux_transfer(struct drm_dp_aux *aux,
+ 				       struct drm_dp_aux_msg *msg)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	struct analogix_dp_device *dp = to_dp(aux);
+ 	int ret;
+ 
+@@ -1441,6 +1486,7 @@ static ssize_t analogix_dpaux_transfer(struct drm_dp_aux *aux,
+ 
+ static int analogix_dpaux_wait_hpd_asserted(struct drm_dp_aux *aux, unsigned long wait_us)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	struct analogix_dp_device *dp = to_dp(aux);
+ 	int val;
+ 	int ret;
+@@ -1462,6 +1508,7 @@ static int analogix_dpaux_wait_hpd_asserted(struct drm_dp_aux *aux, unsigned lon
+ struct analogix_dp_device *
+ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct analogix_dp_device *dp;
+ 	unsigned int irq_flags;
+@@ -1577,6 +1624,7 @@ EXPORT_SYMBOL_GPL(analogix_dp_probe);
+ 
+ int analogix_dp_suspend(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	phy_power_off(dp->phy);
+ 
+ 	if (dp->plat_data->power_off)
+@@ -1590,6 +1638,7 @@ EXPORT_SYMBOL_GPL(analogix_dp_suspend);
+ 
+ int analogix_dp_resume(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	int ret;
+ 
+ 	ret = clk_prepare_enable(dp->clock);
+@@ -1612,6 +1661,7 @@ EXPORT_SYMBOL_GPL(analogix_dp_resume);
+ 
+ int analogix_dp_bind(struct analogix_dp_device *dp, struct drm_device *drm_dev)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	int ret;
+ 
+ 	dp->drm_dev = drm_dev;
+@@ -1642,6 +1692,7 @@ EXPORT_SYMBOL_GPL(analogix_dp_bind);
+ 
+ void analogix_dp_unbind(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	analogix_dp_bridge_disable(&dp->bridge);
+ 	dp->connector.funcs->destroy(&dp->connector);
+ 
+@@ -1653,6 +1704,7 @@ EXPORT_SYMBOL_GPL(analogix_dp_unbind);
+ 
+ int analogix_dp_start_crc(struct drm_connector *connector)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	struct analogix_dp_device *dp = to_dp(connector);
+ 
+ 	if (!connector->state->crtc) {
+@@ -1667,6 +1719,7 @@ EXPORT_SYMBOL_GPL(analogix_dp_start_crc);
+ 
+ int analogix_dp_stop_crc(struct drm_connector *connector)
+ {
++	pr_err("DP_DEBUG: analogix_dp_core: %s\n", __func__);
+ 	struct analogix_dp_device *dp = to_dp(connector);
+ 
+ 	return drm_dp_stop_crc(&dp->aux);
+diff --git a/drivers/gpu/drm/bridge/analogix/analogix_dp_reg.c b/drivers/gpu/drm/bridge/analogix/analogix_dp_reg.c
+index 38fd8d5014d2..a08631db94a4 100644
+--- a/drivers/gpu/drm/bridge/analogix/analogix_dp_reg.c
++++ b/drivers/gpu/drm/bridge/analogix/analogix_dp_reg.c
+@@ -26,6 +26,7 @@
+ 
+ void analogix_dp_enable_video_mute(struct analogix_dp_device *dp, bool enable)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	if (enable) {
+@@ -41,6 +42,7 @@ void analogix_dp_enable_video_mute(struct analogix_dp_device *dp, bool enable)
+ 
+ void analogix_dp_stop_video(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	reg = readl(dp->reg_base + ANALOGIX_DP_VIDEO_CTL_1);
+@@ -50,6 +52,7 @@ void analogix_dp_stop_video(struct analogix_dp_device *dp)
+ 
+ void analogix_dp_lane_swap(struct analogix_dp_device *dp, bool enable)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	if (enable)
+@@ -64,6 +67,7 @@ void analogix_dp_lane_swap(struct analogix_dp_device *dp, bool enable)
+ 
+ void analogix_dp_init_analog_param(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	reg = TX_TERMINAL_CTRL_50_OHM;
+@@ -98,6 +102,7 @@ void analogix_dp_init_analog_param(struct analogix_dp_device *dp)
+ 
+ void analogix_dp_init_interrupt(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	/* Set interrupt pin assertion polarity as high */
+ 	writel(INT_POL1 | INT_POL0, dp->reg_base + ANALOGIX_DP_INT_CTL);
+ 
+@@ -118,6 +123,7 @@ void analogix_dp_init_interrupt(struct analogix_dp_device *dp)
+ 
+ void analogix_dp_reset(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	analogix_dp_stop_video(dp);
+@@ -168,11 +174,13 @@ void analogix_dp_reset(struct analogix_dp_device *dp)
+ 
+ void analogix_dp_swreset(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	writel(RESET_DP_TX, dp->reg_base + ANALOGIX_DP_TX_SW_RESET);
+ }
+ 
+ void analogix_dp_config_interrupt(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	/* 0: mask, 1: unmask */
+@@ -194,6 +202,7 @@ void analogix_dp_config_interrupt(struct analogix_dp_device *dp)
+ 
+ void analogix_dp_mute_hpd_interrupt(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	/* 0: mask, 1: unmask */
+@@ -208,6 +217,7 @@ void analogix_dp_mute_hpd_interrupt(struct analogix_dp_device *dp)
+ 
+ void analogix_dp_unmute_hpd_interrupt(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	/* 0: mask, 1: unmask */
+@@ -220,6 +230,7 @@ void analogix_dp_unmute_hpd_interrupt(struct analogix_dp_device *dp)
+ 
+ int analogix_dp_wait_pll_locked(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 val;
+ 
+ 	return readl_poll_timeout(dp->reg_base + ANALOGIX_DP_DEBUG_CTL, val,
+@@ -229,6 +240,7 @@ int analogix_dp_wait_pll_locked(struct analogix_dp_device *dp)
+ 
+ void analogix_dp_set_pll_power_down(struct analogix_dp_device *dp, bool enable)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 	u32 mask = DP_PLL_PD;
+ 	u32 pd_addr = ANALOGIX_DP_PLL_CTL;
+@@ -250,6 +262,7 @@ void analogix_dp_set_analog_power_down(struct analogix_dp_device *dp,
+ 				       enum analog_power_block block,
+ 				       bool enable)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 	u32 phy_pd_addr = ANALOGIX_DP_PHY_PD;
+ 	u32 mask;
+@@ -354,6 +367,7 @@ void analogix_dp_set_analog_power_down(struct analogix_dp_device *dp,
+ 
+ int analogix_dp_init_analog_func(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	analogix_dp_set_analog_power_down(dp, POWER_ALL, 0);
+@@ -378,6 +392,7 @@ int analogix_dp_init_analog_func(struct analogix_dp_device *dp)
+ 
+ void analogix_dp_clear_hotplug_interrupts(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	if (dp->hpd_gpiod)
+@@ -392,6 +407,7 @@ void analogix_dp_clear_hotplug_interrupts(struct analogix_dp_device *dp)
+ 
+ void analogix_dp_init_hpd(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	if (dp->hpd_gpiod)
+@@ -406,6 +422,7 @@ void analogix_dp_init_hpd(struct analogix_dp_device *dp)
+ 
+ void analogix_dp_force_hpd(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	reg = readl(dp->reg_base + ANALOGIX_DP_SYS_CTL_3);
+@@ -415,6 +432,7 @@ void analogix_dp_force_hpd(struct analogix_dp_device *dp)
+ 
+ enum dp_irq_type analogix_dp_get_irq_type(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	if (dp->hpd_gpiod) {
+@@ -442,6 +460,7 @@ enum dp_irq_type analogix_dp_get_irq_type(struct analogix_dp_device *dp)
+ 
+ void analogix_dp_reset_aux(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	/* Disable AUX channel module */
+@@ -452,6 +471,7 @@ void analogix_dp_reset_aux(struct analogix_dp_device *dp)
+ 
+ void analogix_dp_init_aux(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	/* Clear inerrupts related to AUX channel */
+@@ -488,6 +508,7 @@ void analogix_dp_init_aux(struct analogix_dp_device *dp)
+ 
+ int analogix_dp_get_plug_in_status(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	if (dp->hpd_gpiod) {
+@@ -504,6 +525,7 @@ int analogix_dp_get_plug_in_status(struct analogix_dp_device *dp)
+ 
+ void analogix_dp_enable_sw_function(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	reg = readl(dp->reg_base + ANALOGIX_DP_FUNC_EN_1);
+@@ -513,6 +535,7 @@ void analogix_dp_enable_sw_function(struct analogix_dp_device *dp)
+ 
+ void analogix_dp_set_link_bandwidth(struct analogix_dp_device *dp, u32 bwtype)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 	int ret;
+ 
+@@ -536,6 +559,7 @@ void analogix_dp_set_link_bandwidth(struct analogix_dp_device *dp, u32 bwtype)
+ 
+ void analogix_dp_get_link_bandwidth(struct analogix_dp_device *dp, u32 *bwtype)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	reg = readl(dp->reg_base + ANALOGIX_DP_LINK_BW_SET);
+@@ -544,6 +568,7 @@ void analogix_dp_get_link_bandwidth(struct analogix_dp_device *dp, u32 *bwtype)
+ 
+ void analogix_dp_set_lane_count(struct analogix_dp_device *dp, u32 count)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 	int ret;
+ 
+@@ -565,6 +590,7 @@ void analogix_dp_set_lane_count(struct analogix_dp_device *dp, u32 count)
+ 
+ void analogix_dp_get_lane_count(struct analogix_dp_device *dp, u32 *count)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	reg = readl(dp->reg_base + ANALOGIX_DP_LANE_COUNT_SET);
+@@ -573,6 +599,7 @@ void analogix_dp_get_lane_count(struct analogix_dp_device *dp, u32 *count)
+ 
+ void analogix_dp_set_lane_link_training(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u8 lane;
+ 	int ret;
+ 
+@@ -606,12 +633,14 @@ void analogix_dp_set_lane_link_training(struct analogix_dp_device *dp)
+ 
+ u32 analogix_dp_get_lane_link_training(struct analogix_dp_device *dp, u8 lane)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	return readl(dp->reg_base + ANALOGIX_DP_LN0_LINK_TRAINING_CTL + 4 * lane);
+ }
+ 
+ void analogix_dp_enable_enhanced_mode(struct analogix_dp_device *dp,
+ 				      bool enable)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	if (enable) {
+@@ -628,6 +657,7 @@ void analogix_dp_enable_enhanced_mode(struct analogix_dp_device *dp,
+ void analogix_dp_set_training_pattern(struct analogix_dp_device *dp,
+ 				      enum pattern_set pattern)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	switch (pattern) {
+@@ -660,6 +690,7 @@ void analogix_dp_set_training_pattern(struct analogix_dp_device *dp,
+ 
+ void analogix_dp_reset_macro(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	reg = readl(dp->reg_base + ANALOGIX_DP_PHY_TEST);
+@@ -675,6 +706,7 @@ void analogix_dp_reset_macro(struct analogix_dp_device *dp)
+ 
+ void analogix_dp_init_video(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	reg = VSYNC_DET | VID_FORMAT_CHG | VID_CLK_CHG;
+@@ -695,6 +727,7 @@ void analogix_dp_init_video(struct analogix_dp_device *dp)
+ 
+ void analogix_dp_set_video_color_format(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	/* Configure the input color depth, color space, dynamic range */
+@@ -715,6 +748,7 @@ void analogix_dp_set_video_color_format(struct analogix_dp_device *dp)
+ 
+ int analogix_dp_is_slave_video_stream_clock_on(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	reg = readl(dp->reg_base + ANALOGIX_DP_SYS_CTL_1);
+@@ -745,6 +779,7 @@ void analogix_dp_set_video_cr_mn(struct analogix_dp_device *dp,
+ 				 enum clock_recovery_m_value_type type,
+ 				 u32 m_value, u32 n_value)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	if (type == REGISTER_M) {
+@@ -777,6 +812,7 @@ void analogix_dp_set_video_cr_mn(struct analogix_dp_device *dp,
+ 
+ void analogix_dp_set_video_timing_mode(struct analogix_dp_device *dp, u32 type)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	if (type == VIDEO_TIMING_FROM_CAPTURE) {
+@@ -792,6 +828,7 @@ void analogix_dp_set_video_timing_mode(struct analogix_dp_device *dp, u32 type)
+ 
+ void analogix_dp_enable_video_master(struct analogix_dp_device *dp, bool enable)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	if (enable) {
+@@ -809,6 +846,7 @@ void analogix_dp_enable_video_master(struct analogix_dp_device *dp, bool enable)
+ 
+ void analogix_dp_start_video(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	reg = readl(dp->reg_base + ANALOGIX_DP_VIDEO_CTL_1);
+@@ -818,6 +856,7 @@ void analogix_dp_start_video(struct analogix_dp_device *dp)
+ 
+ int analogix_dp_is_video_stream_on(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	reg = readl(dp->reg_base + ANALOGIX_DP_SYS_CTL_3);
+@@ -834,6 +873,7 @@ int analogix_dp_is_video_stream_on(struct analogix_dp_device *dp)
+ 
+ void analogix_dp_config_video_slave_mode(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	reg = readl(dp->reg_base + ANALOGIX_DP_FUNC_EN_1);
+@@ -866,6 +906,7 @@ void analogix_dp_config_video_slave_mode(struct analogix_dp_device *dp)
+ 
+ void analogix_dp_enable_scrambling(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	reg = readl(dp->reg_base + ANALOGIX_DP_TRAINING_PTN_SET);
+@@ -875,6 +916,7 @@ void analogix_dp_enable_scrambling(struct analogix_dp_device *dp)
+ 
+ void analogix_dp_disable_scrambling(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 
+ 	reg = readl(dp->reg_base + ANALOGIX_DP_TRAINING_PTN_SET);
+@@ -884,11 +926,13 @@ void analogix_dp_disable_scrambling(struct analogix_dp_device *dp)
+ 
+ void analogix_dp_enable_psr_crc(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	writel(PSR_VID_CRC_ENABLE, dp->reg_base + ANALOGIX_DP_CRC_CON);
+ }
+ 
+ static ssize_t analogix_dp_get_psr_status(struct analogix_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	ssize_t val;
+ 	u8 status;
+ 
+@@ -903,6 +947,7 @@ static ssize_t analogix_dp_get_psr_status(struct analogix_dp_device *dp)
+ int analogix_dp_send_psr_spd(struct analogix_dp_device *dp,
+ 			     struct dp_sdp *vsc, bool blocking)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	unsigned int val;
+ 	int ret;
+ 	ssize_t psr_status;
+@@ -975,6 +1020,7 @@ int analogix_dp_send_psr_spd(struct analogix_dp_device *dp,
+ ssize_t analogix_dp_transfer(struct analogix_dp_device *dp,
+ 			     struct drm_dp_aux_msg *msg)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	u32 reg;
+ 	u8 *buffer = msg->buffer;
+ 	unsigned int i;
+diff --git a/drivers/gpu/drm/display/drm_dp_helper.c b/drivers/gpu/drm/display/drm_dp_helper.c
+index 1ecc3df7e316..d29d8699090e 100644
+--- a/drivers/gpu/drm/display/drm_dp_helper.c
++++ b/drivers/gpu/drm/display/drm_dp_helper.c
+@@ -75,12 +75,14 @@ struct dp_aux_backlight {
+ /* Helpers for DP link training */
+ static u8 dp_link_status(const u8 link_status[DP_LINK_STATUS_SIZE], int r)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	return link_status[r - DP_LANE0_1_STATUS];
+ }
+ 
+ static u8 dp_get_lane_status(const u8 link_status[DP_LINK_STATUS_SIZE],
+ 			     int lane)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int i = DP_LANE0_1_STATUS + (lane >> 1);
+ 	int s = (lane & 1) * 4;
+ 	u8 l = dp_link_status(link_status, i);
+@@ -91,6 +93,7 @@ static u8 dp_get_lane_status(const u8 link_status[DP_LINK_STATUS_SIZE],
+ bool drm_dp_channel_eq_ok(const u8 link_status[DP_LINK_STATUS_SIZE],
+ 			  int lane_count)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 lane_align;
+ 	u8 lane_status;
+ 	int lane;
+@@ -111,6 +114,7 @@ EXPORT_SYMBOL(drm_dp_channel_eq_ok);
+ bool drm_dp_clock_recovery_ok(const u8 link_status[DP_LINK_STATUS_SIZE],
+ 			      int lane_count)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int lane;
+ 	u8 lane_status;
+ 
+@@ -126,6 +130,7 @@ EXPORT_SYMBOL(drm_dp_clock_recovery_ok);
+ u8 drm_dp_get_adjust_request_voltage(const u8 link_status[DP_LINK_STATUS_SIZE],
+ 				     int lane)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int i = DP_ADJUST_REQUEST_LANE0_1 + (lane >> 1);
+ 	int s = ((lane & 1) ?
+ 		 DP_ADJUST_VOLTAGE_SWING_LANE1_SHIFT :
+@@ -139,6 +144,7 @@ EXPORT_SYMBOL(drm_dp_get_adjust_request_voltage);
+ u8 drm_dp_get_adjust_request_pre_emphasis(const u8 link_status[DP_LINK_STATUS_SIZE],
+ 					  int lane)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int i = DP_ADJUST_REQUEST_LANE0_1 + (lane >> 1);
+ 	int s = ((lane & 1) ?
+ 		 DP_ADJUST_PRE_EMPHASIS_LANE1_SHIFT :
+@@ -153,6 +159,7 @@ EXPORT_SYMBOL(drm_dp_get_adjust_request_pre_emphasis);
+ u8 drm_dp_get_adjust_tx_ffe_preset(const u8 link_status[DP_LINK_STATUS_SIZE],
+ 				   int lane)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int i = DP_ADJUST_REQUEST_LANE0_1 + (lane >> 1);
+ 	int s = ((lane & 1) ?
+ 		 DP_ADJUST_TX_FFE_PRESET_LANE1_SHIFT :
+@@ -167,6 +174,7 @@ EXPORT_SYMBOL(drm_dp_get_adjust_tx_ffe_preset);
+ bool drm_dp_128b132b_lane_channel_eq_done(const u8 link_status[DP_LINK_STATUS_SIZE],
+ 					  int lane_count)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 lane_align, lane_status;
+ 	int lane;
+ 
+@@ -187,6 +195,7 @@ EXPORT_SYMBOL(drm_dp_128b132b_lane_channel_eq_done);
+ bool drm_dp_128b132b_lane_symbol_locked(const u8 link_status[DP_LINK_STATUS_SIZE],
+ 					int lane_count)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 lane_status;
+ 	int lane;
+ 
+@@ -202,6 +211,7 @@ EXPORT_SYMBOL(drm_dp_128b132b_lane_symbol_locked);
+ /* DP 2.0 errata for 128b/132b */
+ bool drm_dp_128b132b_eq_interlane_align_done(const u8 link_status[DP_LINK_STATUS_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 status = dp_link_status(link_status, DP_LANE_ALIGN_STATUS_UPDATED);
+ 
+ 	return status & DP_128B132B_DPRX_EQ_INTERLANE_ALIGN_DONE;
+@@ -211,6 +221,7 @@ EXPORT_SYMBOL(drm_dp_128b132b_eq_interlane_align_done);
+ /* DP 2.0 errata for 128b/132b */
+ bool drm_dp_128b132b_cds_interlane_align_done(const u8 link_status[DP_LINK_STATUS_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 status = dp_link_status(link_status, DP_LANE_ALIGN_STATUS_UPDATED);
+ 
+ 	return status & DP_128B132B_DPRX_CDS_INTERLANE_ALIGN_DONE;
+@@ -220,6 +231,7 @@ EXPORT_SYMBOL(drm_dp_128b132b_cds_interlane_align_done);
+ /* DP 2.0 errata for 128b/132b */
+ bool drm_dp_128b132b_link_training_failed(const u8 link_status[DP_LINK_STATUS_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 status = dp_link_status(link_status, DP_LANE_ALIGN_STATUS_UPDATED);
+ 
+ 	return status & DP_128B132B_LT_FAILED;
+@@ -228,6 +240,7 @@ EXPORT_SYMBOL(drm_dp_128b132b_link_training_failed);
+ 
+ static int __8b10b_clock_recovery_delay_us(const struct drm_dp_aux *aux, u8 rd_interval)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	if (rd_interval > 4)
+ 		drm_dbg_kms(aux->drm_dev, "%s: invalid AUX interval 0x%02x (max 4)\n",
+ 			    aux->name, rd_interval);
+@@ -240,6 +253,7 @@ static int __8b10b_clock_recovery_delay_us(const struct drm_dp_aux *aux, u8 rd_i
+ 
+ static int __8b10b_channel_eq_delay_us(const struct drm_dp_aux *aux, u8 rd_interval)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	if (rd_interval > 4)
+ 		drm_dbg_kms(aux->drm_dev, "%s: invalid AUX interval 0x%02x (max 4)\n",
+ 			    aux->name, rd_interval);
+@@ -252,6 +266,7 @@ static int __8b10b_channel_eq_delay_us(const struct drm_dp_aux *aux, u8 rd_inter
+ 
+ static int __128b132b_channel_eq_delay_us(const struct drm_dp_aux *aux, u8 rd_interval)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	switch (rd_interval) {
+ 	default:
+ 		drm_dbg_kms(aux->drm_dev, "%s: invalid AUX interval 0x%02x\n",
+@@ -287,6 +302,7 @@ static int __128b132b_channel_eq_delay_us(const struct drm_dp_aux *aux, u8 rd_in
+ static int __read_delay(struct drm_dp_aux *aux, const u8 dpcd[DP_RECEIVER_CAP_SIZE],
+ 			enum drm_dp_phy dp_phy, bool uhbr, bool cr)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int (*parse)(const struct drm_dp_aux *aux, u8 rd_interval);
+ 	unsigned int offset;
+ 	u8 rd_interval, mask;
+@@ -342,6 +358,7 @@ static int __read_delay(struct drm_dp_aux *aux, const u8 dpcd[DP_RECEIVER_CAP_SI
+ int drm_dp_read_clock_recovery_delay(struct drm_dp_aux *aux, const u8 dpcd[DP_RECEIVER_CAP_SIZE],
+ 				     enum drm_dp_phy dp_phy, bool uhbr)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	return __read_delay(aux, dpcd, dp_phy, uhbr, true);
+ }
+ EXPORT_SYMBOL(drm_dp_read_clock_recovery_delay);
+@@ -349,6 +366,7 @@ EXPORT_SYMBOL(drm_dp_read_clock_recovery_delay);
+ int drm_dp_read_channel_eq_delay(struct drm_dp_aux *aux, const u8 dpcd[DP_RECEIVER_CAP_SIZE],
+ 				 enum drm_dp_phy dp_phy, bool uhbr)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	return __read_delay(aux, dpcd, dp_phy, uhbr, false);
+ }
+ EXPORT_SYMBOL(drm_dp_read_channel_eq_delay);
+@@ -356,6 +374,7 @@ EXPORT_SYMBOL(drm_dp_read_channel_eq_delay);
+ /* Per DP 2.0 Errata */
+ int drm_dp_128b132b_read_aux_rd_interval(struct drm_dp_aux *aux)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int unit;
+ 	u8 val;
+ 
+@@ -376,6 +395,7 @@ EXPORT_SYMBOL(drm_dp_128b132b_read_aux_rd_interval);
+ void drm_dp_link_train_clock_recovery_delay(const struct drm_dp_aux *aux,
+ 					    const u8 dpcd[DP_RECEIVER_CAP_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 rd_interval = dpcd[DP_TRAINING_AUX_RD_INTERVAL] &
+ 		DP_TRAINING_AUX_RD_MASK;
+ 	int delay_us;
+@@ -392,6 +412,7 @@ EXPORT_SYMBOL(drm_dp_link_train_clock_recovery_delay);
+ static void __drm_dp_link_train_channel_eq_delay(const struct drm_dp_aux *aux,
+ 						 u8 rd_interval)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int delay_us = __8b10b_channel_eq_delay_us(aux, rd_interval);
+ 
+ 	usleep_range(delay_us, delay_us * 2);
+@@ -400,6 +421,7 @@ static void __drm_dp_link_train_channel_eq_delay(const struct drm_dp_aux *aux,
+ void drm_dp_link_train_channel_eq_delay(const struct drm_dp_aux *aux,
+ 					const u8 dpcd[DP_RECEIVER_CAP_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	__drm_dp_link_train_channel_eq_delay(aux,
+ 					     dpcd[DP_TRAINING_AUX_RD_INTERVAL] &
+ 					     DP_TRAINING_AUX_RD_MASK);
+@@ -418,6 +440,7 @@ EXPORT_SYMBOL(drm_dp_link_train_channel_eq_delay);
+  */
+ const char *drm_dp_phy_name(enum drm_dp_phy dp_phy)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	static const char * const phy_names[] = {
+ 		[DP_PHY_DPRX] = "DPRX",
+ 		[DP_PHY_LTTPR1] = "LTTPR 1",
+@@ -440,18 +463,21 @@ EXPORT_SYMBOL(drm_dp_phy_name);
+ 
+ void drm_dp_lttpr_link_train_clock_recovery_delay(void)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	usleep_range(100, 200);
+ }
+ EXPORT_SYMBOL(drm_dp_lttpr_link_train_clock_recovery_delay);
+ 
+ static u8 dp_lttpr_phy_cap(const u8 phy_cap[DP_LTTPR_PHY_CAP_SIZE], int r)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	return phy_cap[r - DP_TRAINING_AUX_RD_INTERVAL_PHY_REPEATER1];
+ }
+ 
+ void drm_dp_lttpr_link_train_channel_eq_delay(const struct drm_dp_aux *aux,
+ 					      const u8 phy_cap[DP_LTTPR_PHY_CAP_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 interval = dp_lttpr_phy_cap(phy_cap,
+ 				       DP_TRAINING_AUX_RD_INTERVAL_PHY_REPEATER1) &
+ 		      DP_TRAINING_AUX_RD_MASK;
+@@ -473,6 +499,7 @@ EXPORT_SYMBOL(drm_dp_lttpr_link_train_channel_eq_delay);
+  */
+ void drm_dp_lttpr_wake_timeout_setup(struct drm_dp_aux *aux, bool transparent_mode)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 val = 1;
+ 	int ret;
+ 
+@@ -520,6 +547,7 @@ EXPORT_SYMBOL(drm_dp_lttpr_wake_timeout_setup);
+ 
+ u8 drm_dp_link_rate_to_bw_code(int link_rate)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	switch (link_rate) {
+ 	case 1000000:
+ 		return DP_LINK_BW_10;
+@@ -536,6 +564,7 @@ EXPORT_SYMBOL(drm_dp_link_rate_to_bw_code);
+ 
+ int drm_dp_bw_code_to_link_rate(u8 link_bw)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	switch (link_bw) {
+ 	case DP_LINK_BW_10:
+ 		return 1000000;
+@@ -556,6 +585,7 @@ static inline void
+ drm_dp_dump_access(const struct drm_dp_aux *aux,
+ 		   u8 request, uint offset, void *buffer, int ret)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	const char *arrow = request == DP_AUX_NATIVE_READ ? "->" : "<-";
+ 
+ 	if (ret > 0)
+@@ -581,6 +611,7 @@ drm_dp_dump_access(const struct drm_dp_aux *aux,
+ static int drm_dp_dpcd_access(struct drm_dp_aux *aux, u8 request,
+ 			      unsigned int offset, void *buffer, size_t size)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	struct drm_dp_aux_msg msg;
+ 	unsigned int retry, native_reply;
+ 	int err = 0, ret = 0;
+@@ -657,6 +688,7 @@ static int drm_dp_dpcd_access(struct drm_dp_aux *aux, u8 request,
+  */
+ int drm_dp_dpcd_probe(struct drm_dp_aux *aux, unsigned int offset)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 buffer;
+ 	int ret;
+ 
+@@ -683,6 +715,7 @@ EXPORT_SYMBOL(drm_dp_dpcd_probe);
+  */
+ void drm_dp_dpcd_set_powered(struct drm_dp_aux *aux, bool powered)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	if (!aux)
+ 		return;
+ 
+@@ -699,12 +732,14 @@ EXPORT_SYMBOL(drm_dp_dpcd_set_powered);
+  */
+ void drm_dp_dpcd_set_probe(struct drm_dp_aux *aux, bool enable)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	WRITE_ONCE(aux->dpcd_probe_disabled, !enable);
+ }
+ EXPORT_SYMBOL(drm_dp_dpcd_set_probe);
+ 
+ static bool dpcd_access_needs_probe(struct drm_dp_aux *aux)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	/*
+ 	 * HP ZR24w corrupts the first DPCD access after entering power save
+ 	 * mode. Eg. on a read, the entire buffer will be filled with the same
+@@ -739,6 +774,7 @@ static bool dpcd_access_needs_probe(struct drm_dp_aux *aux)
+ ssize_t drm_dp_dpcd_read(struct drm_dp_aux *aux, unsigned int offset,
+ 			 void *buffer, size_t size)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int ret;
+ 
+ 	if (dpcd_access_needs_probe(aux)) {
+@@ -777,6 +813,7 @@ EXPORT_SYMBOL(drm_dp_dpcd_read);
+ ssize_t drm_dp_dpcd_write(struct drm_dp_aux *aux, unsigned int offset,
+ 			  void *buffer, size_t size)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int ret;
+ 
+ 	if (aux->is_remote)
+@@ -800,6 +837,7 @@ EXPORT_SYMBOL(drm_dp_dpcd_write);
+ int drm_dp_dpcd_read_link_status(struct drm_dp_aux *aux,
+ 				 u8 status[DP_LINK_STATUS_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	return drm_dp_dpcd_read_data(aux, DP_LANE0_1_STATUS, status,
+ 				     DP_LINK_STATUS_SIZE);
+ }
+@@ -822,6 +860,7 @@ int drm_dp_dpcd_read_phy_link_status(struct drm_dp_aux *aux,
+ 				     enum drm_dp_phy dp_phy,
+ 				     u8 link_status[DP_LINK_STATUS_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int ret;
+ 
+ 	if (dp_phy == DP_PHY_DPRX)
+@@ -857,6 +896,7 @@ EXPORT_SYMBOL(drm_dp_dpcd_read_phy_link_status);
+  */
+ int drm_dp_link_power_up(struct drm_dp_aux *aux, unsigned char revision)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 value;
+ 	int err;
+ 
+@@ -895,6 +935,7 @@ EXPORT_SYMBOL(drm_dp_link_power_up);
+  */
+ int drm_dp_link_power_down(struct drm_dp_aux *aux, unsigned char revision)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 value;
+ 	int err;
+ 
+@@ -919,6 +960,7 @@ EXPORT_SYMBOL(drm_dp_link_power_down);
+ 
+ static int read_payload_update_status(struct drm_dp_aux *aux)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int ret;
+ 	u8 status;
+ 
+@@ -945,6 +987,7 @@ static int read_payload_update_status(struct drm_dp_aux *aux)
+ int drm_dp_dpcd_write_payload(struct drm_dp_aux *aux,
+ 			      int vcpid, u8 start_time_slot, u8 time_slot_count)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 payload_alloc[3], status;
+ 	int ret;
+ 	int retries = 0;
+@@ -996,6 +1039,7 @@ EXPORT_SYMBOL(drm_dp_dpcd_write_payload);
+  */
+ int drm_dp_dpcd_clear_payload(struct drm_dp_aux *aux)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	return drm_dp_dpcd_write_payload(aux, 0, 0, 0x3f);
+ }
+ EXPORT_SYMBOL(drm_dp_dpcd_clear_payload);
+@@ -1014,6 +1058,7 @@ EXPORT_SYMBOL(drm_dp_dpcd_clear_payload);
+  */
+ int drm_dp_dpcd_poll_act_handled(struct drm_dp_aux *aux, int timeout_ms)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int ret, status;
+ 
+ 	/* default to 3 seconds, this is arbitrary */
+@@ -1041,6 +1086,7 @@ EXPORT_SYMBOL(drm_dp_dpcd_poll_act_handled);
+ 
+ static bool is_edid_digital_input_dp(const struct drm_edid *drm_edid)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	/* FIXME: get rid of drm_edid_raw() */
+ 	const struct edid *edid = drm_edid_raw(drm_edid);
+ 
+@@ -1065,6 +1111,7 @@ static bool is_edid_digital_input_dp(const struct drm_edid *drm_edid)
+ bool drm_dp_downstream_is_type(const u8 dpcd[DP_RECEIVER_CAP_SIZE],
+ 			       const u8 port_cap[4], u8 type)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	return drm_dp_is_branch(dpcd) &&
+ 		dpcd[DP_DPCD_REV] >= 0x11 &&
+ 		(port_cap[0] & DP_DS_PORT_TYPE_MASK) == type;
+@@ -1083,6 +1130,7 @@ bool drm_dp_downstream_is_tmds(const u8 dpcd[DP_RECEIVER_CAP_SIZE],
+ 			       const u8 port_cap[4],
+ 			       const struct drm_edid *drm_edid)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	if (dpcd[DP_DPCD_REV] < 0x11) {
+ 		switch (dpcd[DP_DOWNSTREAMPORT_PRESENT] & DP_DWN_STRM_PORT_TYPE_MASK) {
+ 		case DP_DWN_STRM_PORT_TYPE_TMDS:
+@@ -1117,6 +1165,7 @@ EXPORT_SYMBOL(drm_dp_downstream_is_tmds);
+ bool drm_dp_send_real_edid_checksum(struct drm_dp_aux *aux,
+ 				    u8 real_edid_checksum)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 link_edid_read = 0, auto_test_req = 0, test_resp = 0;
+ 
+ 	if (drm_dp_dpcd_read_byte(aux, DP_DEVICE_SERVICE_IRQ_VECTOR,
+@@ -1168,6 +1217,7 @@ EXPORT_SYMBOL(drm_dp_send_real_edid_checksum);
+ 
+ static u8 drm_dp_downstream_port_count(const u8 dpcd[DP_RECEIVER_CAP_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 port_count = dpcd[DP_DOWN_STREAM_PORT_COUNT] & DP_PORT_COUNT_MASK;
+ 
+ 	if (dpcd[DP_DOWNSTREAMPORT_PRESENT] & DP_DETAILED_CAP_INFO_AVAILABLE && port_count > 4)
+@@ -1179,6 +1229,7 @@ static u8 drm_dp_downstream_port_count(const u8 dpcd[DP_RECEIVER_CAP_SIZE])
+ static int drm_dp_read_extended_dpcd_caps(struct drm_dp_aux *aux,
+ 					  u8 dpcd[DP_RECEIVER_CAP_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 dpcd_ext[DP_RECEIVER_CAP_SIZE];
+ 	int ret;
+ 
+@@ -1231,6 +1282,7 @@ static int drm_dp_read_extended_dpcd_caps(struct drm_dp_aux *aux,
+ int drm_dp_read_dpcd_caps(struct drm_dp_aux *aux,
+ 			  u8 dpcd[DP_RECEIVER_CAP_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int ret;
+ 
+ 	ret = drm_dp_dpcd_read_data(aux, DP_DPCD_REV, dpcd, DP_RECEIVER_CAP_SIZE);
+@@ -1266,6 +1318,7 @@ int drm_dp_read_downstream_info(struct drm_dp_aux *aux,
+ 				const u8 dpcd[DP_RECEIVER_CAP_SIZE],
+ 				u8 downstream_ports[DP_MAX_DOWNSTREAM_PORTS])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int ret;
+ 	u8 len;
+ 
+@@ -1307,6 +1360,7 @@ EXPORT_SYMBOL(drm_dp_read_downstream_info);
+ int drm_dp_downstream_max_dotclock(const u8 dpcd[DP_RECEIVER_CAP_SIZE],
+ 				   const u8 port_cap[4])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	if (!drm_dp_is_branch(dpcd))
+ 		return 0;
+ 
+@@ -1337,6 +1391,7 @@ int drm_dp_downstream_max_tmds_clock(const u8 dpcd[DP_RECEIVER_CAP_SIZE],
+ 				     const u8 port_cap[4],
+ 				     const struct drm_edid *drm_edid)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	if (!drm_dp_is_branch(dpcd))
+ 		return 0;
+ 
+@@ -1402,6 +1457,7 @@ int drm_dp_downstream_min_tmds_clock(const u8 dpcd[DP_RECEIVER_CAP_SIZE],
+ 				     const u8 port_cap[4],
+ 				     const struct drm_edid *drm_edid)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	if (!drm_dp_is_branch(dpcd))
+ 		return 0;
+ 
+@@ -1445,6 +1501,7 @@ int drm_dp_downstream_max_bpc(const u8 dpcd[DP_RECEIVER_CAP_SIZE],
+ 			      const u8 port_cap[4],
+ 			      const struct drm_edid *drm_edid)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	if (!drm_dp_is_branch(dpcd))
+ 		return 0;
+ 
+@@ -1500,6 +1557,7 @@ EXPORT_SYMBOL(drm_dp_downstream_max_bpc);
+ bool drm_dp_downstream_420_passthrough(const u8 dpcd[DP_RECEIVER_CAP_SIZE],
+ 				       const u8 port_cap[4])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	if (!drm_dp_is_branch(dpcd))
+ 		return false;
+ 
+@@ -1531,6 +1589,7 @@ EXPORT_SYMBOL(drm_dp_downstream_420_passthrough);
+ bool drm_dp_downstream_444_to_420_conversion(const u8 dpcd[DP_RECEIVER_CAP_SIZE],
+ 					     const u8 port_cap[4])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	if (!drm_dp_is_branch(dpcd))
+ 		return false;
+ 
+@@ -1563,6 +1622,7 @@ bool drm_dp_downstream_rgb_to_ycbcr_conversion(const u8 dpcd[DP_RECEIVER_CAP_SIZ
+ 					       const u8 port_cap[4],
+ 					       u8 color_spc)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	if (!drm_dp_is_branch(dpcd))
+ 		return false;
+ 
+@@ -1597,6 +1657,7 @@ drm_dp_downstream_mode(struct drm_device *dev,
+ 		       const u8 port_cap[4])
+ 
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 vic;
+ 
+ 	if (!drm_dp_is_branch(dpcd))
+@@ -1645,6 +1706,7 @@ EXPORT_SYMBOL(drm_dp_downstream_mode);
+  */
+ int drm_dp_downstream_id(struct drm_dp_aux *aux, char id[6])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	return drm_dp_dpcd_read_data(aux, DP_BRANCH_ID, id, 6);
+ }
+ EXPORT_SYMBOL(drm_dp_downstream_id);
+@@ -1664,6 +1726,7 @@ void drm_dp_downstream_debug(struct seq_file *m,
+ 			     const struct drm_edid *drm_edid,
+ 			     struct drm_dp_aux *aux)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	bool detailed_cap_info = dpcd[DP_DOWNSTREAMPORT_PRESENT] &
+ 				 DP_DETAILED_CAP_INFO_AVAILABLE;
+ 	int clk;
+@@ -1749,6 +1812,7 @@ enum drm_mode_subconnector
+ drm_dp_subconnector_type(const u8 dpcd[DP_RECEIVER_CAP_SIZE],
+ 			 const u8 port_cap[4])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int type;
+ 	if (!drm_dp_is_branch(dpcd))
+ 		return DRM_MODE_SUBCONNECTOR_Native;
+@@ -1806,6 +1870,7 @@ void drm_dp_set_subconnector_property(struct drm_connector *connector,
+ 				      const u8 *dpcd,
+ 				      const u8 port_cap[4])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	enum drm_mode_subconnector subconnector = DRM_MODE_SUBCONNECTOR_Unknown;
+ 
+ 	if (status == connector_status_connected)
+@@ -1832,6 +1897,7 @@ bool drm_dp_read_sink_count_cap(struct drm_connector *connector,
+ 				const u8 dpcd[DP_RECEIVER_CAP_SIZE],
+ 				const struct drm_dp_desc *desc)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	/* Some eDP panels don't set a valid value for the sink count */
+ 	return connector->connector_type != DRM_MODE_CONNECTOR_eDP &&
+ 		dpcd[DP_DPCD_REV] >= DP_DPCD_REV_11 &&
+@@ -1851,6 +1917,7 @@ EXPORT_SYMBOL(drm_dp_read_sink_count_cap);
+  */
+ int drm_dp_read_sink_count(struct drm_dp_aux *aux)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 count;
+ 	int ret;
+ 
+@@ -1868,6 +1935,7 @@ EXPORT_SYMBOL(drm_dp_read_sink_count);
+ 
+ static u32 drm_dp_i2c_functionality(struct i2c_adapter *adapter)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL |
+ 	       I2C_FUNC_SMBUS_READ_BLOCK_DATA |
+ 	       I2C_FUNC_SMBUS_BLOCK_PROC_CALL |
+@@ -1876,6 +1944,7 @@ static u32 drm_dp_i2c_functionality(struct i2c_adapter *adapter)
+ 
+ static void drm_dp_i2c_msg_write_status_update(struct drm_dp_aux_msg *msg)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	/*
+ 	 * In case of i2c defer or short i2c ack reply to a write,
+ 	 * we need to switch to WRITE_STATUS_UPDATE to drain the
+@@ -1901,6 +1970,7 @@ static void drm_dp_i2c_msg_write_status_update(struct drm_dp_aux_msg *msg)
+  */
+ static int drm_dp_aux_req_duration(const struct drm_dp_aux_msg *msg)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int len = AUX_PRECHARGE_LEN + AUX_SYNC_LEN + AUX_STOP_LEN +
+ 		AUX_CMD_LEN + AUX_ADDRESS_LEN + AUX_LENGTH_LEN;
+ 
+@@ -1912,6 +1982,7 @@ static int drm_dp_aux_req_duration(const struct drm_dp_aux_msg *msg)
+ 
+ static int drm_dp_aux_reply_duration(const struct drm_dp_aux_msg *msg)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int len = AUX_PRECHARGE_LEN + AUX_SYNC_LEN + AUX_STOP_LEN +
+ 		AUX_CMD_LEN + AUX_REPLY_PAD_LEN;
+ 
+@@ -1941,6 +2012,7 @@ static int drm_dp_aux_reply_duration(const struct drm_dp_aux_msg *msg)
+ static int drm_dp_i2c_msg_duration(const struct drm_dp_aux_msg *msg,
+ 				   int i2c_speed_khz)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	/* AUX bitrate is 1MHz, i2c bitrate as specified */
+ 	return DIV_ROUND_UP((I2C_START_LEN + I2C_ADDR_LEN +
+ 			     msg->size * I2C_DATA_LEN +
+@@ -1955,6 +2027,7 @@ static int drm_dp_i2c_msg_duration(const struct drm_dp_aux_msg *msg,
+ static int drm_dp_i2c_retry_count(const struct drm_dp_aux_msg *msg,
+ 			      int i2c_speed_khz)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int aux_time_us = drm_dp_aux_req_duration(msg) +
+ 		drm_dp_aux_reply_duration(msg);
+ 	int i2c_time_us = drm_dp_i2c_msg_duration(msg, i2c_speed_khz);
+@@ -1981,6 +2054,7 @@ MODULE_PARM_DESC(dp_aux_i2c_speed_khz,
+  */
+ static int drm_dp_i2c_do_msg(struct drm_dp_aux *aux, struct drm_dp_aux_msg *msg)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	unsigned int retry, defer_i2c;
+ 	int ret;
+ 	/*
+@@ -2091,6 +2165,7 @@ static int drm_dp_i2c_do_msg(struct drm_dp_aux *aux, struct drm_dp_aux_msg *msg)
+ static void drm_dp_i2c_msg_set_request(struct drm_dp_aux_msg *msg,
+ 				       const struct i2c_msg *i2c_msg)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	msg->request = (i2c_msg->flags & I2C_M_RD) ?
+ 		DP_AUX_I2C_READ : DP_AUX_I2C_WRITE;
+ 	if (!(i2c_msg->flags & I2C_M_STOP))
+@@ -2104,6 +2179,7 @@ static void drm_dp_i2c_msg_set_request(struct drm_dp_aux_msg *msg,
+  */
+ static int drm_dp_i2c_drain_msg(struct drm_dp_aux *aux, struct drm_dp_aux_msg *orig_msg)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int err, ret = orig_msg->size;
+ 	struct drm_dp_aux_msg msg = *orig_msg;
+ 
+@@ -2139,6 +2215,7 @@ MODULE_PARM_DESC(dp_aux_i2c_transfer_size,
+ static int drm_dp_i2c_xfer(struct i2c_adapter *adapter, struct i2c_msg *msgs,
+ 			   int num)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	struct drm_dp_aux *aux = adapter->algo_data;
+ 	unsigned int i, j;
+ 	unsigned transfer_size;
+@@ -2223,21 +2300,25 @@ static const struct i2c_algorithm drm_dp_i2c_algo = {
+ 
+ static struct drm_dp_aux *i2c_to_aux(struct i2c_adapter *i2c)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	return container_of(i2c, struct drm_dp_aux, ddc);
+ }
+ 
+ static void lock_bus(struct i2c_adapter *i2c, unsigned int flags)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	mutex_lock(&i2c_to_aux(i2c)->hw_mutex);
+ }
+ 
+ static int trylock_bus(struct i2c_adapter *i2c, unsigned int flags)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	return mutex_trylock(&i2c_to_aux(i2c)->hw_mutex);
+ }
+ 
+ static void unlock_bus(struct i2c_adapter *i2c, unsigned int flags)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	mutex_unlock(&i2c_to_aux(i2c)->hw_mutex);
+ }
+ 
+@@ -2249,6 +2330,7 @@ static const struct i2c_lock_operations drm_dp_i2c_lock_ops = {
+ 
+ static int drm_dp_aux_get_crc(struct drm_dp_aux *aux, u8 *crc)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 buf, count;
+ 	int ret;
+ 
+@@ -2277,6 +2359,7 @@ static int drm_dp_aux_get_crc(struct drm_dp_aux *aux, u8 *crc)
+ 
+ static void drm_dp_aux_crc_work(struct work_struct *work)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	struct drm_dp_aux *aux = container_of(work, struct drm_dp_aux,
+ 					      crc_work);
+ 	struct drm_crtc *crtc;
+@@ -2324,6 +2407,7 @@ static void drm_dp_aux_crc_work(struct work_struct *work)
+  */
+ void drm_dp_remote_aux_init(struct drm_dp_aux *aux)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	INIT_WORK(&aux->crc_work, drm_dp_aux_crc_work);
+ }
+ EXPORT_SYMBOL(drm_dp_remote_aux_init);
+@@ -2347,6 +2431,7 @@ EXPORT_SYMBOL(drm_dp_remote_aux_init);
+  */
+ void drm_dp_aux_init(struct drm_dp_aux *aux)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	mutex_init(&aux->hw_mutex);
+ 	mutex_init(&aux->cec.lock);
+ 	INIT_WORK(&aux->crc_work, drm_dp_aux_crc_work);
+@@ -2388,6 +2473,7 @@ EXPORT_SYMBOL(drm_dp_aux_init);
+  */
+ int drm_dp_aux_register(struct drm_dp_aux *aux)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int ret;
+ 
+ 	WARN_ON_ONCE(!aux->drm_dev);
+@@ -2421,6 +2507,7 @@ EXPORT_SYMBOL(drm_dp_aux_register);
+  */
+ void drm_dp_aux_unregister(struct drm_dp_aux *aux)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	drm_dp_aux_unregister_devnode(aux);
+ 	i2c_del_adapter(&aux->ddc);
+ }
+@@ -2438,6 +2525,7 @@ EXPORT_SYMBOL(drm_dp_aux_unregister);
+  */
+ int drm_dp_psr_setup_time(const u8 psr_cap[EDP_PSR_RECEIVER_CAP_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	static const u16 psr_setup_time_us[] = {
+ 		PSR_SETUP_TIME(330),
+ 		PSR_SETUP_TIME(275),
+@@ -2468,6 +2556,7 @@ EXPORT_SYMBOL(drm_dp_psr_setup_time);
+  */
+ int drm_dp_start_crc(struct drm_dp_aux *aux, struct drm_crtc *crtc)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 buf;
+ 	int ret;
+ 
+@@ -2495,6 +2584,7 @@ EXPORT_SYMBOL(drm_dp_start_crc);
+  */
+ int drm_dp_stop_crc(struct drm_dp_aux *aux)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 buf;
+ 	int ret;
+ 
+@@ -2558,6 +2648,7 @@ static const struct dpcd_quirk dpcd_quirk_list[] = {
+ static u32
+ drm_dp_get_quirks(const struct drm_dp_dpcd_ident *ident, bool is_branch)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	const struct dpcd_quirk *quirk;
+ 	u32 quirks = 0;
+ 	int i;
+@@ -2588,12 +2679,14 @@ drm_dp_get_quirks(const struct drm_dp_dpcd_ident *ident, bool is_branch)
+ static int drm_dp_read_ident(struct drm_dp_aux *aux, unsigned int offset,
+ 			     struct drm_dp_dpcd_ident *ident)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	return drm_dp_dpcd_read_data(aux, offset, ident, sizeof(*ident));
+ }
+ 
+ static void drm_dp_dump_desc(struct drm_dp_aux *aux,
+ 			     const char *device_name, const struct drm_dp_desc *desc)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	const struct drm_dp_dpcd_ident *ident = &desc->ident;
+ 
+ 	drm_dbg_kms(aux->drm_dev,
+@@ -2620,6 +2713,7 @@ static void drm_dp_dump_desc(struct drm_dp_aux *aux,
+ int drm_dp_read_desc(struct drm_dp_aux *aux, struct drm_dp_desc *desc,
+ 		     bool is_branch)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	struct drm_dp_dpcd_ident *ident = &desc->ident;
+ 	unsigned int offset = is_branch ? DP_BRANCH_OUI : DP_SINK_OUI;
+ 	int ret;
+@@ -2648,6 +2742,7 @@ EXPORT_SYMBOL(drm_dp_read_desc);
+  */
+ int drm_dp_dump_lttpr_desc(struct drm_dp_aux *aux, enum drm_dp_phy dp_phy)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	struct drm_dp_desc desc = {};
+ 	int ret;
+ 
+@@ -2672,6 +2767,7 @@ EXPORT_SYMBOL(drm_dp_dump_lttpr_desc);
+  */
+ u8 drm_dp_dsc_sink_bpp_incr(const u8 dsc_dpcd[DP_DSC_RECEIVER_CAP_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 bpp_increment_dpcd = dsc_dpcd[DP_DSC_BITS_PER_PIXEL_INC - DP_DSC_SUPPORT];
+ 
+ 	switch (bpp_increment_dpcd & DP_DSC_BITS_PER_PIXEL_MASK) {
+@@ -2710,6 +2806,7 @@ EXPORT_SYMBOL(drm_dp_dsc_sink_bpp_incr);
+ u8 drm_dp_dsc_sink_max_slice_count(const u8 dsc_dpcd[DP_DSC_RECEIVER_CAP_SIZE],
+ 				   bool is_edp)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 slice_cap1 = dsc_dpcd[DP_DSC_SLICE_CAP_1 - DP_DSC_SUPPORT];
+ 
+ 	if (is_edp) {
+@@ -2767,6 +2864,7 @@ EXPORT_SYMBOL(drm_dp_dsc_sink_max_slice_count);
+  */
+ u8 drm_dp_dsc_sink_line_buf_depth(const u8 dsc_dpcd[DP_DSC_RECEIVER_CAP_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 line_buf_depth = dsc_dpcd[DP_DSC_LINE_BUF_BIT_DEPTH - DP_DSC_SUPPORT];
+ 
+ 	switch (line_buf_depth & DP_DSC_LINE_BUF_BIT_DEPTH_MASK) {
+@@ -2814,6 +2912,7 @@ EXPORT_SYMBOL(drm_dp_dsc_sink_line_buf_depth);
+ int drm_dp_dsc_sink_supported_input_bpcs(const u8 dsc_dpcd[DP_DSC_RECEIVER_CAP_SIZE],
+ 					 u8 dsc_bpc[3])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int num_bpc = 0;
+ 	u8 color_depth = dsc_dpcd[DP_DSC_DEC_COLOR_DEPTH_CAP - DP_DSC_SUPPORT];
+ 
+@@ -2836,6 +2935,7 @@ static int drm_dp_read_lttpr_regs(struct drm_dp_aux *aux,
+ 				  const u8 dpcd[DP_RECEIVER_CAP_SIZE], int address,
+ 				  u8 *buf, int buf_size)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	/*
+ 	 * At least the DELL P2715Q monitor with a DPCD_REV < 0x14 returns
+ 	 * corrupted values when reading from the 0xF0000- range with a block
+@@ -2870,6 +2970,7 @@ int drm_dp_read_lttpr_common_caps(struct drm_dp_aux *aux,
+ 				  const u8 dpcd[DP_RECEIVER_CAP_SIZE],
+ 				  u8 caps[DP_LTTPR_COMMON_CAP_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	return drm_dp_read_lttpr_regs(aux, dpcd,
+ 				      DP_LT_TUNABLE_PHY_REPEATER_FIELD_DATA_STRUCTURE_REV,
+ 				      caps, DP_LTTPR_COMMON_CAP_SIZE);
+@@ -2892,6 +2993,7 @@ int drm_dp_read_lttpr_phy_caps(struct drm_dp_aux *aux,
+ 			       enum drm_dp_phy dp_phy,
+ 			       u8 caps[DP_LTTPR_PHY_CAP_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	return drm_dp_read_lttpr_regs(aux, dpcd,
+ 				      DP_TRAINING_AUX_RD_INTERVAL_PHY_REPEATER(dp_phy),
+ 				      caps, DP_LTTPR_PHY_CAP_SIZE);
+@@ -2900,6 +3002,7 @@ EXPORT_SYMBOL(drm_dp_read_lttpr_phy_caps);
+ 
+ static u8 dp_lttpr_common_cap(const u8 caps[DP_LTTPR_COMMON_CAP_SIZE], int r)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	return caps[r - DP_LT_TUNABLE_PHY_REPEATER_FIELD_DATA_STRUCTURE_REV];
+ }
+ 
+@@ -2916,6 +3019,7 @@ static u8 dp_lttpr_common_cap(const u8 caps[DP_LTTPR_COMMON_CAP_SIZE], int r)
+  */
+ int drm_dp_lttpr_count(const u8 caps[DP_LTTPR_COMMON_CAP_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 count = dp_lttpr_common_cap(caps, DP_PHY_REPEATER_CNT);
+ 
+ 	switch (hweight8(count)) {
+@@ -2939,6 +3043,7 @@ EXPORT_SYMBOL(drm_dp_lttpr_count);
+  */
+ int drm_dp_lttpr_max_link_rate(const u8 caps[DP_LTTPR_COMMON_CAP_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 rate = dp_lttpr_common_cap(caps, DP_MAX_LINK_RATE_PHY_REPEATER);
+ 
+ 	return drm_dp_bw_code_to_link_rate(rate);
+@@ -2954,6 +3059,7 @@ EXPORT_SYMBOL(drm_dp_lttpr_max_link_rate);
+  */
+ int drm_dp_lttpr_set_transparent_mode(struct drm_dp_aux *aux, bool enable)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 val = enable ? DP_PHY_REPEATER_MODE_TRANSPARENT :
+ 			  DP_PHY_REPEATER_MODE_NON_TRANSPARENT;
+ 	int ret = drm_dp_dpcd_writeb(aux, DP_PHY_REPEATER_MODE, val);
+@@ -2976,6 +3082,7 @@ EXPORT_SYMBOL(drm_dp_lttpr_set_transparent_mode);
+  */
+ int drm_dp_lttpr_init(struct drm_dp_aux *aux, int lttpr_count)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int ret;
+ 
+ 	if (!lttpr_count)
+@@ -3014,6 +3121,7 @@ EXPORT_SYMBOL(drm_dp_lttpr_init);
+  */
+ int drm_dp_lttpr_max_lane_count(const u8 caps[DP_LTTPR_COMMON_CAP_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 max_lanes = dp_lttpr_common_cap(caps, DP_MAX_LANE_COUNT_PHY_REPEATER);
+ 
+ 	return max_lanes & DP_MAX_LANE_COUNT_MASK;
+@@ -3030,6 +3138,7 @@ EXPORT_SYMBOL(drm_dp_lttpr_max_lane_count);
+ bool
+ drm_dp_lttpr_voltage_swing_level_3_supported(const u8 caps[DP_LTTPR_PHY_CAP_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 txcap = dp_lttpr_phy_cap(caps, DP_TRANSMITTER_CAPABILITY_PHY_REPEATER1);
+ 
+ 	return txcap & DP_VOLTAGE_SWING_LEVEL_3_SUPPORTED;
+@@ -3046,6 +3155,7 @@ EXPORT_SYMBOL(drm_dp_lttpr_voltage_swing_level_3_supported);
+ bool
+ drm_dp_lttpr_pre_emphasis_level_3_supported(const u8 caps[DP_LTTPR_PHY_CAP_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 txcap = dp_lttpr_phy_cap(caps, DP_TRANSMITTER_CAPABILITY_PHY_REPEATER1);
+ 
+ 	return txcap & DP_PRE_EMPHASIS_LEVEL_3_SUPPORTED;
+@@ -3062,6 +3172,7 @@ EXPORT_SYMBOL(drm_dp_lttpr_pre_emphasis_level_3_supported);
+ int drm_dp_get_phy_test_pattern(struct drm_dp_aux *aux,
+ 				struct drm_dp_phy_test_params *data)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int err;
+ 	u8 rate, lanes;
+ 
+@@ -3113,6 +3224,7 @@ EXPORT_SYMBOL(drm_dp_get_phy_test_pattern);
+ int drm_dp_set_phy_test_pattern(struct drm_dp_aux *aux,
+ 				struct drm_dp_phy_test_params *data, u8 dp_rev)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int err, i;
+ 	u8 test_pattern;
+ 
+@@ -3140,6 +3252,7 @@ EXPORT_SYMBOL(drm_dp_set_phy_test_pattern);
+ 
+ static const char *dp_pixelformat_get_name(enum dp_pixelformat pixelformat)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	if (pixelformat < 0 || pixelformat > DP_PIXELFORMAT_RESERVED)
+ 		return "Invalid";
+ 
+@@ -3164,6 +3277,7 @@ static const char *dp_pixelformat_get_name(enum dp_pixelformat pixelformat)
+ static const char *dp_colorimetry_get_name(enum dp_pixelformat pixelformat,
+ 					   enum dp_colorimetry colorimetry)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	if (pixelformat < 0 || pixelformat > DP_PIXELFORMAT_RESERVED)
+ 		return "Invalid";
+ 
+@@ -3265,6 +3379,7 @@ static const char *dp_colorimetry_get_name(enum dp_pixelformat pixelformat,
+ 
+ static const char *dp_dynamic_range_get_name(enum dp_dynamic_range dynamic_range)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	switch (dynamic_range) {
+ 	case DP_DYNAMIC_RANGE_VESA:
+ 		return "VESA range";
+@@ -3277,6 +3392,7 @@ static const char *dp_dynamic_range_get_name(enum dp_dynamic_range dynamic_range
+ 
+ static const char *dp_content_type_get_name(enum dp_content_type content_type)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	switch (content_type) {
+ 	case DP_CONTENT_TYPE_NOT_DEFINED:
+ 		return "Not defined";
+@@ -3311,6 +3427,7 @@ EXPORT_SYMBOL(drm_dp_vsc_sdp_log);
+ 
+ void drm_dp_as_sdp_log(struct drm_printer *p, const struct drm_dp_as_sdp *as_sdp)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	drm_printf(p, "DP SDP: AS_SDP, revision %u, length %u\n",
+ 		   as_sdp->revision, as_sdp->length);
+ 	drm_printf(p, "    vtotal: %d\n", as_sdp->vtotal);
+@@ -3330,6 +3447,7 @@ EXPORT_SYMBOL(drm_dp_as_sdp_log);
+  */
+ bool drm_dp_as_sdp_supported(struct drm_dp_aux *aux, const u8 dpcd[DP_RECEIVER_CAP_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 rx_feature;
+ 
+ 	if (dpcd[DP_DPCD_REV] < DP_DPCD_REV_13)
+@@ -3355,6 +3473,7 @@ EXPORT_SYMBOL(drm_dp_as_sdp_supported);
+  */
+ bool drm_dp_vsc_sdp_supported(struct drm_dp_aux *aux, const u8 dpcd[DP_RECEIVER_CAP_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 rx_feature;
+ 
+ 	if (dpcd[DP_DPCD_REV] < DP_DPCD_REV_13)
+@@ -3380,6 +3499,7 @@ EXPORT_SYMBOL(drm_dp_vsc_sdp_supported);
+ ssize_t drm_dp_vsc_sdp_pack(const struct drm_dp_vsc_sdp *vsc,
+ 			    struct dp_sdp *sdp)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	size_t length = sizeof(struct dp_sdp);
+ 
+ 	memset(sdp, 0, sizeof(struct dp_sdp));
+@@ -3454,6 +3574,7 @@ EXPORT_SYMBOL(drm_dp_vsc_sdp_pack);
+ int drm_dp_get_pcon_max_frl_bw(const u8 dpcd[DP_RECEIVER_CAP_SIZE],
+ 			       const u8 port_cap[4])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int bw;
+ 	u8 buf;
+ 
+@@ -3491,6 +3612,7 @@ EXPORT_SYMBOL(drm_dp_get_pcon_max_frl_bw);
+  */
+ int drm_dp_pcon_frl_prepare(struct drm_dp_aux *aux, bool enable_frl_ready_hpd)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 buf = DP_PCON_ENABLE_SOURCE_CTL_MODE |
+ 		 DP_PCON_ENABLE_LINK_FRL_MODE;
+ 
+@@ -3509,6 +3631,7 @@ EXPORT_SYMBOL(drm_dp_pcon_frl_prepare);
+  */
+ bool drm_dp_pcon_is_frl_ready(struct drm_dp_aux *aux)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int ret;
+ 	u8 buf;
+ 
+@@ -3538,6 +3661,7 @@ EXPORT_SYMBOL(drm_dp_pcon_is_frl_ready);
+ int drm_dp_pcon_frl_configure_1(struct drm_dp_aux *aux, int max_frl_gbps,
+ 				u8 frl_mode)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int ret;
+ 	u8 buf;
+ 
+@@ -3594,6 +3718,7 @@ EXPORT_SYMBOL(drm_dp_pcon_frl_configure_1);
+ int drm_dp_pcon_frl_configure_2(struct drm_dp_aux *aux, int max_frl_mask,
+ 				u8 frl_type)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int ret;
+ 	u8 buf = max_frl_mask;
+ 
+@@ -3618,6 +3743,7 @@ EXPORT_SYMBOL(drm_dp_pcon_frl_configure_2);
+  */
+ int drm_dp_pcon_reset_frl_config(struct drm_dp_aux *aux)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	return drm_dp_dpcd_write_byte(aux, DP_PCON_HDMI_LINK_CONFIG_1, 0x0);
+ }
+ EXPORT_SYMBOL(drm_dp_pcon_reset_frl_config);
+@@ -3630,6 +3756,7 @@ EXPORT_SYMBOL(drm_dp_pcon_reset_frl_config);
+  */
+ int drm_dp_pcon_frl_enable(struct drm_dp_aux *aux)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int ret;
+ 	u8 buf = 0;
+ 
+@@ -3654,6 +3781,7 @@ EXPORT_SYMBOL(drm_dp_pcon_frl_enable);
+  */
+ bool drm_dp_pcon_hdmi_link_active(struct drm_dp_aux *aux)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 buf;
+ 	int ret;
+ 
+@@ -3678,6 +3806,7 @@ EXPORT_SYMBOL(drm_dp_pcon_hdmi_link_active);
+  */
+ int drm_dp_pcon_hdmi_link_mode(struct drm_dp_aux *aux, u8 *frl_trained_mask)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 buf;
+ 	int mode;
+ 	int ret;
+@@ -3706,6 +3835,7 @@ EXPORT_SYMBOL(drm_dp_pcon_hdmi_link_mode);
+ void drm_dp_pcon_hdmi_frl_link_error_count(struct drm_dp_aux *aux,
+ 					   struct drm_connector *connector)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 buf, error_count;
+ 	int i, num_error;
+ 	struct drm_hdmi_info *hdmi = &connector->display_info.hdmi;
+@@ -3743,6 +3873,7 @@ EXPORT_SYMBOL(drm_dp_pcon_hdmi_frl_link_error_count);
+  */
+ bool drm_dp_pcon_enc_is_dsc_1_2(const u8 pcon_dsc_dpcd[DP_PCON_DSC_ENCODER_CAP_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 buf;
+ 	u8 major_v, minor_v;
+ 
+@@ -3765,6 +3896,7 @@ EXPORT_SYMBOL(drm_dp_pcon_enc_is_dsc_1_2);
+  */
+ int drm_dp_pcon_dsc_max_slices(const u8 pcon_dsc_dpcd[DP_PCON_DSC_ENCODER_CAP_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 slice_cap1, slice_cap2;
+ 
+ 	slice_cap1 = pcon_dsc_dpcd[DP_PCON_DSC_SLICE_CAP_1 - DP_PCON_DSC_ENCODER];
+@@ -3803,6 +3935,7 @@ EXPORT_SYMBOL(drm_dp_pcon_dsc_max_slices);
+  */
+ int drm_dp_pcon_dsc_max_slice_width(const u8 pcon_dsc_dpcd[DP_PCON_DSC_ENCODER_CAP_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 buf;
+ 
+ 	buf = pcon_dsc_dpcd[DP_PCON_DSC_MAX_SLICE_WIDTH - DP_PCON_DSC_ENCODER];
+@@ -3819,6 +3952,7 @@ EXPORT_SYMBOL(drm_dp_pcon_dsc_max_slice_width);
+  */
+ int drm_dp_pcon_dsc_bpp_incr(const u8 pcon_dsc_dpcd[DP_PCON_DSC_ENCODER_CAP_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 buf;
+ 
+ 	buf = pcon_dsc_dpcd[DP_PCON_DSC_BPP_INCR - DP_PCON_DSC_ENCODER];
+@@ -3843,6 +3977,7 @@ EXPORT_SYMBOL(drm_dp_pcon_dsc_bpp_incr);
+ static
+ int drm_dp_pcon_configure_dsc_enc(struct drm_dp_aux *aux, u8 pps_buf_config)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	u8 buf;
+ 	int ret;
+ 
+@@ -3869,6 +4004,7 @@ int drm_dp_pcon_configure_dsc_enc(struct drm_dp_aux *aux, u8 pps_buf_config)
+  */
+ int drm_dp_pcon_pps_default(struct drm_dp_aux *aux)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	return drm_dp_pcon_configure_dsc_enc(aux, DP_PCON_ENC_PPS_OVERRIDE_DISABLED);
+ }
+ EXPORT_SYMBOL(drm_dp_pcon_pps_default);
+@@ -3883,6 +4019,7 @@ EXPORT_SYMBOL(drm_dp_pcon_pps_default);
+  */
+ int drm_dp_pcon_pps_override_buf(struct drm_dp_aux *aux, u8 pps_buf[128])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int ret;
+ 
+ 	ret = drm_dp_dpcd_write_data(aux, DP_PCON_HDMI_PPS_OVERRIDE_BASE, &pps_buf, 128);
+@@ -3904,6 +4041,7 @@ EXPORT_SYMBOL(drm_dp_pcon_pps_override_buf);
+  */
+ int drm_dp_pcon_pps_override_param(struct drm_dp_aux *aux, u8 pps_param[6])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int ret;
+ 
+ 	ret = drm_dp_dpcd_write_data(aux, DP_PCON_HDMI_PPS_OVRD_SLICE_HEIGHT, &pps_param[0], 2);
+@@ -3929,6 +4067,7 @@ EXPORT_SYMBOL(drm_dp_pcon_pps_override_param);
+  */
+ int drm_dp_pcon_convert_rgb_to_ycbcr(struct drm_dp_aux *aux, u8 color_spc)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int ret;
+ 	u8 buf;
+ 
+@@ -3959,6 +4098,7 @@ EXPORT_SYMBOL(drm_dp_pcon_convert_rgb_to_ycbcr);
+ int drm_edp_backlight_set_level(struct drm_dp_aux *aux, const struct drm_edp_backlight_info *bl,
+ 				u32 level)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int ret;
+ 	unsigned int offset = DP_EDP_BACKLIGHT_BRIGHTNESS_MSB;
+ 	u8 buf[3] = { 0 };
+@@ -3997,6 +4137,7 @@ static int
+ drm_edp_backlight_set_enable(struct drm_dp_aux *aux, const struct drm_edp_backlight_info *bl,
+ 			     bool enable)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int ret;
+ 	u8 buf;
+ 
+@@ -4046,6 +4187,7 @@ drm_edp_backlight_set_enable(struct drm_dp_aux *aux, const struct drm_edp_backli
+ int drm_edp_backlight_enable(struct drm_dp_aux *aux, const struct drm_edp_backlight_info *bl,
+ 			     const u32 level)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int ret;
+ 	u8 dpcd_buf;
+ 
+@@ -4110,6 +4252,7 @@ EXPORT_SYMBOL(drm_edp_backlight_enable);
+  */
+ int drm_edp_backlight_disable(struct drm_dp_aux *aux, const struct drm_edp_backlight_info *bl)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int ret;
+ 
+ 	ret = drm_edp_backlight_set_enable(aux, bl, false);
+@@ -4124,6 +4267,7 @@ static inline int
+ drm_edp_backlight_probe_max(struct drm_dp_aux *aux, struct drm_edp_backlight_info *bl,
+ 			    u16 driver_pwm_freq_hz, const u8 edp_dpcd[EDP_DISPLAY_CTL_CAP_SIZE])
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int fxp, fxp_min, fxp_max, fxp_actual, f = 1;
+ 	int ret;
+ 	u8 pn, pn_min, pn_max;
+@@ -4219,6 +4363,7 @@ static inline int
+ drm_edp_backlight_probe_state(struct drm_dp_aux *aux, struct drm_edp_backlight_info *bl,
+ 			      u8 *current_mode)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int ret;
+ 	u8 buf[3];
+ 	u8 mode_reg;
+@@ -4303,6 +4448,7 @@ drm_edp_backlight_init(struct drm_dp_aux *aux, struct drm_edp_backlight_info *bl
+ 		       u16 driver_pwm_freq_hz, const u8 edp_dpcd[EDP_DISPLAY_CTL_CAP_SIZE],
+ 		       u32 *current_level, u8 *current_mode, bool need_luminance)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int ret;
+ 
+ 	if (edp_dpcd[1] & DP_EDP_BACKLIGHT_AUX_ENABLE_CAP)
+@@ -4463,6 +4609,7 @@ static int drm_dp_link_data_symbol_cycles(int lane_count, int pixels,
+ 					  int bpp_x16, int symbol_size,
+ 					  bool is_mst)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int cycles = DIV_ROUND_UP(pixels * bpp_x16, 16 * symbol_size * lane_count);
+ 	int align = is_mst ? 4 / lane_count : 1;
+ 
+@@ -4484,6 +4631,7 @@ static int drm_dp_link_data_symbol_cycles(int lane_count, int pixels,
+ int drm_dp_link_symbol_cycles(int lane_count, int pixels, int dsc_slice_count,
+ 			      int bpp_x16, int symbol_size, bool is_mst)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int slice_count = dsc_slice_count ? : 1;
+ 	int slice_pixels = DIV_ROUND_UP(pixels, slice_count);
+ 	int slice_data_cycles = drm_dp_link_data_symbol_cycles(lane_count,
+@@ -4529,6 +4677,7 @@ int drm_dp_bw_overhead(int lane_count, int hactive,
+ 		       int dsc_slice_count,
+ 		       int bpp_x16, unsigned long flags)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int symbol_size = flags & DRM_DP_BW_OVERHEAD_UHBR ? 32 : 8;
+ 	bool is_mst = flags & DRM_DP_BW_OVERHEAD_MST;
+ 	u32 overhead = 1000000;
+@@ -4601,6 +4750,7 @@ EXPORT_SYMBOL(drm_dp_bw_overhead);
+  */
+ int drm_dp_bw_channel_coding_efficiency(bool is_uhbr)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	if (is_uhbr)
+ 		return 967100;
+ 	else
+@@ -4634,6 +4784,7 @@ EXPORT_SYMBOL(drm_dp_bw_channel_coding_efficiency);
+  */
+ int drm_dp_max_dprx_data_rate(int max_link_rate, int max_lanes)
+ {
++	pr_err("DP_DEBUG: drm_dp_helper: %s\n", __func__);
+ 	int ch_coding_efficiency =
+ 		drm_dp_bw_channel_coding_efficiency(drm_dp_is_uhbr_rate(max_link_rate));
+ 
+diff --git a/drivers/gpu/drm/drm_panel.c b/drivers/gpu/drm/drm_panel.c
+index c8bb28dccdc1..3a0a620000f8 100644
+--- a/drivers/gpu/drm/drm_panel.c
++++ b/drivers/gpu/drm/drm_panel.c
+@@ -59,6 +59,7 @@ static LIST_HEAD(panel_list);
+ void drm_panel_init(struct drm_panel *panel, struct device *dev,
+ 		    const struct drm_panel_funcs *funcs, int connector_type)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	if (connector_type == DRM_MODE_CONNECTOR_Unknown)
+ 		DRM_WARN("%s: %s: a valid connector type is required!\n", __func__, dev_name(dev));
+ 
+@@ -81,6 +82,7 @@ EXPORT_SYMBOL(drm_panel_init);
+  */
+ void drm_panel_add(struct drm_panel *panel)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	mutex_lock(&panel_lock);
+ 	list_add_tail(&panel->list, &panel_list);
+ 	mutex_unlock(&panel_lock);
+@@ -95,6 +97,7 @@ EXPORT_SYMBOL(drm_panel_add);
+  */
+ void drm_panel_remove(struct drm_panel *panel)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	mutex_lock(&panel_lock);
+ 	list_del_init(&panel->list);
+ 	mutex_unlock(&panel_lock);
+@@ -113,6 +116,7 @@ EXPORT_SYMBOL(drm_panel_remove);
+  */
+ void drm_panel_prepare(struct drm_panel *panel)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	struct drm_panel_follower *follower;
+ 	int ret;
+ 
+@@ -156,6 +160,7 @@ EXPORT_SYMBOL(drm_panel_prepare);
+  */
+ void drm_panel_unprepare(struct drm_panel *panel)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	struct drm_panel_follower *follower;
+ 	int ret;
+ 
+@@ -209,6 +214,7 @@ EXPORT_SYMBOL(drm_panel_unprepare);
+  */
+ void drm_panel_enable(struct drm_panel *panel)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	int ret;
+ 
+ 	if (!panel)
+@@ -290,6 +296,7 @@ EXPORT_SYMBOL(drm_panel_disable);
+ int drm_panel_get_modes(struct drm_panel *panel,
+ 			struct drm_connector *connector)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	if (!panel)
+ 		return 0;
+ 
+diff --git a/drivers/gpu/drm/panel/panel-edp.c b/drivers/gpu/drm/panel/panel-edp.c
+index 2f59f230453d..c5425f790cd1 100644
+--- a/drivers/gpu/drm/panel/panel-edp.c
++++ b/drivers/gpu/drm/panel/panel-edp.c
+@@ -2094,6 +2094,7 @@ static const struct edp_panel_entry *find_edp_panel(u32 panel_id, const struct d
+ 
+ static int panel_edp_platform_probe(struct platform_device *pdev)
+ {
++	pr_err("DP_DEBUG: %s\n", __func__);
+ 	const struct of_device_id *id;
+ 
+ 	/* Skip one since "edp-panel" is only supported on DP AUX bus */
+diff --git a/drivers/gpu/drm/rockchip/analogix_dp-rockchip.c b/drivers/gpu/drm/rockchip/analogix_dp-rockchip.c
+index d30f0983a53a..02653fa827d6 100644
+--- a/drivers/gpu/drm/rockchip/analogix_dp-rockchip.c
++++ b/drivers/gpu/drm/rockchip/analogix_dp-rockchip.c
+@@ -95,6 +95,7 @@ static struct rockchip_dp_device *pdata_encoder_to_dp(struct analogix_dp_plat_da
+ 
+ static int rockchip_grf_write(struct regmap *grf, u32 reg, u32 mask, u32 val)
+ {
++	pr_err("DP_DEBUG: analogix_dp-rockchip: %s\n", __func__);
+ 	return regmap_write(grf, reg, (mask << 16) | (val & mask));
+ }
+ 
+@@ -102,6 +103,7 @@ static int rockchip_grf_field_write(struct regmap *grf,
+ 				    const struct rockchip_grf_reg_field *field,
+ 				    u32 val)
+ {
++	pr_err("DP_DEBUG: analogix_dp-rockchip: %s\n", __func__);
+ 	u32 mask;
+ 
+ 	if (!field->valid)
+@@ -115,6 +117,7 @@ static int rockchip_grf_field_write(struct regmap *grf,
+ 
+ static int rockchip_dp_pre_init(struct rockchip_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: analogix_dp-rockchip: %s\n", __func__);
+ 	reset_control_assert(dp->rst);
+ 	usleep_range(10, 20);
+ 	reset_control_deassert(dp->rst);
+@@ -128,6 +131,7 @@ static int rockchip_dp_pre_init(struct rockchip_dp_device *dp)
+ 
+ static int rockchip_dp_poweron(struct analogix_dp_plat_data *plat_data)
+ {
++	pr_err("DP_DEBUG: analogix_dp-rockchip: %s\n", __func__);
+ 	struct rockchip_dp_device *dp = pdata_encoder_to_dp(plat_data);
+ 	int ret;
+ 
+@@ -153,6 +157,7 @@ static int rockchip_dp_poweron(struct analogix_dp_plat_data *plat_data)
+ 
+ static int rockchip_dp_powerdown(struct analogix_dp_plat_data *plat_data)
+ {
++	pr_err("DP_DEBUG: analogix_dp-rockchip: %s\n", __func__);
+ 	struct rockchip_dp_device *dp = pdata_encoder_to_dp(plat_data);
+ 	int ret;
+ 
+@@ -168,6 +173,7 @@ static int rockchip_dp_powerdown(struct analogix_dp_plat_data *plat_data)
+ static int rockchip_dp_get_modes(struct analogix_dp_plat_data *plat_data,
+ 				 struct drm_connector *connector)
+ {
++	pr_err("DP_DEBUG: analogix_dp-rockchip: %s\n", __func__);
+ 	struct drm_display_info *di = &connector->display_info;
+ 	/* VOP couldn't output YUV video format for eDP rightly */
+ 	u32 mask = DRM_COLOR_FORMAT_YCBCR444 | DRM_COLOR_FORMAT_YCBCR422;
+@@ -202,6 +208,7 @@ static
+ struct drm_crtc *rockchip_dp_drm_get_new_crtc(struct drm_encoder *encoder,
+ 					      struct drm_atomic_state *state)
+ {
++	pr_err("DP_DEBUG: analogix_dp-rockchip: %s\n", __func__);
+ 	struct drm_connector *connector;
+ 	struct drm_connector_state *conn_state;
+ 
+@@ -219,6 +226,7 @@ struct drm_crtc *rockchip_dp_drm_get_new_crtc(struct drm_encoder *encoder,
+ static void rockchip_dp_drm_encoder_enable(struct drm_encoder *encoder,
+ 					   struct drm_atomic_state *state)
+ {
++	pr_err("DP_DEBUG: analogix_dp-rockchip: %s\n", __func__);
+ 	struct rockchip_dp_device *dp = encoder_to_dp(encoder);
+ 	struct drm_crtc *crtc;
+ 	struct drm_crtc_state *old_crtc_state;
+@@ -273,6 +281,8 @@ static void rockchip_dp_drm_encoder_enable(struct drm_encoder *encoder,
+ static void rockchip_dp_drm_encoder_disable(struct drm_encoder *encoder,
+ 					    struct drm_atomic_state *state)
+ {
++
++	pr_err("DP_DEBUG: analogix_dp-rockchip: %s\n", __func__);
+ 	struct rockchip_dp_device *dp = encoder_to_dp(encoder);
+ 	struct drm_crtc *crtc;
+ 	struct drm_crtc_state *new_crtc_state = NULL;
+@@ -298,6 +308,7 @@ rockchip_dp_drm_encoder_atomic_check(struct drm_encoder *encoder,
+ 				      struct drm_crtc_state *crtc_state,
+ 				      struct drm_connector_state *conn_state)
+ {
++	pr_err("DP_DEBUG: analogix_dp-rockchip: %s\n", __func__);
+ 	struct rockchip_crtc_state *s = to_rockchip_crtc_state(crtc_state);
+ 	struct drm_display_info *di = &conn_state->connector->display_info;
+ 
+@@ -326,6 +337,7 @@ static const struct drm_encoder_helper_funcs rockchip_dp_encoder_helper_funcs =
+ 
+ static int rockchip_dp_of_probe(struct rockchip_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: analogix_dp-rockchip: %s\n", __func__);
+ 	struct device *dev = dp->dev;
+ 	struct device_node *np = dev->of_node;
+ 
+@@ -368,6 +380,7 @@ static int rockchip_dp_of_probe(struct rockchip_dp_device *dp)
+ 
+ static int rockchip_dp_drm_create_encoder(struct rockchip_dp_device *dp)
+ {
++	pr_err("DP_DEBUG: analogix_dp-rockchip: %s\n", __func__);
+ 	struct drm_encoder *encoder = &dp->encoder.encoder;
+ 	struct drm_device *drm_dev = dp->drm_dev;
+ 	struct device *dev = dp->dev;
+@@ -392,6 +405,7 @@ static int rockchip_dp_drm_create_encoder(struct rockchip_dp_device *dp)
+ static int rockchip_dp_bind(struct device *dev, struct device *master,
+ 			    void *data)
+ {
++	pr_err("DP_DEBUG: analogix_dp-rockchip: %s\n", __func__);
+ 	struct rockchip_dp_device *dp = dev_get_drvdata(dev);
+ 	struct drm_device *drm_dev = data;
+ 	int ret;
+@@ -422,6 +436,7 @@ static int rockchip_dp_bind(struct device *dev, struct device *master,
+ static void rockchip_dp_unbind(struct device *dev, struct device *master,
+ 			       void *data)
+ {
++	pr_err("DP_DEBUG: analogix_dp-rockchip: %s\n", __func__);
+ 	struct rockchip_dp_device *dp = dev_get_drvdata(dev);
+ 
+ 	analogix_dp_unbind(dp->adp);
+@@ -435,6 +450,7 @@ static const struct component_ops rockchip_dp_component_ops = {
+ 
+ static int rockchip_dp_link_panel(struct drm_dp_aux *aux)
+ {
++	pr_err("DP_DEBUG: analogix_dp-rockchip: %s\n", __func__);
+ 	struct analogix_dp_plat_data *plat_data = analogix_dp_aux_to_plat_data(aux);
+ 	struct rockchip_dp_device *dp = pdata_encoder_to_dp(plat_data);
+ 	int ret;
+@@ -453,6 +469,7 @@ static int rockchip_dp_link_panel(struct drm_dp_aux *aux)
+ 
+ static int rockchip_dp_probe(struct platform_device *pdev)
+ {
++	pr_err("DP_DEBUG: analogix_dp-rockchip: %s\n", __func__);
+ 	struct device *dev = &pdev->dev;
+ 	const struct rockchip_dp_chip_data *dp_data;
+ 	struct rockchip_dp_device *dp;
