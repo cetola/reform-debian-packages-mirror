@@ -196,6 +196,7 @@ build_custom:
     done
     if [ "$found" -eq 0 ]; then
       echo "cdns missing" >&2
+      exit 1
     else
       echo "cdns found" >&2
     fi
@@ -212,6 +213,7 @@ build_custom:
       done
       if [ "$found" -eq 0 ]; then
         echo "$dtb missing" >&2
+        exit 1
       else
         echo "$dtb found" >&2
       fi
