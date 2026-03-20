@@ -183,23 +183,24 @@ build_custom:
     if [ "$HOST_ARCH" != "arm64" ]; then
       exit 0
     fi
-    # since kernel 6.19, modules are in the linux-modules-* package
-    found=0
-    for p in "changes-$HOST_ARCH"/linux-image-*-mnt-reform-arm64_*_arm64.deb \
-             "changes-$HOST_ARCH"/linux-modules-*-mnt-reform-arm64_*_arm64.deb; do
-      [ -e "$p" ] || continue
-      if dpkg-deb -c "$p" | grep 'kernel/drivers/gpu/drm/imx\(/cdns\)\?/cdns_mhdp_imx.ko' \
-        && dpkg-deb -c "$p" | grep 'kernel/drivers/gpu/drm/bridge/cadence/cdns-mhdp8546.ko'; then
-        found=1
-        break
+    for module in 'kernel/drivers/gpu/drm/imx\(/cdns\)\?/cdns_mhdp_imx.ko' 'kernel/drivers/gpu/drm/bridge/cadence/cdns-mhdp8546.ko'; do
+      # since kernel 6.19, modules are in the linux-modules-* package
+      found=0
+      for p in "changes-$HOST_ARCH"/linux-image-*-mnt-reform-arm64_*_arm64.deb \
+               "changes-$HOST_ARCH"/linux-modules-*-mnt-reform-arm64_*_arm64.deb; do
+        [ -e "$p" ] || continue
+        if dpkg-deb -c "$p" | grep "$module"; then
+          found=1
+          break
+        fi
+      done
+      if [ "$found" -eq 0 ]; then
+        echo "$module missing" >&2
+        exit 1
+      else
+        echo "$module found" >&2
       fi
     done
-    if [ "$found" -eq 0 ]; then
-      echo "cdns missing" >&2
-      exit 1
-    else
-      echo "cdns found" >&2
-    fi
     for dtb in amlogic/meson-g12b-bananapi-cm4-mnt-pocket-reform.dtb freescale/imx8mp-mnt-pocket-reform.dtb freescale/imx8mq-mnt-reform2.dtb freescale/imx8mq-mnt-reform2-hdmi.dtb amlogic/meson-g12b-bananapi-cm4-mnt-reform2.dtb freescale/imx8mp-mnt-reform2.dtb freescale/fsl-ls1028a-mnt-reform2.dtb rockchip/rk3588-mnt-reform2.dtb; do
       # since kernel 6.19, dtbs are in the linux-base-* package
       found=0
