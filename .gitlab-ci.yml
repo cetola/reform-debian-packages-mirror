@@ -183,7 +183,9 @@ build_custom:
     if [ "$HOST_ARCH" != "arm64" ]; then
       exit 0
     fi
-    for module in 'kernel/drivers/gpu/drm/imx\(/cdns\)\?/cdns_mhdp_imx.ko' 'kernel/drivers/gpu/drm/bridge/cadence/cdns-mhdp8546.ko'; do
+    for module in 'kernel/drivers/gpu/drm/imx\(/cdns\)\?/cdns_mhdp_imx.ko' \
+                  'kernel/drivers/gpu/drm/bridge/cadence/cdns-mhdp8546.ko' \
+                  'kernel/drivers/net/mdio/mdio-mux-meson-g12a.ko'; do
       # since kernel 6.19, modules are in the linux-modules-* package
       found=0
       for p in "changes-$HOST_ARCH"/linux-image-*-mnt-reform-arm64_*_arm64.deb \
