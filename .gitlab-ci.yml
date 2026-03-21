@@ -9,7 +9,7 @@ variables:
     value: reform
   MIRROR:
     description: Debian mirror to pull packages from
-    value: http://snapshot.debian.org/archive/debian/20260312T000000Z/
+    value: http://deb.debian.org/debian
 
 stages:
   - build
@@ -44,7 +44,7 @@ stages:
     runuser -u build -- reprepro --basedir ./repo export
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
     runuser -u build -- sh -c 'mkdir -p ~/.config/sbuild'
-    runuser -u build -- sh -c 'echo "\$chroot_mode = \"unshare\";\$unshare_mmdebstrap_keep_tarball=1;\$chroot_aliases->{reform} = \"unstable\";push @{\$unshare_mmdebstrap_distro_mangle}, qr/^reform\$/, \"unstable\";push @{\$unshare_mmdebstrap_extra_args}, (\"*\", [\"--setup-hook=echo \\\"deb http://deb.debian.org/debian experimental main\\\" > \\\"\\\$1\\\"/etc/apt/sources.list.d/experimental.list\", \"--include=libopencolorio-dev/experimental\", \"http://snapshot.debian.org/archive/debian/20260312T000000Z/\"]);1;" > ~/.config/sbuild/config.pl'
+    runuser -u build -- sh -c 'echo "\$chroot_mode = \"unshare\";\$unshare_mmdebstrap_keep_tarball=1;\$chroot_aliases->{reform} = \"unstable\";push @{\$unshare_mmdebstrap_distro_mangle}, qr/^reform\$/, \"unstable\";push @{\$unshare_mmdebstrap_extra_args}, (\"*\", [\"--setup-hook=echo \\\"deb http://deb.debian.org/debian experimental main\\\" > \\\"\\\$1\\\"/etc/apt/sources.list.d/experimental.list\", \"--include=libopencolorio-dev/experimental\"]);1;" > ~/.config/sbuild/config.pl'
     runuser -u build -- sh -c 'mkdir -p changes buildlogs'
     chown build -R .
 
