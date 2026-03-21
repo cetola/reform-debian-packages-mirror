@@ -305,6 +305,39 @@ build_linux_amd64:
       - changes-amd64
       - linux/linux_*_amd64-*.build
 
+dtbs_check:
+  stage: build
+  tags:
+    - arm64
+  needs:
+    - job: build_linux_arm64
+      artifacts: true
+  script: |
+    set -exuo pipefail
+    apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
+    apt-get --yes install --no-install-recommends gcc-aarch64-linux-gnu build-essential bison flex device-tree-compiler git ca-certificates xz-utils libssl-dev bc dt-schema
+    dpkg -x ./changes-arm64/linux-source-*.deb ./
+    dpkg -x ./changes-arm64/linux-config-*.deb ./
+    tar xfJ usr/src/linux-source-*.tar.xz
+    cd linux-source-*
+    xz --decompress --to-stdout ../usr/src/linux-config-*/config.arm64_none_*arm64.xz > .config
+    for dtb in \
+      amlogic/meson-g12b-bananapi-cm4-mnt-pocket-reform.dtb \
+      freescale/imx8mp-mnt-pocket-reform.dtb \
+      freescale/imx8mq-mnt-reform2.dtb \
+      freescale/imx8mq-mnt-reform2-hdmi.dtb \
+      amlogic/meson-g12b-bananapi-cm4-mnt-reform2.dtb \
+      freescale/imx8mp-mnt-reform2.dtb \
+      freescale/fsl-ls1028a-mnt-reform2.dtb \
+      rockchip/rk3588-mnt-reform2.dtb; do
+      set +x
+      echo =================================================================
+      echo "    $dtb"
+      echo =================================================================
+      set -x
+      make CHECK_DTBS=y "$dtb"
+    done
+
 build_qcacld:
   stage: build
   tags:
