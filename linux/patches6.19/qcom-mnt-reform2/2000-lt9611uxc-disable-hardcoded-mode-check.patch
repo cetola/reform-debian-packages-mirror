@@ -1,0 +1,19 @@
+commit 96503c5ad18b2daaca75962daf8a483f6d955d61
+Author: Lucie L. Hartmann <lukas@mntre.com>
+Date:   Sat Mar 28 16:20:43 2026 +0100
+
+    experiment: lt9611uxc: disable hardcoded mode list check
+
+diff --git a/drivers/gpu/drm/bridge/lontium-lt9611uxc.c b/drivers/gpu/drm/bridge/lontium-lt9611uxc.c
+index 38fb877..ebe87ea 100644
+--- a/drivers/gpu/drm/bridge/lontium-lt9611uxc.c
++++ b/drivers/gpu/drm/bridge/lontium-lt9611uxc.c
+@@ -298,7 +298,7 @@ lt9611uxc_bridge_mode_valid(struct drm_bridge *bridge,
+ 
+ 	lt9611uxc_mode = lt9611uxc_find_mode(mode);
+ 
+-	return lt9611uxc_mode ? MODE_OK : MODE_BAD;
++	return lt9611uxc_mode ? MODE_OK : MODE_OK;
+ }
+ 
+ static void lt9611uxc_video_setup(struct lt9611uxc *lt9611uxc,
