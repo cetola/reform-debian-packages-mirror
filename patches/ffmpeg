@@ -1604,7 +1604,7 @@ diff -Nru ffmpeg-8.0.1/debian/patches/0003-avcodec-Add-common-V4L2-Request-API-c
 +--- a/libavcodec/Makefile
 ++++ b/libavcodec/Makefile
 +@@ -183,6 +183,7 @@ OBJS-$(CONFIG_VP3DSP)                  +
-+ OBJS-$(CONFIG_VP56DSP)                 += vp56dsp.o
++ OBJS-$(CONFIG_VP3DSP)                  += vp3dsp.o
 + OBJS-$(CONFIG_VP8DSP)                  += vp8dsp.o
 + OBJS-$(CONFIG_V4L2_M2M)                += v4l2_m2m.o v4l2_context.o v4l2_buffers.o v4l2_fmt.o
 ++OBJS-$(CONFIG_V4L2_REQUEST)            += v4l2_request.o
@@ -1612,7 +1612,7 @@ diff -Nru ffmpeg-8.0.1/debian/patches/0003-avcodec-Add-common-V4L2-Request-API-c
 + OBJS-$(CONFIG_WMV2DSP)                 += wmv2dsp.o
 + 
 +@@ -1335,6 +1336,7 @@ SKIPHEADERS-$(CONFIG_VIDEOTOOLBOX)     +
-+ SKIPHEADERS-$(CONFIG_VULKAN)           += ffv1_vulkan.h vulkan_video.h \
++ SKIPHEADERS-$(CONFIG_VULKAN)           += ffv1_vulkan.h prores_vulkan.h vulkan_video.h \
 +                                           vulkan_encode.h vulkan_decode.h
 + SKIPHEADERS-$(CONFIG_V4L2_M2M)         += v4l2_buffers.h v4l2_context.h v4l2_m2m.h
 ++SKIPHEADERS-$(CONFIG_V4L2_REQUEST)     += v4l2_request.h
