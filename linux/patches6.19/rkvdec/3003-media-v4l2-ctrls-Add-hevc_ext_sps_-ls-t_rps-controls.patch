@@ -1,6 +1,6 @@
-From 5a7f49ea6b180e4a83c42d46b57860ac91921a54 Mon Sep 17 00:00:00 2001
+From 898e43dfe0544f454b530b5a5872ddc3bda99376 Mon Sep 17 00:00:00 2001
 From: Detlev Casanova <detlev.casanova@collabora.com>
-Date: Thu, 23 Oct 2025 17:42:33 -0400
+Date: Fri, 9 Jan 2026 11:15:18 -0500
 Subject: [PATCH 3003/3018] media: v4l2-ctrls: Add hevc_ext_sps_[ls]t_rps
  controls
 
@@ -16,6 +16,7 @@ Each element of the hevc_ext_sps_st_rps contains the short term ref pic
 set at that index, as the raw data.
 It is the role of the drivers to calculate the reference sets values.
 
+Reviewed-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
 Signed-off-by: Detlev Casanova <detlev.casanova@collabora.com>
 ---
  drivers/media/v4l2-core/v4l2-ctrls-core.c | 28 +++++++++++
@@ -25,7 +26,7 @@ Signed-off-by: Detlev Casanova <detlev.casanova@collabora.com>
  4 files changed, 101 insertions(+)
 
 diff --git a/drivers/media/v4l2-core/v4l2-ctrls-core.c b/drivers/media/v4l2-core/v4l2-ctrls-core.c
-index 209bc05883bb..f11255255c74 100644
+index 209bc05883..f11255255c 100644
 --- a/drivers/media/v4l2-core/v4l2-ctrls-core.c
 +++ b/drivers/media/v4l2-core/v4l2-ctrls-core.c
 @@ -424,6 +424,12 @@ void v4l2_ctrl_type_op_log(const struct v4l2_ctrl *ctrl)
@@ -85,7 +86,7 @@ index 209bc05883bb..f11255255c74 100644
  		elem_size = sizeof(struct v4l2_ctrl_hevc_scaling_matrix);
  		break;
 diff --git a/drivers/media/v4l2-core/v4l2-ctrls-defs.c b/drivers/media/v4l2-core/v4l2-ctrls-defs.c
-index ad41f65374e2..167286c9e424 100644
+index ad41f65374..167286c9e4 100644
 --- a/drivers/media/v4l2-core/v4l2-ctrls-defs.c
 +++ b/drivers/media/v4l2-core/v4l2-ctrls-defs.c
 @@ -1233,6 +1233,8 @@ const char *v4l2_ctrl_get_name(u32 id)
@@ -113,7 +114,7 @@ index ad41f65374e2..167286c9e424 100644
  		*type = V4L2_CTRL_TYPE_VP9_COMPRESSED_HDR;
  		break;
 diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index f84ed133a6c9..e9f1fcc4f840 100644
+index f84ed133a6..e9f1fcc4f8 100644
 --- a/include/uapi/linux/v4l2-controls.h
 +++ b/include/uapi/linux/v4l2-controls.h
 @@ -2099,6 +2099,8 @@ struct v4l2_ctrl_mpeg2_quantisation {
@@ -192,7 +193,7 @@ index f84ed133a6c9..e9f1fcc4f840 100644
  
  #define V4L2_VP9_LOOP_FILTER_FLAG_DELTA_ENABLED	0x1
 diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index add08188f068..5efaeb74ef92 100644
+index add08188f0..5efaeb74ef 100644
 --- a/include/uapi/linux/videodev2.h
 +++ b/include/uapi/linux/videodev2.h
 @@ -1985,6 +1985,8 @@ enum v4l2_ctrl_type {
@@ -205,5 +206,5 @@ index add08188f068..5efaeb74ef92 100644
  	V4L2_CTRL_TYPE_AV1_SEQUENCE	    = 0x280,
  	V4L2_CTRL_TYPE_AV1_TILE_GROUP_ENTRY = 0x281,
 -- 
-2.52.0
+2.47.3
 

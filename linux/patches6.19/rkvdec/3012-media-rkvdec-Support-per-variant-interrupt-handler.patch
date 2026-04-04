@@ -1,6 +1,6 @@
-From 88e82c5f1be3c74fa1ed450353bc774fc9353173 Mon Sep 17 00:00:00 2001
+From 04d7acbd30eedee232ad84d801d73da603240079 Mon Sep 17 00:00:00 2001
 From: Detlev Casanova <detlev.casanova@collabora.com>
-Date: Thu, 23 Oct 2025 17:42:41 -0400
+Date: Fri, 9 Jan 2026 11:15:27 -0500
 Subject: [PATCH 3012/3018] media: rkvdec: Support per-variant interrupt
  handler
 
@@ -11,6 +11,7 @@ To support other variants specific function type later, introduce the
 rkvdec_variant_ops struct.
 
 Tested-by: Diederik de Haas <didi.debian@cknow.org>  # Rock 5B
+Reviewed-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
 Signed-off-by: Detlev Casanova <detlev.casanova@collabora.com>
 ---
  .../media/platform/rockchip/rkvdec/rkvdec.c   | 21 ++++++++++++++++---
@@ -18,10 +19,10 @@ Signed-off-by: Detlev Casanova <detlev.casanova@collabora.com>
  2 files changed, 23 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/media/platform/rockchip/rkvdec/rkvdec.c b/drivers/media/platform/rockchip/rkvdec/rkvdec.c
-index 028ce8e1c4ca..87373a6d9573 100644
+index ff6a09e454..174536ebdc 100644
 --- a/drivers/media/platform/rockchip/rkvdec/rkvdec.c
 +++ b/drivers/media/platform/rockchip/rkvdec/rkvdec.c
-@@ -1218,10 +1218,9 @@ static void rkvdec_iommu_restore(struct rkvdec_dev *rkvdec)
+@@ -1222,10 +1222,9 @@ static void rkvdec_iommu_restore(struct rkvdec_dev *rkvdec)
  	}
  }
  
@@ -34,7 +35,7 @@ index 028ce8e1c4ca..87373a6d9573 100644
  	enum vb2_buffer_state state;
  	u32 status;
  
-@@ -1242,6 +1241,15 @@ static irqreturn_t rkvdec_irq_handler(int irq, void *priv)
+@@ -1246,6 +1245,15 @@ static irqreturn_t rkvdec_irq_handler(int irq, void *priv)
  	return IRQ_HANDLED;
  }
  
@@ -50,7 +51,7 @@ index 028ce8e1c4ca..87373a6d9573 100644
  static void rkvdec_watchdog_func(struct work_struct *work)
  {
  	struct rkvdec_dev *rkvdec;
-@@ -1257,10 +1265,15 @@ static void rkvdec_watchdog_func(struct work_struct *work)
+@@ -1261,16 +1269,22 @@ static void rkvdec_watchdog_func(struct work_struct *work)
  	}
  }
  
@@ -60,33 +61,32 @@ index 028ce8e1c4ca..87373a6d9573 100644
 +
  static const struct rkvdec_variant rk3288_rkvdec_variant = {
  	.num_regs = 68,
- 	.coded_fmts = rkvdec_coded_fmts,
- 	.num_coded_fmts = ARRAY_SIZE(rkvdec_coded_fmts),
+ 	.coded_fmts = rk3288_coded_fmts,
+ 	.num_coded_fmts = ARRAY_SIZE(rk3288_coded_fmts),
 +	.ops = &rk3399_variant_ops,
- 	.capabilities = RKVDEC_CAPABILITY_HEVC,
  };
  
-@@ -1268,6 +1281,7 @@ static const struct rkvdec_variant rk3328_rkvdec_variant = {
+ static const struct rkvdec_variant rk3328_rkvdec_variant = {
  	.num_regs = 109,
  	.coded_fmts = rkvdec_coded_fmts,
  	.num_coded_fmts = ARRAY_SIZE(rkvdec_coded_fmts),
 +	.ops = &rk3399_variant_ops,
- 	.capabilities = RKVDEC_CAPABILITY_HEVC |
- 			RKVDEC_CAPABILITY_H264 |
- 			RKVDEC_CAPABILITY_VP9,
+ 	.quirks = RKVDEC_QUIRK_DISABLE_QOS,
+ };
+ 
 @@ -1278,6 +1292,7 @@ static const struct rkvdec_variant rk3399_rkvdec_variant = {
  	.num_regs = 78,
  	.coded_fmts = rkvdec_coded_fmts,
  	.num_coded_fmts = ARRAY_SIZE(rkvdec_coded_fmts),
 +	.ops = &rk3399_variant_ops,
- 	.capabilities = RKVDEC_CAPABILITY_HEVC |
- 			RKVDEC_CAPABILITY_H264 |
- 			RKVDEC_CAPABILITY_VP9,
+ };
+ 
+ static const struct of_device_id of_rkvdec_match[] = {
 diff --git a/drivers/media/platform/rockchip/rkvdec/rkvdec.h b/drivers/media/platform/rockchip/rkvdec/rkvdec.h
-index 77c0950a465d..12e53d591362 100644
+index 751f39afe7..faabedd2b9 100644
 --- a/drivers/media/platform/rockchip/rkvdec/rkvdec.h
 +++ b/drivers/media/platform/rockchip/rkvdec/rkvdec.h
-@@ -71,12 +71,17 @@ vb2_to_rkvdec_decoded_buf(struct vb2_buffer *buf)
+@@ -67,12 +67,17 @@ vb2_to_rkvdec_decoded_buf(struct vb2_buffer *buf)
  			    base.vb.vb2_buf);
  }
  
@@ -101,9 +101,9 @@ index 77c0950a465d..12e53d591362 100644
  	const struct rcb_size_info *rcb_sizes;
  	size_t num_rcb_sizes;
 +	const struct rkvdec_variant_ops *ops;
- 	unsigned int capabilities;
  	unsigned int quirks;
  };
+ 
 -- 
-2.52.0
+2.47.3
 

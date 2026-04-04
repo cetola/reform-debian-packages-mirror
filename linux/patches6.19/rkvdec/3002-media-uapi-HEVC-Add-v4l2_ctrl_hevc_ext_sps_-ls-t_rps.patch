@@ -1,6 +1,6 @@
-From b2ad20af5166414339b4a40a3bca1287d7c9a8fe Mon Sep 17 00:00:00 2001
+From 150274b9334ad584279441967d59b807c82781c1 Mon Sep 17 00:00:00 2001
 From: Detlev Casanova <detlev.casanova@collabora.com>
-Date: Thu, 23 Oct 2025 17:42:32 -0400
+Date: Fri, 9 Jan 2026 11:15:17 -0500
 Subject: [PATCH 3002/3018] media: uapi: HEVC: Add
  v4l2_ctrl_hevc_ext_sps_[ls]t_rps controls
 
@@ -17,6 +17,7 @@ These now controls are similar as what is passed in the Vulkan Video API
 with the StdVideoH265ShortTermRefPicSet and StdVideoH265LongTermRefPicsSps
 structures embedded in the SPS struct.
 
+Reviewed-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
 Signed-off-by: Detlev Casanova <detlev.casanova@collabora.com>
 ---
  .../media/v4l/ext-ctrls-codec-stateless.rst   | 120 ++++++++++++++++++
@@ -25,7 +26,7 @@ Signed-off-by: Detlev Casanova <detlev.casanova@collabora.com>
  3 files changed, 134 insertions(+)
 
 diff --git a/Documentation/userspace-api/media/v4l/ext-ctrls-codec-stateless.rst b/Documentation/userspace-api/media/v4l/ext-ctrls-codec-stateless.rst
-index 497ae74379f6..3b1e05c6eb13 100644
+index 497ae74379..3b1e05c6eb 100644
 --- a/Documentation/userspace-api/media/v4l/ext-ctrls-codec-stateless.rst
 +++ b/Documentation/userspace-api/media/v4l/ext-ctrls-codec-stateless.rst
 @@ -2959,6 +2959,126 @@ This structure contains all loop filter related parameters. See sections
@@ -156,20 +157,20 @@ index 497ae74379f6..3b1e05c6eb13 100644
  
  ``V4L2_CID_STATELESS_AV1_SEQUENCE (struct)``
 diff --git a/Documentation/userspace-api/media/v4l/videodev2.h.rst.exceptions b/Documentation/userspace-api/media/v4l/videodev2.h.rst.exceptions
-index c41693115db6..6182b4e2d2ee 100644
+index c41693115d..6182b4e2d2 100644
 --- a/Documentation/userspace-api/media/v4l/videodev2.h.rst.exceptions
 +++ b/Documentation/userspace-api/media/v4l/videodev2.h.rst.exceptions
-@@ -150,6 +150,8 @@ replace symbol V4L2_CTRL_TYPE_H264_SCALING_MATRIX :c:type:`v4l2_ctrl_type`
- replace symbol V4L2_CTRL_TYPE_H264_PRED_WEIGHTS :c:type:`v4l2_ctrl_type`
- replace symbol V4L2_CTRL_TYPE_H264_SLICE_PARAMS :c:type:`v4l2_ctrl_type`
- replace symbol V4L2_CTRL_TYPE_H264_DECODE_PARAMS :c:type:`v4l2_ctrl_type`
+@@ -150,6 +150,8 @@ replace symbol V4L2_CTRL_TYPE_H264_SCALING_MATRIX :c:type:`V4L.v4l2_ctrl_type`
+ replace symbol V4L2_CTRL_TYPE_H264_PRED_WEIGHTS :c:type:`V4L.v4l2_ctrl_type`
+ replace symbol V4L2_CTRL_TYPE_H264_SLICE_PARAMS :c:type:`V4L.v4l2_ctrl_type`
+ replace symbol V4L2_CTRL_TYPE_H264_DECODE_PARAMS :c:type:`V4L.v4l2_ctrl_type`
 +replace symbol V4L2_CTRL_TYPE_HEVC_EXT_SPS_ST_RPS :c:type:`V4L.v4l2_ctrl_type`
 +replace symbol V4L2_CTRL_TYPE_HEVC_EXT_SPS_LT_RPS :c:type:`V4L.v4l2_ctrl_type`
- replace symbol V4L2_CTRL_TYPE_HEVC_SPS :c:type:`v4l2_ctrl_type`
- replace symbol V4L2_CTRL_TYPE_HEVC_PPS :c:type:`v4l2_ctrl_type`
- replace symbol V4L2_CTRL_TYPE_HEVC_SLICE_PARAMS :c:type:`v4l2_ctrl_type`
+ replace symbol V4L2_CTRL_TYPE_HEVC_SPS :c:type:`V4L.v4l2_ctrl_type`
+ replace symbol V4L2_CTRL_TYPE_HEVC_PPS :c:type:`V4L.v4l2_ctrl_type`
+ replace symbol V4L2_CTRL_TYPE_HEVC_SLICE_PARAMS :c:type:`V4L.v4l2_ctrl_type`
 diff --git a/Documentation/userspace-api/media/v4l/vidioc-queryctrl.rst b/Documentation/userspace-api/media/v4l/vidioc-queryctrl.rst
-index c8baa9430c14..82c8b52e771c 100644
+index c8baa9430c..82c8b52e77 100644
 --- a/Documentation/userspace-api/media/v4l/vidioc-queryctrl.rst
 +++ b/Documentation/userspace-api/media/v4l/vidioc-queryctrl.rst
 @@ -531,6 +531,18 @@ See also the examples in :ref:`control`.
@@ -192,5 +193,5 @@ index c8baa9430c14..82c8b52e771c 100644
        - n/a
        - n/a
 -- 
-2.52.0
+2.47.3
 

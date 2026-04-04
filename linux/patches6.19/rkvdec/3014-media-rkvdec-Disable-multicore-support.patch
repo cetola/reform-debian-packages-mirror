@@ -1,6 +1,6 @@
-From c211d21a5c4bff70cc8e18bd1012363fd8f88cc2 Mon Sep 17 00:00:00 2001
+From 9f15ed499720894af81b023b9e44f379d0d9c7dd Mon Sep 17 00:00:00 2001
 From: Detlev Casanova <detlev.casanova@collabora.com>
-Date: Tue, 16 Dec 2025 16:01:13 -0500
+Date: Fri, 9 Jan 2026 11:15:29 -0500
 Subject: [PATCH 3014/3018] media: rkvdec: Disable multicore support
 
 Similarly to what is done in Hantro, avoid exposing equal video codecs to
@@ -14,16 +14,17 @@ This currently applies only to RK3588 which has 2 equal VDPU381 decoders,
 but will be applied for all SoC supported by rkvdec that has multiple DTS
 nodes with the same compatible.
 
+Reviewed-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
 Signed-off-by: Detlev Casanova <detlev.casanova@collabora.com>
 ---
  .../media/platform/rockchip/rkvdec/rkvdec.c   | 47 +++++++++++++++++++
  1 file changed, 47 insertions(+)
 
 diff --git a/drivers/media/platform/rockchip/rkvdec/rkvdec.c b/drivers/media/platform/rockchip/rkvdec/rkvdec.c
-index 9bd98b6a6be7..f7353d0acdab 100644
+index ce96a0470d..af2eced900 100644
 --- a/drivers/media/platform/rockchip/rkvdec/rkvdec.c
 +++ b/drivers/media/platform/rockchip/rkvdec/rkvdec.c
-@@ -1265,6 +1265,49 @@ static void rkvdec_watchdog_func(struct work_struct *work)
+@@ -1269,6 +1269,49 @@ static void rkvdec_watchdog_func(struct work_struct *work)
  	}
  }
  
@@ -73,7 +74,7 @@ index 9bd98b6a6be7..f7353d0acdab 100644
  static const struct rkvdec_variant_ops rk3399_variant_ops = {
  	.irq_handler = rk3399_irq_handler,
  };
-@@ -1335,6 +1378,10 @@ static int rkvdec_probe(struct platform_device *pdev)
+@@ -1332,6 +1375,10 @@ static int rkvdec_probe(struct platform_device *pdev)
  	mutex_init(&rkvdec->vdev_lock);
  	INIT_DELAYED_WORK(&rkvdec->watchdog_work, rkvdec_watchdog_func);
  
@@ -85,5 +86,5 @@ index 9bd98b6a6be7..f7353d0acdab 100644
  	if (ret < 0)
  		return ret;
 -- 
-2.52.0
+2.47.3
 

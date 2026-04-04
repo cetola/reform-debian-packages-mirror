@@ -1,4 +1,4 @@
-From 1e8b50ee2eeea7784276af4ecf6419359c283432 Mon Sep 17 00:00:00 2001
+From be26ebf4a8c5d9b229c1839bab536f455eceda45 Mon Sep 17 00:00:00 2001
 From: Detlev Casanova <detlev.casanova@collabora.com>
 Date: Mon, 20 Oct 2025 17:20:08 -0400
 Subject: [PATCH 3000/3018] arm64: dts: rockchip: Add the vdpu381 Video
@@ -15,7 +15,7 @@ Signed-off-by: Detlev Casanova <detlev.casanova@collabora.com>
  1 file changed, 74 insertions(+)
 
 diff --git a/arch/arm64/boot/dts/rockchip/rk3588-base.dtsi b/arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
-index 2a7921793020..aa74e8d7b4e9 100644
+index 2a79217930..aa74e8d7b4 100644
 --- a/arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
 +++ b/arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
 @@ -1353,6 +1353,70 @@ vepu121_3_mmu: iommu@fdbac800 {
@@ -107,5 +107,5 @@ index 2a7921793020..aa74e8d7b4e9 100644
  
  	pinctrl: pinctrl {
 -- 
-2.52.0
+2.47.3
 

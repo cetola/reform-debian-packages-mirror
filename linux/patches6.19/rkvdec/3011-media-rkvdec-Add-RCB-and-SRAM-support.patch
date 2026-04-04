@@ -1,6 +1,6 @@
-From a371899e7c87c78f06108ebacf18b4799737f57c Mon Sep 17 00:00:00 2001
+From a2be0e2cc9b341751c335ae5428bdf1ceb2e49fa Mon Sep 17 00:00:00 2001
 From: Detlev Casanova <detlev.casanova@collabora.com>
-Date: Thu, 23 Oct 2025 17:42:40 -0400
+Date: Fri, 9 Jan 2026 11:15:26 -0500
 Subject: [PATCH 3011/3018] media: rkvdec: Add RCB and SRAM support
 
 The RCB (Rows and Cols Buffers) are a set of buffers used by other
@@ -22,19 +22,20 @@ so, how to free it.
 This commit is in preparation of other variants support.
 
 Tested-by: Diederik de Haas <didi.debian@cknow.org>  # Rock 5B
+Reviewed-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
 Signed-off-by: Detlev Casanova <detlev.casanova@collabora.com>
 ---
  .../media/platform/rockchip/rkvdec/Makefile   |   1 +
- .../platform/rockchip/rkvdec/rkvdec-rcb.c     | 178 ++++++++++++++++++
+ .../platform/rockchip/rkvdec/rkvdec-rcb.c     | 179 ++++++++++++++++++
  .../platform/rockchip/rkvdec/rkvdec-rcb.h     |  29 +++
  .../media/platform/rockchip/rkvdec/rkvdec.c   |  27 ++-
  .../media/platform/rockchip/rkvdec/rkvdec.h   |  13 ++
- 5 files changed, 246 insertions(+), 2 deletions(-)
+ 5 files changed, 247 insertions(+), 2 deletions(-)
  create mode 100644 drivers/media/platform/rockchip/rkvdec/rkvdec-rcb.c
  create mode 100644 drivers/media/platform/rockchip/rkvdec/rkvdec-rcb.h
 
 diff --git a/drivers/media/platform/rockchip/rkvdec/Makefile b/drivers/media/platform/rockchip/rkvdec/Makefile
-index 1b4bc44be23e..3d75103e536d 100644
+index 1b4bc44be2..3d75103e53 100644
 --- a/drivers/media/platform/rockchip/rkvdec/Makefile
 +++ b/drivers/media/platform/rockchip/rkvdec/Makefile
 @@ -7,4 +7,5 @@ rockchip-vdec-y += \
@@ -45,10 +46,10 @@ index 1b4bc44be23e..3d75103e536d 100644
  		   rkvdec-vp9.o
 diff --git a/drivers/media/platform/rockchip/rkvdec/rkvdec-rcb.c b/drivers/media/platform/rockchip/rkvdec/rkvdec-rcb.c
 new file mode 100644
-index 000000000000..320998ed2c74
+index 0000000000..fdcf1f1773
 --- /dev/null
 +++ b/drivers/media/platform/rockchip/rkvdec/rkvdec-rcb.c
-@@ -0,0 +1,178 @@
+@@ -0,0 +1,179 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + * Rockchip video decoder Rows and Cols Buffers manager
@@ -60,9 +61,10 @@ index 000000000000..320998ed2c74
 +#include "rkvdec.h"
 +#include "rkvdec-rcb.h"
 +
-+#include <linux/types.h>
 +#include <linux/iommu.h>
 +#include <linux/genalloc.h>
++#include <linux/sizes.h>
++#include <linux/types.h>
 +
 +struct rkvdec_rcb_config {
 +	struct rkvdec_aux_buf *rcb_bufs;
@@ -167,12 +169,12 @@ index 000000000000..320998ed2c74
 +		/* Try allocating an SRAM buffer */
 +		if (ctx->dev->sram_pool) {
 +			if (rkvdec->iommu_domain)
-+				rcb_size = ALIGN(rcb_size, 0x1000);
++				rcb_size = ALIGN(rcb_size, SZ_4K);
 +
 +			cpu = gen_pool_dma_zalloc_align(ctx->dev->sram_pool,
 +							rcb_size,
 +							&dma,
-+							0x1000);
++							SZ_4K);
 +		}
 +
 +		/* If an IOMMU is used, map the SRAM address through it */
@@ -229,7 +231,7 @@ index 000000000000..320998ed2c74
 +}
 diff --git a/drivers/media/platform/rockchip/rkvdec/rkvdec-rcb.h b/drivers/media/platform/rockchip/rkvdec/rkvdec-rcb.h
 new file mode 100644
-index 000000000000..30e8002555c8
+index 0000000000..30e8002555
 --- /dev/null
 +++ b/drivers/media/platform/rockchip/rkvdec/rkvdec-rcb.h
 @@ -0,0 +1,29 @@
@@ -263,7 +265,7 @@ index 000000000000..30e8002555c8
 +int rkvdec_rcb_buf_count(struct rkvdec_ctx *ctx);
 +void rkvdec_free_rcb(struct rkvdec_ctx *ctx);
 diff --git a/drivers/media/platform/rockchip/rkvdec/rkvdec.c b/drivers/media/platform/rockchip/rkvdec/rkvdec.c
-index 968982f6e62c..028ce8e1c4ca 100644
+index 92b1c7b62b..ff6a09e454 100644
 --- a/drivers/media/platform/rockchip/rkvdec/rkvdec.c
 +++ b/drivers/media/platform/rockchip/rkvdec/rkvdec.c
 @@ -10,6 +10,7 @@
@@ -282,7 +284,7 @@ index 968982f6e62c..028ce8e1c4ca 100644
  
  static bool rkvdec_image_fmt_match(enum rkvdec_image_fmt fmt1,
  				   enum rkvdec_image_fmt fmt2)
-@@ -771,6 +773,7 @@ static int rkvdec_start_streaming(struct vb2_queue *q, unsigned int count)
+@@ -778,6 +780,7 @@ static int rkvdec_start_streaming(struct vb2_queue *q, unsigned int count)
  {
  	struct rkvdec_ctx *ctx = vb2_get_drv_priv(q);
  	const struct rkvdec_coded_fmt_desc *desc;
@@ -290,7 +292,7 @@ index 968982f6e62c..028ce8e1c4ca 100644
  	int ret;
  
  	if (V4L2_TYPE_IS_CAPTURE(q->type))
-@@ -780,13 +783,22 @@ static int rkvdec_start_streaming(struct vb2_queue *q, unsigned int count)
+@@ -787,13 +790,22 @@ static int rkvdec_start_streaming(struct vb2_queue *q, unsigned int count)
  	if (WARN_ON(!desc))
  		return -EINVAL;
  
@@ -314,7 +316,7 @@ index 968982f6e62c..028ce8e1c4ca 100644
  }
  
  static void rkvdec_queue_cleanup(struct vb2_queue *vq, u32 state)
-@@ -822,6 +834,8 @@ static void rkvdec_stop_streaming(struct vb2_queue *q)
+@@ -829,6 +841,8 @@ static void rkvdec_stop_streaming(struct vb2_queue *q)
  
  		if (desc->ops->stop)
  			desc->ops->stop(ctx);
@@ -323,7 +325,7 @@ index 968982f6e62c..028ce8e1c4ca 100644
  	}
  
  	rkvdec_queue_cleanup(q, VB2_BUF_STATE_ERROR);
-@@ -1348,6 +1362,10 @@ static int rkvdec_probe(struct platform_device *pdev)
+@@ -1345,6 +1359,10 @@ static int rkvdec_probe(struct platform_device *pdev)
  		return ret;
  	}
  
@@ -334,7 +336,7 @@ index 968982f6e62c..028ce8e1c4ca 100644
  	pm_runtime_set_autosuspend_delay(&pdev->dev, 100);
  	pm_runtime_use_autosuspend(&pdev->dev);
  	pm_runtime_enable(&pdev->dev);
-@@ -1356,7 +1374,8 @@ static int rkvdec_probe(struct platform_device *pdev)
+@@ -1353,7 +1371,8 @@ static int rkvdec_probe(struct platform_device *pdev)
  	if (ret)
  		goto err_disable_runtime_pm;
  
@@ -344,7 +346,7 @@ index 968982f6e62c..028ce8e1c4ca 100644
  		rkvdec->empty_domain = iommu_paging_domain_alloc(rkvdec->dev);
  
  		if (IS_ERR(rkvdec->empty_domain)) {
-@@ -1370,6 +1389,10 @@ static int rkvdec_probe(struct platform_device *pdev)
+@@ -1367,6 +1386,10 @@ static int rkvdec_probe(struct platform_device *pdev)
  err_disable_runtime_pm:
  	pm_runtime_dont_use_autosuspend(&pdev->dev);
  	pm_runtime_disable(&pdev->dev);
@@ -356,10 +358,10 @@ index 968982f6e62c..028ce8e1c4ca 100644
  }
  
 diff --git a/drivers/media/platform/rockchip/rkvdec/rkvdec.h b/drivers/media/platform/rockchip/rkvdec/rkvdec.h
-index aac6cba4c623..77c0950a465d 100644
+index 8c4f96ba5c..751f39afe7 100644
 --- a/drivers/media/platform/rockchip/rkvdec/rkvdec.h
 +++ b/drivers/media/platform/rockchip/rkvdec/rkvdec.h
-@@ -19,6 +19,7 @@
+@@ -19,12 +19,14 @@
  #include <media/v4l2-ctrls.h>
  #include <media/v4l2-device.h>
  #include <media/v4l2-ioctl.h>
@@ -367,7 +369,6 @@ index aac6cba4c623..77c0950a465d 100644
  #include <media/videobuf2-core.h>
  #include <media/videobuf2-dma-contig.h>
  
-@@ -29,6 +30,7 @@
  #define RKVDEC_QUIRK_DISABLE_QOS	BIT(0)
  
  struct rkvdec_ctx;
@@ -375,16 +376,16 @@ index aac6cba4c623..77c0950a465d 100644
  
  struct rkvdec_ctrl_desc {
  	struct v4l2_ctrl_config cfg;
-@@ -73,6 +75,8 @@ struct rkvdec_variant {
+@@ -69,6 +71,8 @@ struct rkvdec_variant {
  	unsigned int num_regs;
  	const struct rkvdec_coded_fmt_desc *coded_fmts;
  	size_t num_coded_fmts;
 +	const struct rcb_size_info *rcb_sizes;
 +	size_t num_rcb_sizes;
- 	unsigned int capabilities;
  	unsigned int quirks;
  };
-@@ -125,6 +129,8 @@ struct rkvdec_dev {
+ 
+@@ -119,6 +123,8 @@ struct rkvdec_dev {
  	void __iomem *regs;
  	struct mutex vdev_lock; /* serializes ioctls */
  	struct delayed_work watchdog_work;
@@ -393,7 +394,7 @@ index aac6cba4c623..77c0950a465d 100644
  	struct iommu_domain *empty_domain;
  	const struct rkvdec_variant *variant;
  };
-@@ -137,6 +143,7 @@ struct rkvdec_ctx {
+@@ -131,6 +137,7 @@ struct rkvdec_ctx {
  	struct v4l2_ctrl_handler ctrl_hdl;
  	struct rkvdec_dev *dev;
  	enum rkvdec_image_fmt image_fmt;
@@ -401,7 +402,7 @@ index aac6cba4c623..77c0950a465d 100644
  	void *priv;
  };
  
-@@ -145,10 +152,16 @@ static inline struct rkvdec_ctx *file_to_rkvdec_ctx(struct file *filp)
+@@ -139,10 +146,16 @@ static inline struct rkvdec_ctx *file_to_rkvdec_ctx(struct file *filp)
  	return container_of(file_to_v4l2_fh(filp), struct rkvdec_ctx, fh);
  }
  
@@ -419,5 +420,5 @@ index aac6cba4c623..77c0950a465d 100644
  
  void rkvdec_run_preamble(struct rkvdec_ctx *ctx, struct rkvdec_run *run);
 -- 
-2.52.0
+2.47.3
 

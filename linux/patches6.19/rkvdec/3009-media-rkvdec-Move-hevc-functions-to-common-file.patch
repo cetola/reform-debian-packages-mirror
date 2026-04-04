@@ -1,6 +1,6 @@
-From a4e4c6e519146965f974b9c1b258753dcf0ca5e8 Mon Sep 17 00:00:00 2001
+From 14281aa10faa7563eea286c709204c7ae4ddb442 Mon Sep 17 00:00:00 2001
 From: Detlev Casanova <detlev.casanova@collabora.com>
-Date: Thu, 23 Oct 2025 17:42:38 -0400
+Date: Fri, 9 Jan 2026 11:15:24 -0500
 Subject: [PATCH 3009/3018] media: rkvdec: Move hevc functions to common file
 
 This is a preparation commit to add support for new variants of the
@@ -14,15 +14,15 @@ Reviewed-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
 Signed-off-by: Detlev Casanova <detlev.casanova@collabora.com>
 ---
  .../media/platform/rockchip/rkvdec/Makefile   |   1 +
- .../rockchip/rkvdec/rkvdec-hevc-common.c      | 182 ++++++++++++++++
- .../rockchip/rkvdec/rkvdec-hevc-common.h      |  48 +++++
- .../platform/rockchip/rkvdec/rkvdec-hevc.c    | 194 +-----------------
- 4 files changed, 238 insertions(+), 187 deletions(-)
+ .../rockchip/rkvdec/rkvdec-hevc-common.c      | 205 +++++++++++++++++
+ .../rockchip/rkvdec/rkvdec-hevc-common.h      |  47 ++++
+ .../platform/rockchip/rkvdec/rkvdec-hevc.c    | 214 +-----------------
+ 4 files changed, 260 insertions(+), 207 deletions(-)
  create mode 100644 drivers/media/platform/rockchip/rkvdec/rkvdec-hevc-common.c
  create mode 100644 drivers/media/platform/rockchip/rkvdec/rkvdec-hevc-common.h
 
 diff --git a/drivers/media/platform/rockchip/rkvdec/Makefile b/drivers/media/platform/rockchip/rkvdec/Makefile
-index d2ba7a7c15e5..1b4bc44be23e 100644
+index d2ba7a7c15..1b4bc44be2 100644
 --- a/drivers/media/platform/rockchip/rkvdec/Makefile
 +++ b/drivers/media/platform/rockchip/rkvdec/Makefile
 @@ -6,4 +6,5 @@ rockchip-vdec-y += \
@@ -33,10 +33,10 @@ index d2ba7a7c15e5..1b4bc44be23e 100644
  		   rkvdec-vp9.o
 diff --git a/drivers/media/platform/rockchip/rkvdec/rkvdec-hevc-common.c b/drivers/media/platform/rockchip/rkvdec/rkvdec-hevc-common.c
 new file mode 100644
-index 000000000000..23547e2e6e1d
+index 0000000000..f13903ffbd
 --- /dev/null
 +++ b/drivers/media/platform/rockchip/rkvdec/rkvdec-hevc-common.c
-@@ -0,0 +1,182 @@
+@@ -0,0 +1,205 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + * Rockchip video decoder hevc common functions
@@ -195,6 +195,29 @@ index 000000000000..23547e2e6e1d
 +	return 0;
 +}
 +
++enum rkvdec_image_fmt rkvdec_hevc_get_image_fmt(struct rkvdec_ctx *ctx,
++						struct v4l2_ctrl *ctrl)
++{
++	const struct v4l2_ctrl_hevc_sps *sps = ctrl->p_new.p_hevc_sps;
++
++	if (ctrl->id != V4L2_CID_STATELESS_HEVC_SPS)
++		return RKVDEC_IMG_FMT_ANY;
++
++	if (sps->bit_depth_luma_minus8 == 0) {
++		if (sps->chroma_format_idc == 2)
++			return RKVDEC_IMG_FMT_422_8BIT;
++		else
++			return RKVDEC_IMG_FMT_420_8BIT;
++	} else if (sps->bit_depth_luma_minus8 == 2) {
++		if (sps->chroma_format_idc == 2)
++			return RKVDEC_IMG_FMT_422_10BIT;
++		else
++			return RKVDEC_IMG_FMT_420_10BIT;
++	}
++
++	return RKVDEC_IMG_FMT_ANY;
++}
++
 +void rkvdec_hevc_run_preamble(struct rkvdec_ctx *ctx,
 +			      struct rkvdec_hevc_run *run)
 +{
@@ -221,10 +244,10 @@ index 000000000000..23547e2e6e1d
 +}
 diff --git a/drivers/media/platform/rockchip/rkvdec/rkvdec-hevc-common.h b/drivers/media/platform/rockchip/rkvdec/rkvdec-hevc-common.h
 new file mode 100644
-index 000000000000..8af33bfd541c
+index 0000000000..564b2ad722
 --- /dev/null
 +++ b/drivers/media/platform/rockchip/rkvdec/rkvdec-hevc-common.h
-@@ -0,0 +1,48 @@
+@@ -0,0 +1,47 @@
 +/* SPDX-License-Identifier: GPL-2.0 */
 +/*
 + * Rockchip video decoder hevc common functions
@@ -243,10 +266,8 @@ index 000000000000..8af33bfd541c
 + */
 +
 +#include <media/v4l2-mem2mem.h>
-+#include "rkvdec.h"
 +
-+#define RKV_HEVC_CABAC_TABLE_SIZE		27456
-+extern const u8 rkvdec_hevc_cabac_table[RKV_HEVC_CABAC_TABLE_SIZE];
++#include "rkvdec.h"
 +
 +struct rkvdec_hevc_run {
 +	struct rkvdec_run base;
@@ -272,30 +293,21 @@ index 000000000000..8af33bfd541c
 +			       struct rkvdec_hevc_run *run,
 +			       unsigned int dpb_idx);
 +int rkvdec_hevc_adjust_fmt(struct rkvdec_ctx *ctx, struct v4l2_format *f);
++enum rkvdec_image_fmt rkvdec_hevc_get_image_fmt(struct rkvdec_ctx *ctx, struct v4l2_ctrl *ctrl);
 +void rkvdec_hevc_run_preamble(struct rkvdec_ctx *ctx, struct rkvdec_hevc_run *run);
 diff --git a/drivers/media/platform/rockchip/rkvdec/rkvdec-hevc.c b/drivers/media/platform/rockchip/rkvdec/rkvdec-hevc.c
-index b01c1bb52a04..650c20f3f4aa 100644
+index f8221c4089..a981f910dd 100644
 --- a/drivers/media/platform/rockchip/rkvdec/rkvdec-hevc.c
 +++ b/drivers/media/platform/rockchip/rkvdec/rkvdec-hevc.c
-@@ -16,6 +16,7 @@
- 
+@@ -17,6 +17,7 @@
  #include "rkvdec.h"
  #include "rkvdec-regs.h"
+ #include "rkvdec-cabac.h"
 +#include "rkvdec-hevc-common.h"
  
  /* Size in u8/u32 units. */
  #define RKV_SCALING_LIST_SIZE		1360
-@@ -24,9 +25,6 @@
- #define RKV_RPS_SIZE			(32 / 4)
- #define RKV_RPS_LEN			600
- 
--#define RKV_HEVC_CABAC_TABLE_SIZE		27456
--extern const u8 rkvdec_hevc_cabac_table[RKV_HEVC_CABAC_TABLE_SIZE];
--
- struct rkvdec_sps_pps_packet {
- 	u32 info[RKV_PPS_SIZE];
- };
-@@ -113,34 +111,17 @@ struct rkvdec_ps_field {
+@@ -111,34 +112,17 @@ struct rkvdec_ps_field {
  /* Data structure describing auxiliary buffer format. */
  struct rkvdec_hevc_priv_tbl {
  	u8 cabac_table[RKV_HEVC_CABAC_TABLE_SIZE];
@@ -331,7 +343,7 @@ index b01c1bb52a04..650c20f3f4aa 100644
  static void set_ps_field(u32 *buf, struct rkvdec_ps_field field, u32 value)
  {
  	u8 bit = field.offset % 32, word = field.offset / 32;
-@@ -417,131 +398,6 @@ static void assemble_sw_rps(struct rkvdec_ctx *ctx,
+@@ -415,131 +399,6 @@ static void assemble_sw_rps(struct rkvdec_ctx *ctx,
  	}
  }
  
@@ -463,8 +475,8 @@ index b01c1bb52a04..650c20f3f4aa 100644
  static void config_registers(struct rkvdec_ctx *ctx,
  			     struct rkvdec_hevc_run *run)
  {
-@@ -644,20 +500,6 @@ static void config_registers(struct rkvdec_ctx *ctx,
- 	rkvdec_memcpy_toio(rkvdec->regs, regs, MIN(sizeof(*regs), 4 * rkvdec->variant->num_regs));
+@@ -643,43 +502,6 @@ static void config_registers(struct rkvdec_ctx *ctx,
+ 			   MIN(sizeof(*regs), sizeof(u32) * rkvdec->variant->num_regs));
  }
  
 -#define RKVDEC_HEVC_MAX_DEPTH_IN_BYTES		2
@@ -481,10 +493,33 @@ index b01c1bb52a04..650c20f3f4aa 100644
 -	return 0;
 -}
 -
- static enum rkvdec_image_fmt rkvdec_hevc_get_image_fmt(struct rkvdec_ctx *ctx,
- 						       struct v4l2_ctrl *ctrl)
+-static enum rkvdec_image_fmt rkvdec_hevc_get_image_fmt(struct rkvdec_ctx *ctx,
+-						       struct v4l2_ctrl *ctrl)
+-{
+-	const struct v4l2_ctrl_hevc_sps *sps = ctrl->p_new.p_hevc_sps;
+-
+-	if (ctrl->id != V4L2_CID_STATELESS_HEVC_SPS)
+-		return RKVDEC_IMG_FMT_ANY;
+-
+-	if (sps->bit_depth_luma_minus8 == 0) {
+-		if (sps->chroma_format_idc == 2)
+-			return RKVDEC_IMG_FMT_422_8BIT;
+-		else
+-			return RKVDEC_IMG_FMT_420_8BIT;
+-	} else if (sps->bit_depth_luma_minus8 == 2) {
+-		if (sps->chroma_format_idc == 2)
+-			return RKVDEC_IMG_FMT_422_10BIT;
+-		else
+-			return RKVDEC_IMG_FMT_420_10BIT;
+-	}
+-
+-	return RKVDEC_IMG_FMT_ANY;
+-}
+-
+ static int rkvdec_hevc_validate_sps(struct rkvdec_ctx *ctx,
+ 				    const struct v4l2_ctrl_hevc_sps *sps)
  {
-@@ -691,7 +533,7 @@ static int rkvdec_hevc_validate_sps(struct rkvdec_ctx *ctx,
+@@ -690,7 +512,7 @@ static int rkvdec_hevc_validate_sps(struct rkvdec_ctx *ctx,
  		/* Luma and chroma bit depth mismatch */
  		return -EINVAL;
  	if (sps->bit_depth_luma_minus8 != 0 && sps->bit_depth_luma_minus8 != 2)
@@ -493,7 +528,7 @@ index b01c1bb52a04..650c20f3f4aa 100644
  		return -EINVAL;
  
  	if (sps->pic_width_in_luma_samples > ctx->coded_fmt.fmt.pix_mp.width ||
-@@ -737,40 +579,18 @@ static void rkvdec_hevc_stop(struct rkvdec_ctx *ctx)
+@@ -736,40 +558,18 @@ static void rkvdec_hevc_stop(struct rkvdec_ctx *ctx)
  	kfree(hevc_ctx);
  }
  
@@ -539,5 +574,5 @@ index b01c1bb52a04..650c20f3f4aa 100644
  	assemble_sw_rps(ctx, &run);
  	config_registers(ctx, &run);
 -- 
-2.52.0
+2.47.3
 

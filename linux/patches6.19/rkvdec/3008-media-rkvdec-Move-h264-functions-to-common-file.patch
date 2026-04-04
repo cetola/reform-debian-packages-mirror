@@ -1,6 +1,6 @@
-From a3ba6777fccd2ec4fbf26ee7cddf5f47ef74d300 Mon Sep 17 00:00:00 2001
+From ca343a27a631ff47909031c6137d0032dcf5dc41 Mon Sep 17 00:00:00 2001
 From: Detlev Casanova <detlev.casanova@collabora.com>
-Date: Thu, 23 Oct 2025 17:42:37 -0400
+Date: Fri, 9 Jan 2026 11:15:23 -0500
 Subject: [PATCH 3008/3018] media: rkvdec: Move h264 functions to common file
 
 This is a preparation commit to add support for new variants of the
@@ -15,14 +15,14 @@ Signed-off-by: Detlev Casanova <detlev.casanova@collabora.com>
 ---
  .../media/platform/rockchip/rkvdec/Makefile   |   1 +
  .../rockchip/rkvdec/rkvdec-h264-common.c      | 258 +++++++++++++++
- .../rockchip/rkvdec/rkvdec-h264-common.h      |  87 +++++
- .../platform/rockchip/rkvdec/rkvdec-h264.c    | 310 +-----------------
- 4 files changed, 350 insertions(+), 306 deletions(-)
+ .../rockchip/rkvdec/rkvdec-h264-common.h      |  85 +++++
+ .../platform/rockchip/rkvdec/rkvdec-h264.c    | 308 +-----------------
+ 4 files changed, 348 insertions(+), 304 deletions(-)
  create mode 100644 drivers/media/platform/rockchip/rkvdec/rkvdec-h264-common.c
  create mode 100644 drivers/media/platform/rockchip/rkvdec/rkvdec-h264-common.h
 
 diff --git a/drivers/media/platform/rockchip/rkvdec/Makefile b/drivers/media/platform/rockchip/rkvdec/Makefile
-index a8ff5e3d7bec..d2ba7a7c15e5 100644
+index a8ff5e3d7b..d2ba7a7c15 100644
 --- a/drivers/media/platform/rockchip/rkvdec/Makefile
 +++ b/drivers/media/platform/rockchip/rkvdec/Makefile
 @@ -4,5 +4,6 @@ rockchip-vdec-y += \
@@ -34,7 +34,7 @@ index a8ff5e3d7bec..d2ba7a7c15e5 100644
  		   rkvdec-vp9.o
 diff --git a/drivers/media/platform/rockchip/rkvdec/rkvdec-h264-common.c b/drivers/media/platform/rockchip/rkvdec/rkvdec-h264-common.c
 new file mode 100644
-index 000000000000..e28f06394470
+index 0000000000..e28f063944
 --- /dev/null
 +++ b/drivers/media/platform/rockchip/rkvdec/rkvdec-h264-common.c
 @@ -0,0 +1,258 @@
@@ -298,10 +298,10 @@ index 000000000000..e28f06394470
 +}
 diff --git a/drivers/media/platform/rockchip/rkvdec/rkvdec-h264-common.h b/drivers/media/platform/rockchip/rkvdec/rkvdec-h264-common.h
 new file mode 100644
-index 000000000000..bd0c0081365b
+index 0000000000..5336370507
 --- /dev/null
 +++ b/drivers/media/platform/rockchip/rkvdec/rkvdec-h264-common.h
-@@ -0,0 +1,87 @@
+@@ -0,0 +1,85 @@
 +/* SPDX-License-Identifier: GPL-2.0 */
 +/*
 + * Rockchip video decoder h264 common functions
@@ -320,8 +320,6 @@ index 000000000000..bd0c0081365b
 +#include <media/v4l2-mem2mem.h>
 +
 +#include "rkvdec.h"
-+
-+extern const s8 rkvdec_h264_cabac_table[4][464][2];
 +
 +struct rkvdec_h264_scaling_list {
 +	u8 scaling_list_4x4[6][16];
@@ -390,15 +388,13 @@ index 000000000000..bd0c0081365b
 +int rkvdec_h264_validate_sps(struct rkvdec_ctx *ctx, const struct v4l2_ctrl_h264_sps *sps);
 +void rkvdec_h264_run_preamble(struct rkvdec_ctx *ctx, struct rkvdec_h264_run *run);
 diff --git a/drivers/media/platform/rockchip/rkvdec/rkvdec-h264.c b/drivers/media/platform/rockchip/rkvdec/rkvdec-h264.c
-index cb17dfcae5ca..e98bb69ff7f9 100644
+index d1d19dd616..a1af12c979 100644
 --- a/drivers/media/platform/rockchip/rkvdec/rkvdec-h264.c
 +++ b/drivers/media/platform/rockchip/rkvdec/rkvdec-h264.c
-@@ -14,59 +14,16 @@
- 
+@@ -15,57 +15,16 @@
  #include "rkvdec.h"
  #include "rkvdec-regs.h"
--
--extern const s8 rkvdec_h264_cabac_table[4][464][2];
+ #include "rkvdec-cabac.h"
 +#include "rkvdec-h264-common.h"
  
  /* Size with u32 units. */
@@ -454,7 +450,7 @@ index cb17dfcae5ca..e98bb69ff7f9 100644
  struct rkvdec_ps_field {
  	u16 offset;
  	u8 len;
-@@ -118,11 +75,6 @@ struct rkvdec_ps_field {
+@@ -117,11 +76,6 @@ struct rkvdec_ps_field {
  #define SCALING_LIST_ADDRESS				PS_FIELD(184, 32)
  #define IS_LONG_TERM(i)				PS_FIELD(216 + (i), 1)
  
@@ -466,7 +462,7 @@ index cb17dfcae5ca..e98bb69ff7f9 100644
  /* Data structure describing auxiliary buffer format. */
  struct rkvdec_h264_priv_tbl {
  	s8 cabac_table[4][464][2];
-@@ -132,21 +84,6 @@ struct rkvdec_h264_priv_tbl {
+@@ -131,21 +85,6 @@ struct rkvdec_h264_priv_tbl {
  	u8 err_info[RKV_ERROR_INFO_SIZE];
  };
  
@@ -488,7 +484,7 @@ index cb17dfcae5ca..e98bb69ff7f9 100644
  struct rkvdec_h264_ctx {
  	struct rkvdec_aux_buf priv_tbl;
  	struct rkvdec_h264_reflists reflists;
-@@ -270,155 +207,6 @@ static void assemble_hw_pps(struct rkvdec_ctx *ctx,
+@@ -269,155 +208,6 @@ static void assemble_hw_pps(struct rkvdec_ctx *ctx,
  	}
  }
  
@@ -644,8 +640,8 @@ index cb17dfcae5ca..e98bb69ff7f9 100644
  /*
   * Set the ref POC in the correct register.
   *
-@@ -568,76 +356,6 @@ static void config_registers(struct rkvdec_ctx *ctx,
- 	rkvdec_memcpy_toio(rkvdec->regs, regs, MIN(sizeof(*regs), 4 * rkvdec->variant->num_regs));
+@@ -568,76 +358,6 @@ static void config_registers(struct rkvdec_ctx *ctx,
+ 			   MIN(sizeof(*regs), sizeof(u32) * rkvdec->variant->num_regs));
  }
  
 -#define RKVDEC_H264_MAX_DEPTH_IN_BYTES		2
@@ -721,7 +717,7 @@ index cb17dfcae5ca..e98bb69ff7f9 100644
  static int rkvdec_h264_start(struct rkvdec_ctx *ctx)
  {
  	struct rkvdec_dev *rkvdec = ctx->dev;
-@@ -689,33 +407,13 @@ static void rkvdec_h264_stop(struct rkvdec_ctx *ctx)
+@@ -689,33 +409,13 @@ static void rkvdec_h264_stop(struct rkvdec_ctx *ctx)
  	kfree(h264_ctx);
  }
  
@@ -756,7 +752,7 @@ index cb17dfcae5ca..e98bb69ff7f9 100644
  
  	rkvdec_h264_run_preamble(ctx, &run);
  
-@@ -726,10 +424,10 @@ static int rkvdec_h264_run(struct rkvdec_ctx *ctx)
+@@ -726,10 +426,10 @@ static int rkvdec_h264_run(struct rkvdec_ctx *ctx)
  	v4l2_h264_build_b_ref_lists(&reflist_builder, h264_ctx->reflists.b0,
  				    h264_ctx->reflists.b1);
  
@@ -770,5 +766,5 @@ index cb17dfcae5ca..e98bb69ff7f9 100644
  
  	rkvdec_run_postamble(ctx, &run.base);
 -- 
-2.52.0
+2.47.3
 

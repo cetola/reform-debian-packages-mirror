@@ -1,6 +1,6 @@
-From b5e8c17e616b930fd7d0add495eafcb775d30d01 Mon Sep 17 00:00:00 2001
+From 2ec3c8c5e25b308ca858d1d6bafbc6a7e6255aeb Mon Sep 17 00:00:00 2001
 From: Detlev Casanova <detlev.casanova@collabora.com>
-Date: Thu, 23 Oct 2025 17:42:42 -0400
+Date: Fri, 9 Jan 2026 11:15:28 -0500
 Subject: [PATCH 3013/3018] media: rkvdec: Enable all clocks without naming
  them
 
@@ -18,10 +18,10 @@ Signed-off-by: Detlev Casanova <detlev.casanova@collabora.com>
  2 files changed, 7 insertions(+), 20 deletions(-)
 
 diff --git a/drivers/media/platform/rockchip/rkvdec/rkvdec.c b/drivers/media/platform/rockchip/rkvdec/rkvdec.c
-index 87373a6d9573..9bd98b6a6be7 100644
+index 174536ebdc..ce96a0470d 100644
 --- a/drivers/media/platform/rockchip/rkvdec/rkvdec.c
 +++ b/drivers/media/platform/rockchip/rkvdec/rkvdec.c
-@@ -1315,15 +1315,10 @@ static const struct of_device_id of_rkvdec_match[] = {
+@@ -1312,15 +1312,10 @@ static const struct of_device_id of_rkvdec_match[] = {
  };
  MODULE_DEVICE_TABLE(of, of_rkvdec_match);
  
@@ -37,7 +37,7 @@ index 87373a6d9573..9bd98b6a6be7 100644
  	int ret, irq;
  
  	variant = of_device_get_match_data(&pdev->dev);
-@@ -1340,19 +1335,12 @@ static int rkvdec_probe(struct platform_device *pdev)
+@@ -1337,19 +1332,12 @@ static int rkvdec_probe(struct platform_device *pdev)
  	mutex_init(&rkvdec->vdev_lock);
  	INIT_DELAYED_WORK(&rkvdec->watchdog_work, rkvdec_watchdog_func);
  
@@ -61,7 +61,7 @@ index 87373a6d9573..9bd98b6a6be7 100644
  	rkvdec->regs = devm_platform_ioremap_resource(pdev, 0);
  	if (IS_ERR(rkvdec->regs))
  		return PTR_ERR(rkvdec->regs);
-@@ -1430,16 +1418,14 @@ static int rkvdec_runtime_resume(struct device *dev)
+@@ -1427,16 +1415,14 @@ static int rkvdec_runtime_resume(struct device *dev)
  {
  	struct rkvdec_dev *rkvdec = dev_get_drvdata(dev);
  
@@ -81,10 +81,10 @@ index 87373a6d9573..9bd98b6a6be7 100644
  }
  #endif
 diff --git a/drivers/media/platform/rockchip/rkvdec/rkvdec.h b/drivers/media/platform/rockchip/rkvdec/rkvdec.h
-index 12e53d591362..75a9ba988794 100644
+index faabedd2b9..7766a79caf 100644
 --- a/drivers/media/platform/rockchip/rkvdec/rkvdec.h
 +++ b/drivers/media/platform/rockchip/rkvdec/rkvdec.h
-@@ -131,6 +131,7 @@ struct rkvdec_dev {
+@@ -125,6 +125,7 @@ struct rkvdec_dev {
  	struct v4l2_m2m_dev *m2m_dev;
  	struct device *dev;
  	struct clk_bulk_data *clocks;
@@ -93,5 +93,5 @@ index 12e53d591362..75a9ba988794 100644
  	struct mutex vdev_lock; /* serializes ioctls */
  	struct delayed_work watchdog_work;
 -- 
-2.52.0
+2.47.3
 
