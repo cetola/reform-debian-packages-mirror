@@ -135,6 +135,7 @@ Depends:
  grim,
  gsettings-desktop-schemas,
  gvfs-backends,
+ hyfetch,
  ircii,
  kde-style-breeze,
  libglib2.0-bin,
