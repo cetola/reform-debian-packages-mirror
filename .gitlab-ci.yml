@@ -340,91 +340,39 @@ dtbs_check:
 
 build_qcacld:
   stage: build
+  extends: .setup
   tags:
     - arm64
   needs:
     - job: build_linux_arm64
       artifacts: true
   script: |
-    set -x
+    set -exuo pipefail
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
-    apt-get --yes install --no-install-recommends gcc-aarch64-linux-gnu build-essential bison flex device-tree-compiler git ca-certificates xz-utils libssl-dev bc
+    apt-get --yes install --no-install-recommends gcc-aarch64-linux-gnu build-essential bison flex device-tree-compiler git ca-certificates xz-utils libssl-dev bc sbuild
 
-    # debug
-    echo "build_qcacld debug:"
-    echo "$(pwd):"
-    echo "ls -lh"
-    echo "ls -lh changes-arm64"
+    if [ -z ${SOURCE_DATE_EPOCH:+x} ] && git -C . rev-parse 2>/dev/null; then
+      SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)
+    else
+      : "${SOURCE_DATE_EPOCH:=$(date --utc +%s)}"
+    fi
+    export SOURCE_DATE_EPOCH
 
-    # find the linux debs
-    cd changes-arm64
-    LINUX_IMG_DEB=$(ls *.deb | grep -e '^linux-image-[0-9]' | grep -v '\-rt-' | head -n1)
-    LINUX_SRC_DEB=$(ls *.deb | grep -e '^linux-source-[0-9]' | head -n1)
-    LINUX_CFG_DEB=$(ls *.deb | grep -e '^linux-config-[0-9]' | head -n1)
-    cd ..
+    KERNEL_ABINAME=$(dpkg-deb --field changes-arm64/linux-image-*-mnt-reform-arm64_*_arm64.deb Package)
+    KERNEL_ABINAME=${KERNEL_ABINAME##linux-image-}
 
-    echo "build_qcacld debug vars:"
-    echo "img: ${LINUX_IMG_DEB}"
-    echo "src: ${LINUX_SRC_DEB}"
-    echo "cfg: ${LINUX_CFG_DEB}"
+    git clone --depth=1 --branch=binary-deb https://source.mnt.re/reform/qcacld2.git
 
-    KERNELPACKAGENAME=$(echo $LINUX_IMG_DEB | cut -d '_' -f 1)
-    KERNELVERSION=$(echo $LINUX_IMG_DEB | cut -d '_' -f 2)
-    KERNELRELEASE=${KERNELPACKAGENAME/linux-image-/}
+    env --chdir=qcacld2 ./createdeb.sh "$KERNEL_ABINAME" "$(pwd)"/changes-arm64/linux-source-*.deb
 
-    # clone driver
-    git clone --branch binary-deb https://source.mnt.re/reform/qcacld2.git
-    cd qcacld2
-
-    # extract kernel source
-    dpkg -x "../changes-arm64/${LINUX_SRC_DEB}" ./
-    tar xfJ usr/src/linux-source-*.tar.xz
-
-    # extract kernel config
-    dpkg -x "../changes-arm64/${LINUX_CFG_DEB}" ./
-    unxz usr/src/linux-config-*/config.arm64_none_*arm64.xz
-
-    # install kernel config
-    KERNSRC=$(echo linux-source-*)
-    mv usr/src/linux-config-*/config.arm64_none_*arm64 "${KERNSRC}/.config"
-
-    # prepare kernel tree
-    cd $KERNSRC
-    make -j $(nproc) ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- modules_prepare
-    cd ..
-
-    # build driver
-    KBUILD_MODPOST_WARN=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- MODNAME=qcacld2 KERNEL_SRC=${KERNSRC} make
-
-    # build debian package
-    QCAPACKAGEVERSION=$(date -u +"%Y%m%dT%H%M%SZ")
-    mkdir -p debian/opt/reform-qcacld2
-    mv qcacld2.ko "debian/opt/reform-qcacld2/qcacld2-${KERNELVERSION}.ko"
-    sed -i "s/KERNELRELEASE/$KERNELRELEASE/g" debian/DEBIAN/control
-    sed -i "s/QCAPACKAGEVERSION/$QCAPACKAGEVERSION/g" debian/DEBIAN/control
-    sed -i "s/KERNELPACKAGENAME/$KERNELPACKAGENAME/g" debian/DEBIAN/control
-    ## permissions are world writable by default in CI, fix that
-    chmod -R og-w debian
-    ls -lR debian
-    dpkg --build debian "reform-qcacld2-${KERNELRELEASE}_${QCAPACKAGEVERSION}_arm64.deb"
-
-    # build debian meta-package that tracks the latest version of the
-    # actual driver package so it is auto-upgraded together with kernel upgrades
-    # and that also includes a NeverAutoRemove snippet for /etc/apt/apt.conf.d/
-    # this package also contains the shared firmware for the drivers.
-    sed -i "s/KERNELRELEASE/$KERNELRELEASE/g" debian-meta/DEBIAN/control
-    sed -i "s/QCAPACKAGEVERSION/$QCAPACKAGEVERSION/g" debian-meta/DEBIAN/control
-    ## permissions are world writable by default in CI, fix that
-    chmod -R og-w debian-meta
-    ls -lR debian-meta
-    dpkg --build debian-meta "reform-qcacld2_${QCAPACKAGEVERSION}_arm64.deb"
-    mv *.deb ..
-    cd ..
-
+    chown build -R .
+    runuser -u build -- env --chdir=qcacld2 sbuild --verbose --no-run-lintian --no-run-autopkgtest --extra-package "$(pwd)"/changes-arm64/linux-source-*.deb --extra-package "$(pwd)"/changes-arm64/linux-config-*.deb --no-clean-source
   artifacts:
     when: always
     paths:
       - "reform-qcacld2*.deb"
+      - "*.buildinfo"
+      - "*.changes"
 
 reprepro:
   stage: reprepro
