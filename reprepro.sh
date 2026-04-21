@@ -22,9 +22,9 @@ for ARCH in arm64 armhf i386 amd64; do
 done
 
 # include binary out-of-tree driver modules
-for d in reform-qcacld2*.deb fonts-reform-iosevka-term_2.3.0.1_all.deb; do
-	echo "including $d..." >&2
-	reprepro includedeb "$OURSUITE" "$d"
+for c in reform-qcacld2_*_arm64.changes fonts-reform-iosevka-term_2.3.0.1_arm64.changes; do
+	echo "including $c..." >&2
+	reprepro include "$OURSUITE" "$c"
 done
 
 reprepro includedsc "$OURSUITE" "changes-arm64/linux.dsc"
