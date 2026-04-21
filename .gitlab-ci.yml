@@ -159,8 +159,15 @@ build_custom:
       - output.log
       - changes-custom
       - buildlogs
-      - fonts-reform-iosevka-term_2.3.0-1_all.deb
+      - fonts-reform-iosevka-term_2.3.0.1.dsc
+      - fonts-reform-iosevka-term_2.3.0.1.tar.xz
+      - fonts-reform-iosevka-term_2.3.0.1_arm64.buildinfo
+      - fonts-reform-iosevka-term_2.3.0.1_arm64.changes
+      - fonts-reform-iosevka-term_2.3.0.1_arm64.deb
   script: |
+    set -exuo pipefail
+    apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
+    apt-get --yes install --no-install-recommends equivs
     runuser -u build -- sh -x ./build_custom.sh 2>&1 | ./filter-output
     mv changes changes-custom
   after_script: |
