@@ -33,7 +33,7 @@ for p in $(reprepro --list-format '${source}\n' -T deb list "$OURSUITE" | sed 's
 	# source packages built in build_custom.sh or linux/build.sh must not get
 	# removed, even if there is no file in ./patches
 	case $p in
-		linux) continue;;
+		linux|reform-qcacld2) continue;;
 	esac
 
 	if [ ! -e "patches/$p" ]; then
