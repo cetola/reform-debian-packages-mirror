@@ -25,10 +25,14 @@
 /delete-node/ &rmtfs_mem;
 /delete-node/ &adsp_mem;
 /delete-node/ &cdsp_mem;
+/delete-node/ &gpu_zap_mem;
+/delete-node/ &gpu_zap_shader;
 /delete-node/ &video_mem;
 /delete-node/ &wlan_ce_mem;
 /delete-node/ &wpss_mem;
 /delete-node/ &xbl_mem;
+/delete-node/ &hyp_mem;
+/delete-node/ &reserved_xbl_uefi_log;
 
 / {
 	model = "MNT QUASAR DDK";
@@ -186,7 +190,7 @@
 	gpio-keys {
 		compatible = "gpio-keys";
 
-		pinctrl-0 = <&kypd_vol_up_n>;
+		pinctrl-0 = <&kypd_vol_up_n &wakeup_key>;
 		pinctrl-names = "default";
 
 		key-volume-up {
@@ -194,6 +198,12 @@
 			gpios = <&pm7325_gpios 6 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_VOLUMEUP>;
 			linux,can-disable;
+		};
+
+		key-wakeup {
+			label = "Wake up";
+			gpios = <&tlmm 7 GPIO_ACTIVE_HIGH>;
+			linux,code = <KEY_WAKEUP>;
 			wakeup-source;
 		};
 	};
@@ -605,8 +615,45 @@
 	status = "okay";
 };
 
-&gpu_zap_shader {
-	firmware-name = "qcom/qcs6490/a660_zap.mbn";
+&lpass_cpu {
+	pinctrl-names = "default";
+	pinctrl-0 = <&mi2s0_data0>, <&mi2s0_data1>, <&mi2s0_mclk>, <&mi2s0_sclk>, <&mi2s0_ws>;
+
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	status = "okay";
+
+	dai-link@0 {
+		reg = <MI2S_PRIMARY>;
+		qcom,playback-sd-lines = <0>;
+		qcom,capture-sd-lines = <1>;
+	};
+};
+
+&mi2s0_data0 {
+	drive-strength = <6>;
+	bias-disable;
+};
+
+&mi2s0_data1 {
+	drive-strength = <6>;
+	bias-disable;
+};
+
+&mi2s0_mclk {
+	drive-strength = <6>;
+	bias-disable;
+};
+
+&mi2s0_sclk {
+	drive-strength = <6>;
+	bias-disable;
+};
+
+&mi2s0_ws {
+	drive-strength = <6>;
+	bias-disable;
 };
 
 &spi6 {

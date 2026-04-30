@@ -47,6 +47,24 @@ No SS phy
 	};
 };
 
+&i2c6 {
+	tlv320aic3100: codec@18 {
+		compatible = "ti,tlv320aic3100";
+		reg = <0x18>;
+		ai31xx-micbias-vg = <2>;
+		#sound-dai-cells = <0>;
+
+		HPVDD-supply = <&main_3v3>;
+		SPRVDD-supply = <&vin_5v0>;
+		SPLVDD-supply = <&vin_5v0>;
+		AVDD-supply = <&main_3v3>;
+		IOVDD-supply = <&main_3v3>;
+		DVDD-supply = <&main_1v8>;
+
+		status = "okay";
+	};
+};
+
 &mdss_dsi {
 	#address-cells = <1>;
 	#size-cells = <0>;
@@ -85,6 +103,14 @@ No SS phy
 &mdss_dsi_phy {
 	vdds-supply = <&vreg_l10c_0p88>;
 	status = "okay";
+};
+
+&sound {
+	model = "QCS6490-MNT-Pocket";
+};
+
+&sound_primary_codec {
+	sound-dai = <&tlv320aic3100>;
 };
 
 &tlmm {
