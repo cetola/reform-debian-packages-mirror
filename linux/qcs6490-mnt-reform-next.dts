@@ -74,6 +74,30 @@
 	};
 };
 
+&mdss_dp {
+	status = "okay";
+
+	aux-bus {
+		panel: panel {
+			compatible = "innolux,n125hce-gn1";
+			// compatible = "edp-panel";
+			power-supply = <&main_3v3>;
+			backlight = <&backlight>;
+			// FIXME: not wired up, fixed in V2 PCB
+			// hpd-gpios = <&tlmm 47 GPIO_ACTIVE_HIGH>;
+			no-hpd;
+
+			status = "okay";
+
+			port {
+				panel_dp_in: endpoint {
+					remote-endpoint = <&usb_dp_qmpphy_out_dp>;
+				};
+			};
+		};
+	};
+};
+
 &mdss_dp_out {
 	data-lanes = <0 1>;
 	link-frequencies = /bits/ 64 <1620000000 2700000000 5400000000>;
