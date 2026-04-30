@@ -656,8 +656,27 @@
 	bias-disable;
 };
 
-&spi6 {
-	status = "disabled";
+&sound {
+	compatible = "google,sc7280-herobrine";
+
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	dai-link@0 {
+		link-name = "Primary";
+		reg = <2>;
+
+		cpu {
+			sound-dai = <&lpass_cpu MI2S_PRIMARY>;
+		};
+
+		sound_primary_codec: codec {
+		};
+	};
+};
+
+&spi14 {
+	status = "okay";
 	num-cs = <1>;
 
 	spidev@0 {
@@ -670,61 +689,11 @@
 &i2c4 {
 	clock-frequency = <400000>;
 	status = "okay";
-
-	/*edp_bridge: bridge@2c {
-		compatible = "ti,sn65dsi86";
-		reg = <0x2c>;
-		// FIXME: not actually connected on D1
-		enable-gpios = <&tlmm 38 GPIO_ACTIVE_HIGH>;
-		vccio-supply = <&main_1v8>;
-		vpll-supply = <&main_1v8>;
-		vcca-supply = <&main_1v2>;
-		vcc-supply = <&main_1v2>;
-		//burst-mode;
-		status = "disabled";
-
-		ports {
-			#address-cells = <1>;
-			#size-cells = <0>;
-
-			port@0 {
-				reg = <0>;
-
-				edp_bridge_in: endpoint {
-					remote-endpoint = <&mdss_dsi0_out>;
-				};
-			};
-
-			port@1 {
-				reg = <1>;
-
-				edp_bridge_out: endpoint {
-					remote-endpoint = <&panel_in>;
-				};
-			};
-		};
-
-		aux-bus {
-			panel: panel {
-				compatible = "innolux,n125hce-gn1";
-				power-supply = <&main_3v3>;
-				backlight = <&backlight>;
-				no-hpd;
-
-				port {
-					panel_in: endpoint {
-						remote-endpoint = <&edp_bridge_out>;
-					};
-				};
-			};
-		};
-	};*/
 };
 
 &i2c6 {
 	clock-frequency = <400000>;
-	// FIXME: disabled by TZ/xblconfig :(
-	status = "disabled";
+	status = "okay";
 
 	// in schematic:
 	// DAC_SDA / DAC_SCL
@@ -735,189 +704,10 @@
 		compatible = "nxp,pcf8523";
 		reg = <0x68>;
 	};
-
-	wm8960: codec@1a {
-		compatible = "wlf,wm8960";
-		reg = <0x1a>;
-		/*clocks = <&cru I2S0_8CH_MCLKOUT>;
-		clock-names = "mclk";
-		assigned-clocks = <&cru I2S0_8CH_MCLKOUT>;
-		assigned-clock-rates = <12288000>;*/
-		#sound-dai-cells = <0>;
-
-		/*port {
-			wm8960_p0: endpoint {
-				remote-endpoint = <&i2s0_8ch_p0_0>;
-			};
-		};*/
-	};
-
-	lt9611_codec: hdmi-bridge@2b {
-		compatible = "lontium,lt9611uxc";
-		reg = <0x2b>;
-
-		// LT9611_INTIO_1V8
-		// GPIO_90
-		interrupts-extended = <&tlmm 90 IRQ_TYPE_EDGE_FALLING>;
-
-		// LT9611_RST_1V8
-		// GPIO_86
-		reset-gpios = <&tlmm 86 GPIO_ACTIVE_HIGH>;
-
-		vdd-supply = <&main_1v2>;
-		vcc-supply = <&main_3v3>;
-
-		pinctrl-names = "default";
-		pinctrl-0 = <&lt9611_irq_pin &lt9611_rst_pin>;
-
-		ports {
-			#address-cells = <1>;
-			#size-cells = <0>;
-
-			port@0 {
-				reg = <0>;
-
-				/*lt9611_a: endpoint {
-					remote-endpoint = <&mdss_dsi0_out>;
-				};*/
-			};
-		};
-	};
 };
 
 &mdss {
 	status = "okay";
-};
-
-&soc {
-	pcie0: pcie@1c00000 {
-		compatible = "qcom,pcie-sc7280";
-		reg = <0 0x01c00000 0 0x3000>,
-		<0 0x60000000 0 0xf1d>,
-		<0 0x60000f20 0 0xa8>,
-		<0 0x60001000 0 0x1000>,
-		<0 0x60100000 0 0x100000>,
-		<0 0x01c03000 0 0x1000>;
-		reg-names = "parf", "dbi", "elbi", "atu", "config", "mhi";
-		device_type = "pci";
-		linux,pci-domain = <0>;
-		bus-range = <0x00 0xff>;
-		num-lanes = <1>;
-
-		#address-cells = <3>;
-		#size-cells = <2>;
-
-		ranges = <0x01000000 0x0 0x00000000 0x0 0x60200000 0x0 0x100000>,
-		<0x02000000 0x0 0x60300000 0x0 0x60300000 0x0 0x3d00000>;
-
-		interrupts = <GIC_SPI 141 IRQ_TYPE_LEVEL_HIGH>,
-		<GIC_SPI 142 IRQ_TYPE_LEVEL_HIGH>,
-		<GIC_SPI 143 IRQ_TYPE_LEVEL_HIGH>,
-		<GIC_SPI 144 IRQ_TYPE_LEVEL_HIGH>,
-		<GIC_SPI 145 IRQ_TYPE_LEVEL_HIGH>,
-		<GIC_SPI 146 IRQ_TYPE_LEVEL_HIGH>,
-		<GIC_SPI 147 IRQ_TYPE_LEVEL_HIGH>,
-		<GIC_SPI 148 IRQ_TYPE_LEVEL_HIGH>,
-		<GIC_SPI 140 IRQ_TYPE_LEVEL_HIGH>;
-		interrupt-names = "msi0",
-		"msi1",
-		"msi2",
-		"msi3",
-		"msi4",
-		"msi5",
-		"msi6",
-		"msi7",
-		"global";
-		#interrupt-cells = <1>;
-		interrupt-map-mask = <0 0 0 0x7>;
-		interrupt-map = <0 0 0 1 &intc 0 0 GIC_SPI 149 IRQ_TYPE_LEVEL_HIGH>,
-		<0 0 0 2 &intc 0 0 GIC_SPI 150 IRQ_TYPE_LEVEL_HIGH>,
-		<0 0 0 3 &intc 0 0 GIC_SPI 151 IRQ_TYPE_LEVEL_HIGH>,
-		<0 0 0 4 &intc 0 0 GIC_SPI 152 IRQ_TYPE_LEVEL_HIGH>;
-
-		clocks = <&gcc GCC_PCIE_0_PIPE_CLK>,
-		<&gcc GCC_PCIE_0_PIPE_CLK_SRC>,
-		<&pcie0_phy>,
-		<&rpmhcc RPMH_CXO_CLK>,
-		<&gcc GCC_PCIE_0_AUX_CLK>,
-		<&gcc GCC_PCIE_0_CFG_AHB_CLK>,
-		<&gcc GCC_PCIE_0_MSTR_AXI_CLK>,
-		<&gcc GCC_PCIE_0_SLV_AXI_CLK>,
-		<&gcc GCC_PCIE_0_SLV_Q2A_AXI_CLK>,
-		<&gcc GCC_AGGRE_NOC_PCIE_TBU_CLK>,
-		<&gcc GCC_DDRSS_PCIE_SF_CLK>,
-		<&gcc GCC_AGGRE_NOC_PCIE_CENTER_SF_AXI_CLK>,
-		<&gcc GCC_AGGRE_NOC_PCIE_0_AXI_CLK>;
-		clock-names = "pipe",
-		"pipe_mux",
-		"phy_pipe",
-		"ref",
-		"aux",
-		"cfg",
-		"bus_master",
-		"bus_slave",
-		"slave_q2a",
-		"tbu",
-		"ddrss_sf_tbu",
-		"aggre0",
-		"aggre1";
-
-		iommu-map = <0x0   &apps_smmu 0x1c00 0x1>,
-		<0x100 &apps_smmu 0x1c01 0x1>;
-
-		resets = <&gcc GCC_PCIE_0_BCR>;
-		reset-names = "pci";
-
-		power-domains = <&gcc GCC_PCIE_0_GDSC>;
-
-		phys = <&pcie0_phy>;
-		phy-names = "pciephy";
-
-		pinctrl-names = "default";
-		pinctrl-0 = <&pcie0_clkreq_n>;
-		dma-coherent;
-
-		status = "disabled";
-
-		pcie0_port: pcie@0 {
-			device_type = "pci";
-			reg = <0x0 0x0 0x0 0x0 0x0>;
-			bus-range = <0x01 0xff>;
-
-			#address-cells = <3>;
-			#size-cells = <2>;
-			ranges;
-		};
-	};
-
-	pcie0_phy: phy@1c06000 {
-		compatible = "qcom,sm8250-qmp-gen3x1-pcie-phy";
-		reg = <0 0x01c06000 0 0x1000>;
-
-		clocks = <&gcc GCC_PCIE_0_AUX_CLK>,
-		<&gcc GCC_PCIE_0_CFG_AHB_CLK>,
-		<&gcc GCC_PCIE_CLKREF_EN>,
-		<&gcc GCC_PCIE0_PHY_RCHNG_CLK>,
-		<&gcc GCC_PCIE_0_PIPE_CLK>;
-		clock-names = "aux",
-		"cfg_ahb",
-		"ref",
-		"refgen",
-		"pipe";
-
-		clock-output-names = "pcie_0_pipe_clk";
-		#clock-cells = <0>;
-
-		#phy-cells = <0>;
-
-		resets = <&gcc GCC_PCIE_0_PHY_BCR>;
-		reset-names = "phy";
-
-		assigned-clocks = <&gcc GCC_PCIE0_PHY_RCHNG_CLK>;
-		assigned-clock-rates = <100000000>;
-
-		status = "disabled";
-	};
 };
 
 &pcie0 {
@@ -925,7 +715,16 @@
 	pinctrl-0 = <&pcie0_reset_n>, <&pcie0_wake_n>;
 	pinctrl-names = "default";
 	status = "okay";
-	//vdda-supply = <&usb_hub0_rest_vreg>;
+
+	iommu-map = <0x0 &apps_smmu 0x1c00 0x1>,
+		    <0x100 &apps_smmu 0x1c01 0x1>,
+		    <0x208 &apps_smmu 0x1c04 0x1>,
+		    <0x210 &apps_smmu 0x1c05 0x1>,
+		    <0x218 &apps_smmu 0x1c06 0x1>,
+		    <0x300 &apps_smmu 0x1c07 0x1>,
+		    <0x400 &apps_smmu 0x1c08 0x1>,
+		    <0x500 &apps_smmu 0x1c09 0x1>,
+		    <0x501 &apps_smmu 0x1c10 0x1>;
 };
 
 &pcie0_phy {
@@ -933,22 +732,6 @@
 	qcom,refclk-always-on;
 	vdda-phy-supply = <&vreg_l10c_0p88>;
 	vdda-pll-supply = <&vreg_l6b_1p2>;
-};
-
-&pcie1 {
-	perst-gpios = <&tlmm 2 GPIO_ACTIVE_LOW>;
-
-	pinctrl-0 = <&pcie1_reset_n>, <&pcie1_wake_n>;
-	pinctrl-names = "default";
-
-	status = "okay";
-};
-
-&pcie1_phy {
-	vdda-phy-supply = <&vreg_l10c_0p88>;
-	vdda-pll-supply = <&vreg_l6b_1p2>;
-
-	status = "okay";
 };
 
 &pm7325_gpios {
@@ -1095,29 +878,27 @@
 
 &qupv3_id_0 {
 	status = "okay";
+	firmware-name = "qcom/qcs6490/qupv3fw.elf";
 };
 
 &qupv3_id_1 {
 	status = "okay";
+	firmware-name = "qcom/qcs6490/qupv3fw.elf";
 };
 
 &remoteproc_adsp {
-	firmware-name = "qcom/qcs6490/adsp.mbn";
 	status = "disabled";
 };
 
 &remoteproc_cdsp {
-	firmware-name = "qcom/qcs6490/cdsp.mbn";
 	status = "disabled";
 };
 
 &remoteproc_mpss {
-	firmware-name = "qcom/qcs6490/modem.mbn";
 	status = "disabled";
 };
 
 &remoteproc_wpss {
-	firmware-name = "qcom/qcs6490/wpss.mbn";
 	status = "disabled";
 };
 
@@ -1142,6 +923,14 @@
 		function = "gpio";
 		drive-strength = <2>;
 		bias-pull-down;
+	};
+
+	wakeup_key: wakeup-key-state {
+		pins = "gpio7";
+		function = "gpio";
+		drive-strength = <2>;
+		bias-pull-down;
+		input-enable;
 	};
 };
 
@@ -1191,6 +980,7 @@
 
 	/* USB2412 2.0 hub to BT and MB_USB1 */
 	hub_2_0_som: hub@1 {
+		/* FIXME: changed to 4-port hub in Quasar V2 */
 		compatible = "usb424,2412";
 		reg = <1>;
 		#address-cells = <1>;
@@ -1232,8 +1022,20 @@
 	status = "okay";
 };
 
+&scm {
+	/* TF-A firmware maps memory cached so mark dma-coherent to match. */
+	dma-coherent;
+};
+
 &venus {
+	iommus = <&apps_smmu 0x2180 0x20>,
+		 <&apps_smmu 0x2184 0x20>;
+
 	status = "okay";
+
+	video-firmware {
+		iommus = <&apps_smmu 0x21a2 0x0>;
+	};
 };
 
 /* PINCTRL - ADDITIONS TO NODES IN PARENT DEVICE TREE FILES */
@@ -1262,14 +1064,7 @@
 		output-high;
 	};
 
-	usb_hub_reset: usb-hub-state {
-		pins = "gpio0";
-		function = "gpio";
-		drive-strength = <8>;
-		output-high;
-	};
-
-	lt9611_irq_pin: lt9611-irq-state {
+	/*lt9611_irq_pin: lt9611-irq-state {
 		pins = "gpio90";
 		function = "gpio";
 		drive-strength = <2>;
@@ -1282,7 +1077,7 @@
 		drive-strength = <16>;
 		output-high;
 		bias-disable;
-	};
+	};*/
 
 	pcie0_reset_n: pcie0-reset-n-state {
 		pins = "gpio87";
@@ -1327,11 +1122,42 @@
 		function = "gpio";
 		bias-pull-up;
 	};
+	
+	usb_hub_reset: usb-hub-state {
+		pins = "gpio0";
+		function = "gpio";
+		drive-strength = <8>;
+		output-high;
+	};
 };
 
 &lpass_audiocc {
 	compatible = "qcom,qcm6490-lpassaudiocc";
 	/delete-property/ power-domains;
+};
+
+&lpass_aon {
+	status = "okay";
+};
+
+&lpass_core {
+	status = "okay";
+};
+
+&lpass_hm {
+	status = "okay";
+};
+
+&lpasscc {
+	status = "okay";
+};
+
+&pdc_reset {
+	status = "okay";
+};
+
+&watchdog {
+	status = "okay";
 };
 
 &wifi {
