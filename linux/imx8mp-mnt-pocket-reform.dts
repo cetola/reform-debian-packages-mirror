@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 
 /*
- * Copyright 2019-2022 MNT Research GmbH
+ * Copyright 2019-2026 MNT Research GmbH
  * Copyright 2021 Lucas Stach <dev@lynxeye.de>
  * Copyright 2020 Boundary Devices
 */
@@ -40,14 +40,12 @@
 
 	pinctrl_hog: hoggrp {
 		fsl,pins = <
-			//MX8MP_IOMUXC_NAND_DATA01__GPIO3_IO07		0x119			/* J31 */
 			MX8MP_IOMUXC_SPDIF_RX__GPIO5_IO04		0x41	/* Pin 17 */
 			MX8MP_IOMUXC_SPDIF_EXT_CLK__GPIO5_IO05		0x41	/* Pin 19 */
 			MX8MP_IOMUXC_SPDIF_TX__GPIO5_IO03		0x41	/* Pin 21 */
 			MX8MP_IOMUXC_SD1_RESET_B__GPIO2_IO10		0x41	/* Pin 23 */
 			MX8MP_IOMUXC_SD1_DATA6__GPIO2_IO08		0x41	/* Pin 25 */
 			MX8MP_IOMUXC_SD1_DATA5__GPIO2_IO07		0x41	/* Pin 29 */
-			//MX8MP_IOMUXC_SD1_DATA4__GPIO2_IO06		0x41	/* Pin 31 */
 			MX8MP_IOMUXC_SAI1_MCLK__GPIO4_IO20		0x16	/* Pin 2 */
 			MX8MP_IOMUXC_SAI1_TXD7__GPIO4_IO19		0x1c4	/* Pin 4 */
 		>;
@@ -67,11 +65,6 @@
 			MX8MP_IOMUXC_HDMI_DDC_SDA__HDMIMIX_HDMI_SDA	0x1c3
 			MX8MP_IOMUXC_HDMI_HPD__HDMIMIX_HDMI_HPD		0x19
 			MX8MP_IOMUXC_HDMI_CEC__HDMIMIX_HDMI_CEC		0x19
-
-			/*MX8MP_IOMUXC_HDMI_DDC_SCL__HDMIMIX_HDMI_SCL	0x400001c3
-			MX8MP_IOMUXC_HDMI_DDC_SDA__HDMIMIX_HDMI_SDA	0x400001c3
-			MX8MP_IOMUXC_HDMI_HPD__HDMIMIX_HDMI_HPD		0x40000019
-			MX8MP_IOMUXC_HDMI_CEC__HDMIMIX_HDMI_CEC		0x40000019*/
 		>;
 	};
 
@@ -192,8 +185,6 @@
 		fsl,pins = <
 #define GP_PCIE_RESET	<&gpio1 11 GPIO_ACTIVE_LOW>
 			MX8MP_IOMUXC_GPIO1_IO11__GPIO1_IO11	0x41
-/*#define GP_PCIE_DISABLE	<&gpio4 26 GPIO_ACTIVE_LOW>
-			MX8MP_IOMUXC_SAI2_TXD0__GPIO4_IO26	0x41*/
 		>;
 	};
 
@@ -256,7 +247,6 @@
 			MX8MP_IOMUXC_SD1_DATA1__USDHC1_DATA1	0x1d0
 			MX8MP_IOMUXC_SD1_DATA2__USDHC1_DATA2	0x1d0
 			MX8MP_IOMUXC_SD1_DATA3__USDHC1_DATA3	0x1d0
-			//MX8MP_IOMUXC_GPIO1_IO03__USDHC1_VSELECT	0x116
 		>;
 	};
 
@@ -945,7 +935,7 @@
 
 // emmc
 &usdhc3 {
-	bus-width = <8>; // FIXME was 4
+	bus-width = <8>;
 	non-removable;
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
 	pinctrl-0 = <&pinctrl_usdhc3>;
@@ -970,7 +960,6 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_pcie>;
 	reset-gpio = GP_PCIE_RESET;
-	//disable-gpio = GP_PCIE_DISABLE;
 	clocks = <&clk IMX8MP_CLK_HSIO_ROOT>,
 		 <&clk IMX8MP_CLK_PCIE_ROOT>,
 		 <&clk IMX8MP_CLK_HSIO_AXI>;
