@@ -28,6 +28,7 @@ Components: main
 UDebComponents: main
 Contents: .xz
 Description: updated packages for mnt reform
+Tracking: minimal includebuildinfos
 EOF
 	# if OURSUITE is backports, also add the base suite
 	case $OURSUITE in
@@ -43,6 +44,7 @@ Components: main
 UDebComponents: main
 Contents: .xz
 Description: updated packages for mnt reform
+Tracking: minimal includebuildinfos
 EOF
 		;;
 	esac

@@ -159,8 +159,15 @@ build_custom:
       - output.log
       - changes-custom
       - buildlogs
-      - fonts-reform-iosevka-term_2.3.0-1_all.deb
+      - fonts-reform-iosevka-term_2.3.0.1.dsc
+      - fonts-reform-iosevka-term_2.3.0.1.tar.xz
+      - fonts-reform-iosevka-term_2.3.0.1_arm64.buildinfo
+      - fonts-reform-iosevka-term_2.3.0.1_arm64.changes
+      - fonts-reform-iosevka-term_2.3.0.1_arm64.deb
   script: |
+    set -exuo pipefail
+    apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
+    apt-get --yes install --no-install-recommends equivs
     runuser -u build -- sh -x ./build_custom.sh 2>&1 | ./filter-output
     mv changes changes-custom
   after_script: |
@@ -183,22 +190,26 @@ build_custom:
     if [ "$HOST_ARCH" != "arm64" ]; then
       exit 0
     fi
-    # since kernel 6.19, modules are in the linux-modules-* package
-    found=0
-    for p in "changes-$HOST_ARCH"/linux-image-*-mnt-reform-arm64_*_arm64.deb \
-             "changes-$HOST_ARCH"/linux-modules-*-mnt-reform-arm64_*_arm64.deb; do
-      [ -e "$p" ] || continue
-      if dpkg-deb -c "$p" | grep 'kernel/drivers/gpu/drm/imx\(/cdns\)\?/cdns_mhdp_imx.ko' \
-        && dpkg-deb -c "$p" | grep 'kernel/drivers/gpu/drm/bridge/cadence/cdns-mhdp8546.ko'; then
-        found=1
-        break
+    for module in 'kernel/drivers/gpu/drm/imx\(/cdns\)\?/cdns_mhdp_imx.ko' \
+                  'kernel/drivers/gpu/drm/bridge/cadence/cdns-mhdp8546.ko' \
+                  'kernel/drivers/net/mdio/mdio-mux-meson-g12a.ko'; do
+      # since kernel 6.19, modules are in the linux-modules-* package
+      found=0
+      for p in "changes-$HOST_ARCH"/linux-image-*-mnt-reform-arm64_*_arm64.deb \
+               "changes-$HOST_ARCH"/linux-modules-*-mnt-reform-arm64_*_arm64.deb; do
+        [ -e "$p" ] || continue
+        if dpkg-deb -c "$p" | grep "$module"; then
+          found=1
+          break
+        fi
+      done
+      if [ "$found" -eq 0 ]; then
+        echo "$module missing" >&2
+        exit 1
+      else
+        echo "$module found" >&2
       fi
     done
-    if [ "$found" -eq 0 ]; then
-      echo "cdns missing" >&2
-    else
-      echo "cdns found" >&2
-    fi
     for dtb in amlogic/meson-g12b-bananapi-cm4-mnt-pocket-reform.dtb freescale/imx8mp-mnt-pocket-reform.dtb freescale/imx8mq-mnt-reform2.dtb freescale/imx8mq-mnt-reform2-hdmi.dtb amlogic/meson-g12b-bananapi-cm4-mnt-reform2.dtb freescale/imx8mp-mnt-reform2.dtb freescale/fsl-ls1028a-mnt-reform2.dtb rockchip/rk3588-mnt-reform2.dtb; do
       # since kernel 6.19, dtbs are in the linux-base-* package
       found=0
@@ -212,6 +223,7 @@ build_custom:
       done
       if [ "$found" -eq 0 ]; then
         echo "$dtb missing" >&2
+        exit 1
       else
         echo "$dtb found" >&2
       fi
@@ -300,7 +312,7 @@ build_linux_amd64:
       - changes-amd64
       - linux/linux_*_amd64-*.build
 
-build_qcacld:
+dtbs_check:
   stage: build
   tags:
     - arm64
@@ -308,85 +320,66 @@ build_qcacld:
     - job: build_linux_arm64
       artifacts: true
   script: |
-    set -x
+    set -exuo pipefail
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
-    apt-get --yes install --no-install-recommends gcc-aarch64-linux-gnu build-essential bison flex device-tree-compiler git ca-certificates xz-utils libssl-dev bc
-
-    # debug
-    echo "build_qcacld debug:"
-    echo "$(pwd):"
-    echo "ls -lh"
-    echo "ls -lh changes-arm64"
-
-    # find the linux debs
-    cd changes-arm64
-    LINUX_IMG_DEB=$(ls *.deb | grep -e '^linux-image-[0-9]' | grep -v '\-rt-' | head -n1)
-    LINUX_SRC_DEB=$(ls *.deb | grep -e '^linux-source-[0-9]' | head -n1)
-    LINUX_CFG_DEB=$(ls *.deb | grep -e '^linux-config-[0-9]' | head -n1)
-    cd ..
-
-    echo "build_qcacld debug vars:"
-    echo "img: ${LINUX_IMG_DEB}"
-    echo "src: ${LINUX_SRC_DEB}"
-    echo "cfg: ${LINUX_CFG_DEB}"
-
-    KERNELPACKAGENAME=$(echo $LINUX_IMG_DEB | cut -d '_' -f 1)
-    KERNELVERSION=$(echo $LINUX_IMG_DEB | cut -d '_' -f 2)
-    KERNELRELEASE=${KERNELPACKAGENAME/linux-image-/}
-
-    # clone driver
-    git clone --branch binary-deb https://source.mnt.re/reform/qcacld2.git
-    cd qcacld2
-
-    # extract kernel source
-    dpkg -x "../changes-arm64/${LINUX_SRC_DEB}" ./
+    apt-get --yes install --no-install-recommends gcc-aarch64-linux-gnu build-essential bison flex device-tree-compiler git ca-certificates xz-utils libssl-dev bc dt-schema
+    dpkg -x ./changes-arm64/linux-source-*.deb ./
+    dpkg -x ./changes-arm64/linux-config-*.deb ./
     tar xfJ usr/src/linux-source-*.tar.xz
+    cd linux-source-*
+    xz --decompress --to-stdout ../usr/src/linux-config-*/config.arm64_none_*arm64.xz > .config
+    for dtb in \
+      amlogic/meson-g12b-bananapi-cm4-mnt-pocket-reform.dtb \
+      freescale/imx8mp-mnt-pocket-reform.dtb \
+      freescale/imx8mq-mnt-reform2.dtb \
+      freescale/imx8mq-mnt-reform2-hdmi.dtb \
+      amlogic/meson-g12b-bananapi-cm4-mnt-reform2.dtb \
+      freescale/imx8mp-mnt-reform2.dtb \
+      freescale/fsl-ls1028a-mnt-reform2.dtb \
+      rockchip/rk3588-mnt-reform2.dtb; do
+      set +x
+      echo =================================================================
+      echo "    $dtb"
+      echo =================================================================
+      set -x
+      make CHECK_DTBS=y "$dtb"
+    done
 
-    # extract kernel config
-    dpkg -x "../changes-arm64/${LINUX_CFG_DEB}" ./
-    unxz usr/src/linux-config-*/config.arm64_none_*arm64.xz
+build_qcacld:
+  stage: build
+  extends: .setup
+  tags:
+    - arm64
+  needs:
+    - job: build_linux_arm64
+      artifacts: true
+  script: |
+    set -exuo pipefail
+    apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
+    apt-get --yes install --no-install-recommends gcc-aarch64-linux-gnu build-essential bison flex device-tree-compiler git ca-certificates xz-utils libssl-dev bc sbuild
 
-    # install kernel config
-    KERNSRC=$(echo linux-source-*)
-    mv usr/src/linux-config-*/config.arm64_none_*arm64 "${KERNSRC}/.config"
+    if [ -z ${SOURCE_DATE_EPOCH:+x} ] && git -C . rev-parse 2>/dev/null; then
+      SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)
+    else
+      : "${SOURCE_DATE_EPOCH:=$(date --utc +%s)}"
+    fi
+    export SOURCE_DATE_EPOCH
 
-    # prepare kernel tree
-    cd $KERNSRC
-    make -j $(nproc) ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- modules_prepare
-    cd ..
+    KERNEL_ABINAME=$(dpkg-deb --field changes-arm64/linux-image-*-mnt-reform-arm64_*_arm64.deb Package)
+    KERNEL_ABINAME=${KERNEL_ABINAME##linux-image-}
 
-    # build driver
-    KBUILD_MODPOST_WARN=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- MODNAME=qcacld2 KERNEL_SRC=${KERNSRC} make
+    git clone --depth=1 --branch=binary-deb https://source.mnt.re/reform/qcacld2.git
 
-    # build debian package
-    QCAPACKAGEVERSION=$(date -u +"%Y%m%dT%H%M%SZ")
-    mkdir -p debian/opt/reform-qcacld2
-    mv qcacld2.ko "debian/opt/reform-qcacld2/qcacld2-${KERNELVERSION}.ko"
-    sed -i "s/KERNELRELEASE/$KERNELRELEASE/g" debian/DEBIAN/control
-    sed -i "s/QCAPACKAGEVERSION/$QCAPACKAGEVERSION/g" debian/DEBIAN/control
-    sed -i "s/KERNELPACKAGENAME/$KERNELPACKAGENAME/g" debian/DEBIAN/control
-    ## permissions are world writable by default in CI, fix that
-    chmod -R og-w debian
-    ls -lR debian
-    dpkg --build debian "reform-qcacld2-${KERNELRELEASE}_${QCAPACKAGEVERSION}_arm64.deb"
+    env --chdir=qcacld2 ./createdeb.sh "$KERNEL_ABINAME" "$(pwd)"/changes-arm64/linux-source-*.deb
 
-    # build debian meta-package that tracks the latest version of the
-    # actual driver package so it is auto-upgraded together with kernel upgrades
-    # and that also includes a NeverAutoRemove snippet for /etc/apt/apt.conf.d/
-    # this package also contains the shared firmware for the drivers.
-    sed -i "s/KERNELRELEASE/$KERNELRELEASE/g" debian-meta/DEBIAN/control
-    sed -i "s/QCAPACKAGEVERSION/$QCAPACKAGEVERSION/g" debian-meta/DEBIAN/control
-    ## permissions are world writable by default in CI, fix that
-    chmod -R og-w debian-meta
-    ls -lR debian-meta
-    dpkg --build debian-meta "reform-qcacld2_${QCAPACKAGEVERSION}_arm64.deb"
-    mv *.deb ..
-    cd ..
-
+    chown build -R .
+    runuser -u build -- env --chdir=qcacld2 sbuild --verbose --no-run-lintian --no-run-autopkgtest --extra-package "$(pwd)"/changes-arm64/linux-source-*.deb --extra-package "$(pwd)"/changes-arm64/linux-config-*.deb --no-clean-source
   artifacts:
     when: always
     paths:
       - "reform-qcacld2*.deb"
+      - "*.buildinfo"
+      - "*.changes"
 
 reprepro:
   stage: reprepro
