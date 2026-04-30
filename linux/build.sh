@@ -645,6 +645,13 @@ if dpkg --compare-versions "$KVER" ge "6.16"; then
 	sed -i '/rk3588-mnt-pocket-reform.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform-next.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
 fi
 
+# FIXME
+env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arc/Makefile
+sed -i 's/-mmedium-calls/-mmedium-calls -mimpossible-option/' linux/arch/arc/Makefile
+env --chdir=linux QUILT_PATCHES=debian/patches quilt add Makefile
+sed -i '/^$(version_h): FORCE$/a \\texit 1' linux/Makefile
+sed -i '/^$(version_h): FORCE$/a \\techo version_h target' linux/Makefile
+
 # finalize dts.patch
 env --chdir=linux QUILT_PATCHES=debian/patches quilt refresh
 
@@ -684,8 +691,8 @@ if [ "$HOST_ARCH" != "arm64" ]; then
 	DEB_BUILD_PROFILES="pkg.linux.nokernel pkg.linux.nometa $DEB_BUILD_PROFILES"
 fi
 
-env --chdir=linux DEB_BUILD_PROFILES="$DEB_BUILD_PROFILES" \
-	sbuild --chroot="$BASESUITE-$BUILD_ARCH" --arch-any --build="$BUILD_ARCH" --host="$HOST_ARCH" \
+env --chdir=linux DEB_BUILD_PROFILES="$DEB_BUILD_PROFILES" MAKEFLAGS=-j1 \
+	sbuild -j1 --chroot="$BASESUITE-$BUILD_ARCH" --arch-any --build="$BUILD_ARCH" --host="$HOST_ARCH" \
 	"$([ "$HOST_ARCH" = "arm64" ] && echo --arch-all || echo --no-arch-all)" \
 	--verbose --clean-source --no-source-only-changes --no-run-lintian --no-run-autopkgtest
 
