@@ -35,7 +35,7 @@ stages:
       fi
     fi
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
-    apt-get --no-install-recommends -y install python3 devscripts reprepro sbuild mmdebstrap uidmap mount debhelper debian-keyring quilt pristine-tar rsync git python3-debian faketime python3-jinja2 python3-dacite debian-archive-keyring curl kernel-wedge unzip build-essential dh-python iproute2 arch-test
+    apt-get --no-install-recommends -y install python3 devscripts reprepro sbuild mmdebstrap uidmap mount debhelper debian-keyring quilt pristine-tar rsync git python3-debian faketime python3-jinja2 python3-dacite debian-archive-keyring curl kernel-wedge unzip build-essential dh-python iproute2 arch-test cpio
     useradd --comment build --home-dir /home/build --create-home build
     chown build -R .
     rm -rvf changes buildlogs chdist repo chroot-*.tar
