@@ -645,8 +645,8 @@ if dpkg --compare-versions "$KVER" ge "6.16"; then
 	sed -i '/rk3588-mnt-pocket-reform.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform-next.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
 fi
 
-# quasar needs 6.17 or later
-if dpkg --compare-versions "$KVER" ge "6.17"; then
+# quasar needs 7.0 or later
+if dpkg --compare-versions "$KVER" ge "7.0"; then
 	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/qcom/qcs6490-mnt-quasar.dtsi
 	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/qcom/qcs6490-mnt-reform2.dts
 	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/qcom/qcs6490-mnt-pocket-reform.dts
