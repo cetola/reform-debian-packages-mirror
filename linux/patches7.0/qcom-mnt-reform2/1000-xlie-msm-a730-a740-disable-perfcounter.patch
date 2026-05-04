@@ -1,0 +1,48 @@
+From 1bec61ce64bbfe6a790a0d8756e1e5d61d075449 Mon Sep 17 00:00:00 2001
+From: ZXlieC <xlie7669@gmail.com>
+Date: Wed, 25 Feb 2026 00:36:10 +0200
+Subject: [PATCH] drm: msm: disable perfcounter
+
+---
+ drivers/gpu/drm/msm/adreno/a6xx_gmu.c | 5 +++++
+ drivers/gpu/drm/msm/adreno/a6xx_hfi.c | 8 +++++++-
+ 2 files changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/msm/adreno/a6xx_gmu.c b/drivers/gpu/drm/msm/adreno/a6xx_gmu.c
+index 9662201cd2e9d0..12cc2e257c0a73 100644
+--- a/drivers/gpu/drm/msm/adreno/a6xx_gmu.c
++++ b/drivers/gpu/drm/msm/adreno/a6xx_gmu.c
+@@ -2157,6 +2157,11 @@ int a6xx_gmu_init(struct a6xx_gpu *a6xx_gpu, struct device_node *node)
+ 	if (ret)
+ 		return ret;
+ 
++	if (adreno_is_a730(adreno_gpu) ||
++		adreno_is_a740_family(adreno_gpu))
++		#undef GMU_STATUS_OOB_PERF_SET
++		#define GMU_STATUS_OOB_PERF_SET 0
++
+ 	/* Set GMU idle level */
+ 	gmu->idle_level = (adreno_gpu->info->quirks & ADRENO_QUIRK_IFPC) ?
+ 		GMU_IDLE_STATE_IFPC : GMU_IDLE_STATE_ACTIVE;
+diff --git a/drivers/gpu/drm/msm/adreno/a6xx_hfi.c b/drivers/gpu/drm/msm/adreno/a6xx_hfi.c
+index 53cfdf4e6c3468..d240002ead24b0 100644
+--- a/drivers/gpu/drm/msm/adreno/a6xx_hfi.c
++++ b/drivers/gpu/drm/msm/adreno/a6xx_hfi.c
+@@ -107,10 +107,16 @@ static int a6xx_hfi_wait_for_msg_interrupt(struct a6xx_gmu *gmu, u32 id, u32 seq
+ 	int ret;
+ 	u32 val;
+ 	struct a6xx_gpu *a6xx_gpu = container_of(gmu, struct a6xx_gpu, gmu);
++	struct adreno_gpu *adreno_gpu = &a6xx_gpu->base;
+ 
+ 	do {
+ 		/* Wait for a response */
+-		ret = gmu_poll_timeout(gmu, REG_A6XX_GMU_GMU2HOST_INTR_INFO, val,
++		if (adreno_is_a730(adreno_gpu) ||
++			adreno_is_a740_family(adreno_gpu))
++			ret = gmu_poll_timeout(gmu, REG_A6XX_GMU_GMU2HOST_INTR_INFO, val,
++			val & A6XX_GMU_GMU2HOST_INTR_INFO_MSGQ, 100, 10000);
++		else
++			ret = gmu_poll_timeout(gmu, REG_A6XX_GMU_GMU2HOST_INTR_INFO, val,
+ 			val & A6XX_GMU_GMU2HOST_INTR_INFO_MSGQ, 100, 1000000);
+ 
+ 		if (!ret)
