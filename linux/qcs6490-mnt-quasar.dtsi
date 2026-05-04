@@ -939,7 +939,7 @@
 };
 
 &usb_1 {
-	dr_mode = "otg";
+	dr_mode = "host";
 
 	pinctrl-names = "default";
 	pinctrl-0 = <&usbhub_reset>;
@@ -972,15 +972,15 @@
 };
 
 &usb_2 {
-	dr_mode = "host";
 	#address-cells = <1>;
 	#size-cells = <0>;
 
+	dr_mode = "host";
 	status = "okay";
 
 	/* USB2412 2.0 hub to BT and MB_USB1 */
 	hub_2_0_som: hub@1 {
-		/* FIXME: changed to 4-port hub in Quasar V2 */
+		// FIXME: changed to 4-port hub in Quasar V2
 		compatible = "usb424,2412";
 		reg = <1>;
 		#address-cells = <1>;
@@ -1131,10 +1131,10 @@
 	};
 };
 
-&lpass_audiocc {
-	compatible = "qcom,qcm6490-lpassaudiocc";
-	/delete-property/ power-domains;
-};
+//&lpass_audiocc {
+//	compatible = "qcom,qcm6490-lpassaudiocc";
+//	/delete-property/ power-domains;
+//};
 
 &lpass_aon {
 	status = "okay";
