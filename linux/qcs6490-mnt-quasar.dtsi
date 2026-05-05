@@ -35,8 +35,8 @@
 /delete-node/ &reserved_xbl_uefi_log;
 
 / {
-	model = "MNT QUASAR DDK";
-	compatible = "mnt,qcs6490-quasar", "qcom,qcm6490";
+	model = "MNT QUASAR QCS6490 Module";
+	compatible = "mntre,qcs6490-quasar", "qcom,qcm6490";
 	chassis-type = "embedded";
 
 	aliases {

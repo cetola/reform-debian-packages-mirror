@@ -9,7 +9,7 @@
 #include "qcs6490-mnt-quasar.dtsi"
 
 / {
-	model = "MNT Reform Next with QCS6490 Quasar Module";
+	model = "MNT Reform Next with QUASAR QCS6490 Module";
 	compatible = "mntre,reform-next", "mntre,quasar-qcs6490", "qcom,qcm6490";
 	chassis-type = "laptop";
 

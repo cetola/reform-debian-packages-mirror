@@ -10,7 +10,7 @@
 #include <dt-bindings/interrupt-controller/irq.h>
 
 / {
-	model = "MNT Reform 2 with QCS6490 Quasar Module";
+	model = "MNT Reform 2 with QUASAR QCS6490 Module";
 	compatible = "mntre,reform2", "mntre,quasar-qcs6490", "qcom,qcm6490";
 	chassis-type = "laptop";
 
