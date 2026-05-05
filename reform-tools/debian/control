@@ -145,7 +145,7 @@ Depends:
  mesa-vulkan-drivers,
  modemmanager,
  mpv,
- network-manager,
+ network-manager-applet,
  neverball,
  nfs-common,
  papirus-icon-theme,
