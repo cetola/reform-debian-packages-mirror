@@ -1,0 +1,30 @@
+From 9b7ce8b467370d7ab286cd62c0eaa0916aa37931 Mon Sep 17 00:00:00 2001
+From: "Lucie L. Hartmann" <lukas@mntre.com>
+Date: Fri, 10 Apr 2026 01:28:13 +0200
+Subject: [PATCH] reform2_lpc: don't treat small fw version numbers as v3
+
+---
+ lpc/reform2_lpc.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/lpc/reform2_lpc.c b/lpc/reform2_lpc.c
+index 7a9c986..ff82b37 100644
+--- a/lpc/reform2_lpc.c
++++ b/lpc/reform2_lpc.c
+@@ -163,11 +163,10 @@ static uint32_t lpc_get_api_version(struct device *dev)
+ 		ret = MNTRE_LPC_API_V1;
+ 	} else if (version >= 20250526 && version < 20260315) {
+ 		ret = MNTRE_LPC_API_V2;
+-	} else if (version < 20200000 ||
+-		   (version >= 20260315 && version <= 30000101)) {
++	} else if (version >= 20260315 && version <= 30000101) {
+ 		ret = MNTRE_LPC_API_V3;
+ 	}
+-	dev_info(dev, "raw version: %u (%s), LPC API version: %d\n", version,
++	dev_info(dev, "raw version: %u (%s), LPC API version: %d.\n", version,
+ 		 str, ret);
+ 	return ret;
+ }
+-- 
+2.47.3
+
