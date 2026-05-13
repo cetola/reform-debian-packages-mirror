@@ -3,7 +3,7 @@ image: debian:unstable-slim
 variables:
   BASESUITE:
     description: Debian suite to fetch packages from
-    value: unstable
+    value: experimental
   OURSUITE:
     description: Suite name of the repository we create
     value: reform
@@ -21,7 +21,7 @@ stages:
     # Do not allow custom builds in the 'reform' namespace as those can
     # potentially taint the repository at https://mntre.com/reform-debian-repo/
     if [ "$CI_SERVER_HOST" = "source.mnt.re" ] && [ "$CI_PROJECT_NAMESPACE" = "reform" ]; then
-      if [ "$BASESUITE" != "unstable" ]; then
+      if [ "$BASESUITE" != "experimental" ]; then
         echo "Refusing to run pipeline in the 'reform' namespace with BASESUITE not set to 'unstable'" >&2
         echo "to avoid accidentally tainting the repository at https://mntre.com/reform-debian-repo." >&2
         echo "Consider running custom pipelines in a fork of reform-debian-packages under your own username instead." >&2
@@ -44,7 +44,7 @@ stages:
     runuser -u build -- reprepro --basedir ./repo export
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
     runuser -u build -- sh -c 'mkdir -p ~/.config/sbuild'
-    runuser -u build -- sh -c 'echo "\$chroot_mode = \"unshare\";\$unshare_mmdebstrap_keep_tarball=1;\$chroot_aliases->{reform} = \"unstable\";push @{\$unshare_mmdebstrap_distro_mangle}, qr/^reform\$/, \"unstable\";1;" > ~/.config/sbuild/config.pl'
+    runuser -u build -- sh -c 'echo "\$chroot_mode = \"unshare\";\$unshare_mmdebstrap_keep_tarball=1;\$chroot_aliases->{reform} = \"unstable\";push @{\$unshare_mmdebstrap_distro_mangle}, qr/^reform\$/, \"unstable\";push @{\$unshare_mmdebstrap_extra_args}, (\"*\", [\"--setup-hook=echo \\\"deb http://deb.debian.org/debian experimental main\\\" > \\\"\\\$1\\\"/etc/apt/sources.list.d/experimental.list\", \"--include=libopencolorio-dev/experimental\"]);1;" > ~/.config/sbuild/config.pl'
     runuser -u build -- sh -c 'mkdir -p changes buildlogs'
     chown build -R .
 
