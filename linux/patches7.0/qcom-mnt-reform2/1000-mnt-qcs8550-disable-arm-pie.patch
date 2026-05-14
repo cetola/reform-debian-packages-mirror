@@ -1,0 +1,30 @@
+commit 2752dabb8ca05b11272f78730ed5674fa2d906d0
+Author: Lucie L. Hartmann <lucie@mntre.com>
+Date:   Thu May 14 22:26:50 2026 +0200
+
+    qcs8550/arm64: try disabling Permission Indirection Extension (PIE)
+
+diff --git a/arch/arm64/mm/proc.S b/arch/arm64/mm/proc.S
+index 22866b49..2ea6f5ca 100644
+--- a/linux/linux/arch/arm64/mm/proc.S
++++ b/linux/linux/arch/arm64/mm/proc.S
+@@ -539,19 +539,6 @@ alternative_else_nop_endif
+ 	msr	mair_el1, mair
+ 	msr	tcr_el1, tcr
+ 
+-	mrs_s	x1, SYS_ID_AA64MMFR3_EL1
+-	ubfx	x1, x1, #ID_AA64MMFR3_EL1_S1PIE_SHIFT, #4
+-	cbz	x1, .Lskip_indirection
+-
+-	mov_q	x0, PIE_E0_ASM
+-	msr	REG_PIRE0_EL1, x0
+-	mov_q	x0, PIE_E1_ASM
+-	msr	REG_PIR_EL1, x0
+-
+-	orr	tcr2, tcr2, TCR2_EL1_PIE
+-
+-.Lskip_indirection:
+-
+ 	mrs_s	x1, SYS_ID_AA64MMFR3_EL1
+ 	ubfx	x1, x1, #ID_AA64MMFR3_EL1_TCRX_SHIFT, #4
+ 	cbz	x1, 1f
