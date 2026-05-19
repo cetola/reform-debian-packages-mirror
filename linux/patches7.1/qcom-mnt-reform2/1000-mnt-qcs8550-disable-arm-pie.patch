@@ -6,8 +6,8 @@ Date:   Thu May 14 22:26:50 2026 +0200
 
 diff --git a/arch/arm64/mm/proc.S b/arch/arm64/mm/proc.S
 index 22866b49..2ea6f5ca 100644
---- a/linux/linux/arch/arm64/mm/proc.S
-+++ b/linux/linux/arch/arm64/mm/proc.S
+--- a/arch/arm64/mm/proc.S
++++ b/arch/arm64/mm/proc.S
 @@ -539,19 +539,6 @@ alternative_else_nop_endif
  	msr	mair_el1, mair
  	msr	tcr_el1, tcr
