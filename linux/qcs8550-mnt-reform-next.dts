@@ -20,8 +20,8 @@
 //#include "pmr735d_b.dtsi"
 
 / {
-	model = "MNT Reform Next with Quasar 8550 Module";
-	compatible = "mnt,quasar", "qcom,sm8550", "qcom,qcs8550";
+	model = "MNT Reform Next with QUASAR QCS8550 Module";
+	compatible = "mntre,reform-next-qcs8550", "mntre,quasar-qcs8550", "qcom,qcs8550", "qcom,sm8550";
 
 	aliases {
 		serial0 = &uart7;

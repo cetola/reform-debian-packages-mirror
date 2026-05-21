@@ -10,7 +10,7 @@
 
 / {
 	model = "MNT Reform Next with QUASAR QCS6490 Module";
-	compatible = "mntre,reform-next", "mntre,quasar-qcs6490", "qcom,qcm6490";
+	compatible = "mntre,reform-next-qcs6490", "mntre,quasar-qcs6490", "qcom,qcm6490";
 	chassis-type = "laptop";
 
 	backlight: backlight {

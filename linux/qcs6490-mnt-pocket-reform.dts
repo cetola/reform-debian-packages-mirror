@@ -26,7 +26,7 @@ No SS phy
 
 / {
 	model = "MNT Pocket Reform with QUASAR QCS6490 Module";
-	compatible = "mntre,pocket-reform", "mntre,quasar-qcs6490", "qcom,qcm6490";
+	compatible = "mntre,pocket-reform-qcs6490", "mntre,quasar-qcs6490", "qcom,qcm6490";
 	chassis-type = "laptop";
 };
 
