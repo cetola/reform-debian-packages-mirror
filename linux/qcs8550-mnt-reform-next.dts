@@ -20,7 +20,7 @@
 //#include "pmr735d_b.dtsi"
 
 / {
-	model = "MNT Reform 2 with Quasar 8550 Module";
+	model = "MNT Reform Next with Quasar 8550 Module";
 	compatible = "mnt,quasar", "qcom,sm8550", "qcom,qcs8550";
 
 	aliases {
@@ -540,9 +540,53 @@
 		};
 	};
 
+	tlv320aic3100: codec@18 {
+		compatible = "ti,tlv320aic3100";
+		reg = <0x18>;
+		ai31xx-micbias-vg = <2>;
+		#sound-dai-cells = <0>;
+
+		HPVDD-supply = <&main_3v3>;
+		SPRVDD-supply = <&vin_5v0>;
+		SPLVDD-supply = <&vin_5v0>;
+		AVDD-supply = <&main_3v3>;
+		IOVDD-supply = <&main_3v3>;
+		DVDD-supply = <&main_1v8>;
+
+		status = "okay";
+	};
+
 	rtc@68 {
 		compatible = "nxp,pcf8523";
 		reg = <0x68>;
+	};
+};
+
+/ {
+	sound {
+		compatible = "qcom,sm8550-sndcard", "qcom,sm8450-sndcard";
+		model = "MNT-Quasar-8550";
+		pinctrl-names = "default";
+		pinctrl-0 = <&i2s_pins>;
+		#address-cells = <0x01>;
+		#size-cells = <0x00>;
+		status = "okay";
+
+		speaker-i2s-dai-link {
+			link-name = "Primary MI2S Playback";
+
+			codec {
+				sound-dai = <&tlv320aic3100 0x00>;
+			};
+
+			cpu {
+				sound-dai = <&q6apmbedai 0x10>;
+			};
+
+			platform {
+				sound-dai = <&q6apm>;
+			};
+		};
 	};
 };
 

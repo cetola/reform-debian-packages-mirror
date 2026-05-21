@@ -20,7 +20,7 @@
 //#include "pmr735d_b.dtsi"
 
 / {
-	model = "MNT Reform 2 with Quasar 8550 Module";
+	model = "MNT Pocket Reform with Quasar 8550 Module";
 	compatible = "mnt,quasar", "qcom,sm8550", "qcom,qcs8550";
 
 	aliases {
@@ -540,9 +540,53 @@
 		};
 	};
 
+	tlv320aic3100: codec@18 {
+		compatible = "ti,tlv320aic3100";
+		reg = <0x18>;
+		ai31xx-micbias-vg = <2>;
+		#sound-dai-cells = <0>;
+
+		HPVDD-supply = <&main_3v3>;
+		SPRVDD-supply = <&vin_5v0>;
+		SPLVDD-supply = <&vin_5v0>;
+		AVDD-supply = <&main_3v3>;
+		IOVDD-supply = <&main_3v3>;
+		DVDD-supply = <&main_1v8>;
+
+		status = "okay";
+	};
+
 	rtc@68 {
 		compatible = "nxp,pcf8523";
 		reg = <0x68>;
+	};
+};
+
+/ {
+	sound {
+		compatible = "qcom,sm8550-sndcard", "qcom,sm8450-sndcard";
+		model = "MNT-Quasar-8550";
+		pinctrl-names = "default";
+		pinctrl-0 = <&i2s_pins>;
+		#address-cells = <0x01>;
+		#size-cells = <0x00>;
+		status = "okay";
+
+		speaker-i2s-dai-link {
+			link-name = "Primary MI2S Playback";
+
+			codec {
+				sound-dai = <&tlv320aic3100 0x00>;
+			};
+
+			cpu {
+				sound-dai = <&q6apmbedai 0x10>;
+			};
+
+			platform {
+				sound-dai = <&q6apm>;
+			};
+		};
 	};
 };
 
@@ -603,11 +647,9 @@
 
 	aux-bus {
 		panel: panel {
-			compatible = "innolux,n125hce-gn1";
-			//compatible = "edp-panel";
+			compatible = "edp-panel";
 			power-supply = <&main_3v3>;
 			no-hpd;
-			//backlight = <&backlight>;
 			// hpd-gpios = <&tlmm 47 GPIO_ACTIVE_HIGH>;
 
 			pinctrl-names = "default";
@@ -695,41 +737,11 @@
 };
 
 &pcie1 {
-	perst-gpios = <&tlmm 97 GPIO_ACTIVE_LOW>;
-	wake-gpios = <&tlmm 99 GPIO_ACTIVE_HIGH>;
-
-	pinctrl-0 = <&pcie1_default_state>, <&pcie1_reset_n>;
-	pinctrl-names = "default";
-
-	iommu-map = <0x0 &apps_smmu 0x1480 0x1>,
-	<0x100 &apps_smmu 0x1481 0x1>,
-	<0x208 &apps_smmu 0x1482 0x1>,
-	<0x210 &apps_smmu 0x1483 0x1>,
-	<0x218 &apps_smmu 0x1484 0x1>,
-	<0x300 &apps_smmu 0x1487 0x1>,
-	<0x400 &apps_smmu 0x1488 0x1>,
-	<0x500 &apps_smmu 0x148c 0x1>,
-	<0x501 &apps_smmu 0x148e 0x1>;
-
-	msi-map = <0x00 &gic_its 0x1480 0x01
-	0x100 0x7a 0x1481 0x01
-	0x208 0x7a 0x1482 0x01
-	0x210 0x7a 0x1483 0x01
-	0x218 0x7a 0x1484 0x01
-	0x300 0x7a 0x1487 0x01
-	0x400 0x7a 0x1488 0x01
-	0x500 0x7a 0x148c 0x01
-	0x501 0x7a 0x148e 0x01>;
-
-	status = "okay";
+	status = "disabled";
 };
 
 &pcie1_phy {
-	vdda-phy-supply = <&vreg_l3c_0p9>;
-	vdda-pll-supply = <&vreg_l3e_1p2>;
-	vdda-qref-supply = <&vreg_l1e_0p88>;
-
-	status = "okay";
+	status = "disabled";
 };
 
 /* GPIO notes:
