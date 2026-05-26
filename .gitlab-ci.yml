@@ -1,15 +1,20 @@
-image: debian:unstable-slim
+spec:
+  inputs:
+    basesuite:
+      description: "Debian suite to fetch packages from"
+      default: unstable
+      options:
+        - unstable
+        - experimental
+    oursuite:
+      description: "Suite name of the repository we create"
+      default: reform
+    mirror:
+      description: "Debian mirror to pull packages from"
+      default: "http://deb.debian.org/debian"
+---
 
-variables:
-  BASESUITE:
-    description: Debian suite to fetch packages from
-    value: unstable
-  OURSUITE:
-    description: Suite name of the repository we create
-    value: reform
-  MIRROR:
-    description: Debian mirror to pull packages from
-    value: http://deb.debian.org/debian
+image: debian:unstable-slim
 
 stages:
   - build
@@ -18,16 +23,22 @@ stages:
 .setup:
   before_script: |
     set -x
+    BASESUITE='$[[ inputs.basesuite ]]'
+    export BASESUITE
+    OURSUITE='$[[ inputs.oursuite ]]'
+    export OURSUITE
+    MIRROR='$[[ inputs.mirror ]]'
+    export MIRROR
     # Do not allow custom builds in the 'reform' namespace as those can
     # potentially taint the repository at https://mntre.com/reform-debian-repo/
     if [ "$CI_SERVER_HOST" = "source.mnt.re" ] && [ "$CI_PROJECT_NAMESPACE" = "reform" ]; then
-      if [ "$BASESUITE" != "unstable" ]; then
+      if [ "$[[ inputs.basesuite ]]" != "unstable" ]; then
         echo "Refusing to run pipeline in the 'reform' namespace with BASESUITE not set to 'unstable'" >&2
         echo "to avoid accidentally tainting the repository at https://mntre.com/reform-debian-repo." >&2
         echo "Consider running custom pipelines in a fork of reform-debian-packages under your own username instead." >&2
         exit 1
       fi
-      if [ "$OURSUITE" != "reform" ]; then
+      if [ "$[[ inputs.oursuite ]]" != "reform" ]; then
         echo "Refusing to run pipeline on the 'reform' namespace with OURSUITE not set to 'reform'" >&2
         echo "to avoid accidentally tainting the repository at https://mntre.com/reform-debian-repo." >&2
         echo "Consider running custom pipelines in a fork of reform-debian-packages under your own username instead." >&2
@@ -53,6 +64,13 @@ stages:
   #when: manual
   extends: .setup
   script: |
+    set -x
+    BASESUITE='$[[ inputs.basesuite ]]'
+    export BASESUITE
+    OURSUITE='$[[ inputs.oursuite ]]'
+    export OURSUITE
+    MIRROR='$[[ inputs.mirror ]]'
+    export MIRROR
     ## if we are on gitlab CI and if the current branch is NOT main, then
     ## fill the repo with cached results from the last successful run in main
     #for p in patches/*; do
@@ -166,13 +184,19 @@ build_custom:
       - fonts-reform-iosevka-term_2.3.0.1_arm64.deb
   script: |
     set -exuo pipefail
+    BASESUITE='$[[ inputs.basesuite ]]'
+    export BASESUITE
+    OURSUITE='$[[ inputs.oursuite ]]'
+    export OURSUITE
+    MIRROR='$[[ inputs.mirror ]]'
+    export MIRROR
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
     apt-get --yes install --no-install-recommends equivs
     runuser -u build -- sh -x ./build_custom.sh 2>&1 | ./filter-output
     mv changes changes-custom
   after_script: |
-    echo "BASESUITE: $BASESUITE"
-    echo "OURSUITE: $OURSUITE"
+    echo "BASESUITE: $[[ inputs.basesuite ]]"
+    echo "OURSUITE: $[[ inputs.oursuite ]]"
 
 .build_linux:
   stage: build
@@ -180,7 +204,13 @@ build_custom:
   extends: .setup
   script: |
     set -x
-    echo "MIRROR: $MIRROR" >&2
+    BASESUITE='$[[ inputs.basesuite ]]'
+    export BASESUITE
+    OURSUITE='$[[ inputs.oursuite ]]'
+    export OURSUITE
+    MIRROR='$[[ inputs.mirror ]]'
+    export MIRROR
+    echo "MIRROR: $[[ inputs.mirror ]]" >&2
     # gitlab has pipefail turned on by default, so the below will fail if
     # build.sh fails despite the command being piped to filter-output.
     runuser -u build -- sh -xc '. ./common.sh; cd linux; . ./build.sh' 2>&1 | ./filter-output
@@ -244,8 +274,8 @@ build_custom:
       grep -B1 -A3 --color -P '([^"]error:|Error|[^_W]ERROR|Waiting for unfinished jobs)' linux/linux_*_"${HOST_ARCH}"-*.build
       exit 1
     fi
-    echo "BASESUITE: $BASESUITE"
-    echo "OURSUITE: $OURSUITE"
+    echo "BASESUITE: $[[ inputs.basesuite ]]"
+    echo "OURSUITE: $[[ inputs.oursuite ]]"
 
 build_linux_arm64:
   variables:
@@ -404,6 +434,12 @@ reprepro:
       - variables.sh
   script: |
     set -x
+    BASESUITE='$[[ inputs.basesuite ]]'
+    export BASESUITE
+    OURSUITE='$[[ inputs.oursuite ]]'
+    export OURSUITE
+    MIRROR='$[[ inputs.mirror ]]'
+    export MIRROR
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
     apt-get --no-install-recommends -y install reprepro python3 devscripts
     runuser -u build -- sh -x ./reprepro.sh
@@ -411,9 +447,9 @@ reprepro:
       echo "CI_PROJECT_NAMESPACE=\"$CI_PROJECT_NAMESPACE\"";
       echo "CI_COMMIT_BRANCH=\"$CI_COMMIT_BRANCH\"";
       echo "CI_COMMIT_REF_NAME=\"$CI_COMMIT_REF_NAME\"";
-      echo "BASESUITE=\"$BASESUITE\"";
-      echo "OURSUITE=\"$OURSUITE\"";
+      echo "BASESUITE=\"$[[ inputs.basesuite ]]\"";
+      echo "OURSUITE=\"$[[ inputs.oursuite ]]\"";
     } | tee variables.sh
   after_script: |
     echo "To use the artifacts of this job as an apt source, add this to your /etc/apt/sources.list:" >&2
-    echo "deb [trusted=yes arch=arm64] https://$CI_SERVER_HOST/$CI_PROJECT_NAMESPACE/reform-debian-packages/-/jobs/$CI_JOB_ID/artifacts/raw/repo $OURSUITE main"
+    echo "deb [trusted=yes arch=arm64] https://$CI_SERVER_HOST/$CI_PROJECT_NAMESPACE/reform-debian-packages/-/jobs/$CI_JOB_ID/artifacts/raw/repo $[[ inputs.oursuite ]] main"
