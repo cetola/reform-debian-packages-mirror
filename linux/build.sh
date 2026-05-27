@@ -628,6 +628,8 @@ if dpkg --compare-versions "$KVER" ge "6.8"; then
 	cp rk3588-mnt-pocket-reform.dts linux/arch/arm64/boot/dts/rockchip/rk3588-mnt-pocket-reform.dts
 	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/rockchip/rk3588-mnt-station.dts
 	cp rk3588-mnt-station.dts linux/arch/arm64/boot/dts/rockchip/rk3588-mnt-station.dts
+	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/rockchip/rk3588s-mnt-pocket-reform.dts
+	cp rk3588s-mnt-pocket-reform.dts linux/arch/arm64/boot/dts/rockchip/rk3588s-mnt-pocket-reform.dts
 	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/rockchip/Makefile
 	if ! grep --silent --fixed-strings --line-regexp 'dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform2.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile; then
 		# rk3588-mnt-reform2.dtb is included since 6.15
@@ -635,6 +637,7 @@ if dpkg --compare-versions "$KVER" ge "6.8"; then
 	fi
 	sed -i '/rk3588-mnt-reform2.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform2-dsi.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
 	sed -i '/rk3588-mnt-reform2-dsi.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-pocket-reform.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
+	sed -i '/rk3588-mnt-reform2-dsi.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588s-mnt-pocket-reform.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
 	sed -i '/rk3588-mnt-pocket-reform.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-station.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
 fi
 
