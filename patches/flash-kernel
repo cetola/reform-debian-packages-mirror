@@ -33,7 +33,7 @@ index 1bacc51..765fe45 100644
  Machine: MNT Reform 2
  Kernel-Flavors: any
  Boot-Script-Path: /boot/boot.scr
-@@ -1185,6 +1192,48 @@ Boot-Script-Path: /boot/boot.scr
+@@ -1185,6 +1192,90 @@ Boot-Script-Path: /boot/boot.scr
  U-Boot-Script-Name: bootscr.uboot-generic
  Required-Packages: u-boot-tools
 
@@ -75,6 +75,48 @@ index 1bacc51..765fe45 100644
 +Machine: MNT Reform Next with RCORE RK3588 Module
 +Kernel-Flavors: any
 +DTB-Id: rockchip/rk3588-mnt-reform-next.dtb
++Boot-Script-Path: /boot/boot.scr
++U-Boot-Script-Name: bootscr.uboot-generic
++Required-Packages: u-boot-tools
++
++Machine: MNT Pocket Reform with QUASAR QCS6490 Module
++Kernel-Flavors: any
++DTB-Id: qcom/qcs6490-mnt-pocket-reform.dtb
++Boot-Script-Path: /boot/boot.scr
++U-Boot-Script-Name: bootscr.uboot-generic
++Required-Packages: u-boot-tools
++
++Machine: MNT Pocket Reform with QUASAR QCS8550 Module
++Kernel-Flavors: any
++DTB-Id: qcom/qcs8550-mnt-pocket-reform.dtb
++Boot-Script-Path: /boot/boot.scr
++U-Boot-Script-Name: bootscr.uboot-generic
++Required-Packages: u-boot-tools
++
++Machine: MNT Reform 2 with QUASAR QCS6490 Module
++Kernel-Flavors: any
++DTB-Id: qcom/qcs6490-mnt-reform2.dtb
++Boot-Script-Path: /boot/boot.scr
++U-Boot-Script-Name: bootscr.uboot-generic
++Required-Packages: u-boot-tools
++
++Machine: MNT Reform 2 with QUASAR QCS8550 Module
++Kernel-Flavors: any
++DTB-Id: qcom/qcs8550-mnt-reform2.dtb
++Boot-Script-Path: /boot/boot.scr
++U-Boot-Script-Name: bootscr.uboot-generic
++Required-Packages: u-boot-tools
++
++Machine: MNT Reform Next with QUASAR QCS6490 Module
++Kernel-Flavors: any
++DTB-Id: qcom/qcs6490-mnt-reform-next.dtb
++Boot-Script-Path: /boot/boot.scr
++U-Boot-Script-Name: bootscr.uboot-generic
++Required-Packages: u-boot-tools
++
++Machine: MNT Reform Next with QUASAR QCS8550 Module
++Kernel-Flavors: any
++DTB-Id: qcom/qcs8550-mnt-reform-next.dtb
 +Boot-Script-Path: /boot/boot.scr
 +U-Boot-Script-Name: bootscr.uboot-generic
 +Required-Packages: u-boot-tools
