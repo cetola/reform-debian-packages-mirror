@@ -1,0 +1,12 @@
+--- a/bin/reform-hw-setup
++++ b/bin/reform-hw-setup
+@@ -194,3 +194,9 @@ case "$(cat /proc/device-tree/model)" in
+     exit 1
+     ;;
+ esac
++
++case "$(cat /proc/device-tree/model)" in "MNT Pocket Reform with "*" Module")
++  rmmod reform2_lpc
++  modprobe reform2_lpc
++  ;;
++esac
