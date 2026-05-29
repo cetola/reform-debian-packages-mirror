@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 /*
  * Copyright (c) 2021 Rockchip Electronics Co., Ltd.
- * Copyright (c) 2024 MNT Research GmbH
+ * Copyright (c) 2024-2026 MNT Research GmbH
  *
  */
 
@@ -99,15 +99,32 @@
 			regulator-off-in-suspend;
 		};
 	};
+
+	spi {
+		compatible = "spi-gpio";
+		#address-cells = <0x1>;
+		ranges;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&spi_pins>;
+
+		sck-gpios = <&gpio1 RK_PB5 0>; // GPIO7
+		miso-gpios = <&gpio1 RK_PC7 0>; // GPIO5
+		mosi-gpios = <&gpio4 RK_PA2 0>; // GPIO6
+		cs-gpios = <&gpio1 RK_PD4 0>; // GPIO4
+		num-chipselects = <1>;
+
+		spidev@0 {
+			compatible = "mntre,lpc11u24";
+			spi-max-frequency = <1000000>;
+			reg = <0>;
+		};
+	};
 };
 
 &combphy0_ps {
 	status = "okay";
 };
-
-/*&combphy1_ps {
-	status = "okay";
-};*/
 
 &combphy2_psu {
 	status = "okay";
@@ -217,19 +234,6 @@
 	status = "okay";
 };*/
 
-/*&pcie30phy {
-	status = "okay";
-};*/
-
-/*&pcie3x4 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pcie3_reset>;
-	reset-gpios = <&gpio1 RK_PB4 GPIO_ACTIVE_HIGH>;
-	num-lanes = <4>;
-	vpcie3v3-supply = <&vcc3v3_pcie30>;
-	status = "okay";
-};*/
-
 &i2c3 {
 	status = "okay";
 };
@@ -263,35 +267,7 @@
 	status = "okay";
 };
 
-&spi1 {
-	status = "okay";
-	assigned-clocks = <&cru CLK_SPI1>;
-	assigned-clock-rates = <200000000>;
-	pinctrl-names = "default";
-	pinctrl-0 = <&spi1m2_cs0 &spi1m2_pins>;
-	num-cs = <1>;
-
-	spidev@0 {
-		compatible = "mntre,lpc11u24";
-		spi-max-frequency = <1000000>;
-		reg = <0>;
-	};
-};
-
-/*&mdio0 {
-	rgmii_phy: ethernet-phy@0 {
-		compatible = "ethernet-phy-ieee802.3-c22";
-		reg = <0x0>;
-	};
-};*/
-
 &pinctrl {
-	keys {
-		lpc_wakeup: lpc-wakeup {
-			rockchip,pins = <4 RK_PB2 RK_FUNC_GPIO &pcfg_pull_down>;
-		};
-	};
-
 	pcie2 {
 		pcie2_0_rst: pcie2-0-rst {
 			rockchip,pins = <3 RK_PD1 RK_FUNC_GPIO &pcfg_pull_none>;
@@ -304,15 +280,23 @@
 		};
 	};
 
-	pcie3 {
-		pcie3_reset: pcie3-reset {
-			rockchip,pins = <1 RK_PB4 RK_FUNC_GPIO &pcfg_pull_none>;
+	disp {
+		disp_en: disp-en {
+			rockchip,pins = <1 RK_PC2 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 
-	eth_phy {
-		eth_phy_reset: eth-phy-reset {
-			rockchip,pins = <3 RK_PC7 RK_FUNC_GPIO &pcfg_pull_none>;
+	spipins {
+		spi_pins: spi-pins {
+			rockchip,pins =
+			/* GPIO7 */
+			<1 RK_PB5 RK_FUNC_GPIO &pcfg_pull_none>,
+			/* GPIO5 */
+			<1 RK_PC7 RK_FUNC_GPIO &pcfg_pull_none>,
+			/* GPIO6 */
+			<4 RK_PA2 RK_FUNC_GPIO &pcfg_pull_none>,
+			/* GPIO4 */
+			<1 RK_PD4 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 };
@@ -396,6 +380,9 @@
 		compatible = "jdi,lt070me05000";
 		reg = <0>;
 
+		pinctrl-names = "default";
+		pinctrl-0 = <&disp_en>;
+		
 		// reset is driven by rp2040
 		// dcdc en is also driven by rp2040
 		// actually backlight enable
