@@ -49,84 +49,14 @@ END
 
 echo 40343.patch >> debian/patches/series
 cat << 'END' > debian/patches/40343.patch
-From 9e758fb3892b019d9acfe76450a7d959cf421b5b Mon Sep 17 00:00:00 2001
 From: Christian Gmeiner <cgmeiner@igalia.com>
-Date: Wed, 11 Mar 2026 15:41:40 +0100
-Subject: [PATCH 01/10] panvk: Track last instruction offset in pan_shader_info
+Subject: [PATCH 01/10] panvk: Track flow-end offset in pan_shader_info
 
-Record the byte offset of the last real instruction before padding in
-the compiled binary. This is needed by the fast-linker to patch
-VA_FLOW_END when concatenating prolog/epilog binaries.
+Record the byte offset of the terminating VA_FLOW_END instruction in
+the compiled binary. The fast-linker uses this to patch VA_FLOW_END ->
+VA_FLOW_NONE when concatenating prolog/main/epilog binaries.
 
-Signed-off-by: Christian Gmeiner <cgmeiner@igalia.com>
----
- src/panfrost/compiler/bifrost/bifrost_compile.c | 1 +
- src/panfrost/compiler/bifrost/compiler.h        | 1 +
- src/panfrost/compiler/bifrost/valhall/va_pack.c | 6 ++++++
- src/panfrost/compiler/pan_compiler.h            | 2 ++
- 4 files changed, 10 insertions(+)
-
-diff --git a/src/panfrost/compiler/bifrost/bifrost_compile.c b/src/panfrost/compiler/bifrost/bifrost_compile.c
-index 24c4485d88bd..3e8f68ddd6a6 100644
---- a/src/panfrost/compiler/bifrost/bifrost_compile.c
-+++ b/src/panfrost/compiler/bifrost/bifrost_compile.c
-@@ -6930,6 +6930,7 @@ bi_compile_variant(nir_shader *nir,
-    } else {
-       info->preload = preload;
-       info->work_reg_count = ctx->info.work_reg_count;
-+      info->last_instr_offset = ctx->info.last_instr_offset;
- 
-       if (idvs == BI_IDVS_ALL) {
-          /* Varying shader is only enabled if we can have any kind of varying
-diff --git a/src/panfrost/compiler/bifrost/compiler.h b/src/panfrost/compiler/bifrost/compiler.h
-index 6b012d273e64..183e11e5ed7f 100644
---- a/src/panfrost/compiler/bifrost/compiler.h
-+++ b/src/panfrost/compiler/bifrost/compiler.h
-@@ -1019,6 +1019,7 @@ struct bi_shader_info {
-    struct pan_stats stats;
-    unsigned tls_size;
-    unsigned work_reg_count;
-+   unsigned last_instr_offset;
-    unsigned push_offset;
-    unsigned init_fau_consts_count;
-    bool has_ld_gclk_instr;
-diff --git a/src/panfrost/compiler/bifrost/valhall/va_pack.c b/src/panfrost/compiler/bifrost/valhall/va_pack.c
-index ad930e280140..021db5b30c20 100644
---- a/src/panfrost/compiler/bifrost/valhall/va_pack.c
-+++ b/src/panfrost/compiler/bifrost/valhall/va_pack.c
-@@ -1203,6 +1203,12 @@ bi_pack_valhall(bi_context *ctx, struct util_dynarray *emission)
-       }
-    }
- 
-+   /* Record the offset of the last real instruction for fast-linking.
-+    * The linker needs this to patch VA_FLOW_END -> VA_FLOW_NONE. */
-+   unsigned packed_size = emission->size - orig_size;
-+   if (packed_size >= 8)
-+      ctx->info.last_instr_offset = packed_size - 8;
-+
-    /* Pad with zeroes, but keep empty programs empty so they may be omitted
-     * altogether. Failing to do this would result in a program containing only
-     * zeroes, which is invalid and will raise an encoding fault.
-diff --git a/src/panfrost/compiler/pan_compiler.h b/src/panfrost/compiler/pan_compiler.h
-index 310aeab0dc5e..ebd2a31e075c 100644
---- a/src/panfrost/compiler/pan_compiler.h
-+++ b/src/panfrost/compiler/pan_compiler.h
-@@ -212,6 +212,8 @@ struct midgard_shader_info {
- struct pan_shader_info {
-    mesa_shader_stage stage;
-    unsigned work_reg_count;
-+   unsigned last_instr_offset; /* byte offset of last real instruction (before
-+                                  padding) */
-    unsigned tls_size;
-    unsigned wls_size;
- 
--- 
-GitLab
-
-
-From e87aed029dcbe261f0a8342a3241a0022b23232b Mon Sep 17 00:00:00 2001
 From: Christian Gmeiner <cgmeiner@igalia.com>
-Date: Wed, 11 Mar 2026 15:46:07 +0100
 Subject: [PATCH 02/10] panfrost: Implement pan_fast_link() for Valhall binary
  concatenation
 
@@ -138,183 +68,123 @@ padding (which would cause INSTR_INVALID_ENC faults if executed).
 This enables draw-time specialization without recompiling the main
 shader.
 
-Signed-off-by: Christian Gmeiner <cgmeiner@igalia.com>
----
- src/panfrost/compiler/meson.build     |  4 +-
- src/panfrost/compiler/pan_fast_link.c | 87 +++++++++++++++++++++++++++
- src/panfrost/compiler/pan_fast_link.h | 28 +++++++++
- 3 files changed, 118 insertions(+), 1 deletion(-)
- create mode 100644 src/panfrost/compiler/pan_fast_link.c
- create mode 100644 src/panfrost/compiler/pan_fast_link.h
+Modeled after src/asahi/lib/agx_linker.c.
 
-diff --git a/src/panfrost/compiler/meson.build b/src/panfrost/compiler/meson.build
-index 928ba06dea44..d67f0c7e65c3 100644
---- a/src/panfrost/compiler/meson.build
-+++ b/src/panfrost/compiler/meson.build
-@@ -4,6 +4,8 @@
- libpanfrost_compiler_files = files(
-   'pan_compiler.c',
-   'pan_compiler.h',
-+  'pan_fast_link.c',
-+  'pan_fast_link.h',
-   'pan_nir_collect_varyings.c',
-   'pan_nir_lower_frag_coord_zw.c',
-   'pan_nir_lower_framebuffer.c',
-@@ -27,7 +29,7 @@ libpanfrost_compiler = static_library(
-   'panfrost_compiler',
-   [libpanfrost_compiler_files],
-   include_directories : [inc_include, inc_src],
--  dependencies: [idep_nir, idep_mesautil],
-+  dependencies: [idep_nir, idep_mesautil, idep_valhall_enums_h],
-   link_with: [libpanfrost_midgard, libpanfrost_bifrost],
-   c_args : [no_override_init_args],
-   gnu_symbol_visibility : 'hidden',
-diff --git a/src/panfrost/compiler/pan_fast_link.c b/src/panfrost/compiler/pan_fast_link.c
-new file mode 100644
-index 000000000000..0c25e15e4cba
---- /dev/null
-+++ b/src/panfrost/compiler/pan_fast_link.c
-@@ -0,0 +1,87 @@
-+/*
-+ * Copyright © 2026 Google, Inc.
-+ * SPDX-License-Identifier: MIT
-+ */
-+
-+#include "pan_fast_link.h"
-+#include <string.h>
-+#include "valhall_enums.h"
-+
-+/* Patch the flow control bits of the instruction at the given byte
-+ * offset, replacing VA_FLOW_END with VA_FLOW_NONE so execution falls
-+ * through to the next concatenated binary. */
-+static void
-+patch_flow_end(void *binary, unsigned instr_offset)
-+{
-+   uint64_t *instr = (uint64_t *)((uint8_t *)binary + instr_offset);
-+   uint64_t flow_mask = (uint64_t)0x1f << 59;
-+
-+   assert((*instr & flow_mask) == ((uint64_t)VA_FLOW_END << 59));
-+   *instr = (*instr & ~flow_mask) | ((uint64_t)VA_FLOW_NONE << 59);
-+}
-+
-+bool
-+pan_fast_link(struct pan_linked_shader *linked,
-+              const struct pan_shader_part *prolog,
-+              const struct pan_shader_part *main,
-+              const struct pan_shader_part *epilog)
-+{
-+   assert(main && main->binary && main->size > 0);
-+
-+   bool has_prolog = prolog && prolog->size > 0;
-+   bool has_epilog = epilog && epilog->size > 0;
-+
-+   /* For non-final shader parts, only copy up to and including the last
-+    * real instruction (last_instr_offset + 8), stripping 128-byte alignment
-+    * padding. The padding is zero-filled which is NOT a valid Valhall
-+    * instruction encoding -- executing it causes INSTR_INVALID_ENC.
-+    *
-+    * The final part keeps its full size (including padding + VA_FLOW_END).
-+    */
-+   unsigned prolog_copy = has_prolog ? prolog->last_instr_offset + 8 : 0;
-+   unsigned main_copy = has_epilog ? main->last_instr_offset + 8 : main->size;
-+   unsigned epilog_copy = has_epilog ? epilog->size : 0;
-+   unsigned total_size = prolog_copy + main_copy + epilog_copy;
-+
-+   linked->binary = malloc(total_size);
-+   if (!linked->binary)
-+      return false;
-+
-+   linked->size = total_size;
-+   linked->work_reg_count = main->work_reg_count;
-+
-+   unsigned offset = 0;
-+
-+   /* Copy prolog (stripped of trailing padding) */
-+   if (has_prolog) {
-+      memcpy(linked->binary, prolog->binary, prolog_copy);
-+      patch_flow_end(linked->binary, prolog->last_instr_offset);
-+      linked->work_reg_count =
-+         MAX2(linked->work_reg_count, prolog->work_reg_count);
-+      offset += prolog_copy;
-+   }
-+
-+   /* Copy main */
-+   memcpy((uint8_t *)linked->binary + offset, main->binary, main_copy);
-+
-+   /* If there's an epilog, patch main's flow end and append epilog */
-+   if (has_epilog) {
-+      patch_flow_end((uint8_t *)linked->binary + offset,
-+                     main->last_instr_offset);
-+      offset += main_copy;
-+
-+      memcpy((uint8_t *)linked->binary + offset, epilog->binary, epilog_copy);
-+      linked->work_reg_count =
-+         MAX2(linked->work_reg_count, epilog->work_reg_count);
-+   }
-+
-+   return true;
-+}
-+
-+void
-+pan_fast_link_cleanup(struct pan_linked_shader *linked)
-+{
-+   free(linked->binary);
-+   linked->binary = NULL;
-+   linked->size = 0;
-+}
-diff --git a/src/panfrost/compiler/pan_fast_link.h b/src/panfrost/compiler/pan_fast_link.h
-new file mode 100644
-index 000000000000..48b5ef51cb5a
---- /dev/null
-+++ b/src/panfrost/compiler/pan_fast_link.h
-@@ -0,0 +1,28 @@
-+/*
-+ * Copyright © 2026 Google, Inc.
-+ * SPDX-License-Identifier: MIT
-+ */
-+
-+#pragma once
-+
-+#include "pan_compiler.h"
-+
-+struct pan_shader_part {
-+   const void *binary;
-+   unsigned size;
-+   unsigned last_instr_offset;
-+   unsigned work_reg_count;
-+};
-+
-+struct pan_linked_shader {
-+   void *binary;
-+   unsigned size;
-+   unsigned work_reg_count;
-+};
-+
-+bool pan_fast_link(struct pan_linked_shader *linked,
-+                   const struct pan_shader_part *prolog,
-+                   const struct pan_shader_part *main,
-+                   const struct pan_shader_part *epilog);
-+
-+void pan_fast_link_cleanup(struct pan_linked_shader *linked);
--- 
-GitLab
-
-
-From 58486233992d8faa97b30f9ef837bcd5cc5dc65f Mon Sep 17 00:00:00 2001
 From: Christian Gmeiner <cgmeiner@igalia.com>
-Date: Wed, 11 Mar 2026 16:14:59 +0100
 Subject: [PATCH 03/10] panfrost: Add unit tests for pan_fast_link()
 
-Signed-off-by: Christian Gmeiner <cgmeiner@igalia.com>
----
- .../compiler/bifrost/valhall/test/meson.build |   3 +-
- .../bifrost/valhall/test/test-fast-link.cpp   | 183 ++++++++++++++++++
- src/panfrost/compiler/pan_fast_link.h         |   8 +
- 3 files changed, 193 insertions(+), 1 deletion(-)
- create mode 100644 src/panfrost/compiler/bifrost/valhall/test/test-fast-link.cpp
+From: Christian Gmeiner <cgmeiner@igalia.com>
+Subject: [PATCH 04/10] panfrost: Add FS clip distance prolog NIR builder
 
-diff --git a/src/panfrost/compiler/bifrost/valhall/test/meson.build b/src/panfrost/compiler/bifrost/valhall/test/meson.build
-index ef6fc22f560c..87d43e6f5e9e 100644
+Build a standalone fragment shader prolog that loads gl_ClipDistance
+values from CLIP_DIST0/CLIP_DIST1 with perspective-correct
+interpolation, multiplies by gl_FragCoord.w to recover linear
+interpolation, and discards fragments where any clip distance is
+negative.
+
+This is compiled independently against the VS's varying layout and
+concatenated with the main FS via pan_fast_link() at draw time.
+
+Modeled after src/asahi/lib/agx_nir_prolog_epilog.c.
+
+From: Christian Gmeiner <cgmeiner@igalia.com>
+Subject: [PATCH 05/10] panvk: Add linked shader cache
+
+Device-level hash table caching linked (prolog + main) shader binaries
+and their SPD descriptors. Keyed on main shader binary pointer identity
+and FS prolog parameters.
+
+Invalidate cache entries when a shader is destroyed to prevent stale
+pointer matches from malloc address reuse.
+
+Modeled after src/asahi/vulkan/hk_shader.c's per-shader fast-link cache,
+but kept device-level (with an explicit invalidate hook) so a single
+prolog/main pair can be reused across pipelines that bind the same main
+FS.
+
+From: Christian Gmeiner <cgmeiner@igalia.com>
+Subject: [PATCH 06/10] panfrost: Factor out pos-store / output-store helpers
+ into pan_nir.h
+
+Move pan_nir_find_pos_store() and pan_nir_move_output_stores_after()
+from static functions in pan_nir_lower_noperspective.c to shared inlines
+in pan_nir.h so they can be reused by the clip distance lowering passes.
+
+From: Christian Gmeiner <cgmeiner@igalia.com>
+Subject: [PATCH 07/10] panfrost: Add clip distance VS/FS lowering passes
+
+Mali only supports perspective-correct or flat varying interpolation.
+To get linear interpolation for clip distances:
+
+- VS pass (pan_nir_lower_clip_distance_vs): Multiply clip distance
+  store_outputs by position W before viewport transform.
+- FS pass (pan_nir_lower_clip_distance_fs): Multiply
+  load_interpolated_input at clip distance slots by FragCoord.w.
+
+The matching FragCoord.w multiply is also baked into the standalone FS
+clip prolog so a prolog-concatenated main FS sees linear values without
+running the lowering pass on the prolog itself.
+
+From: Christian Gmeiner <cgmeiner@igalia.com>
+Subject: [PATCH 08/10] panvk: Remap clip distances to VAR slots before
+ lowering
+
+Move gl_ClipDistance from CLIP_DIST0/1 to VARYING_SLOT_VAR0+N before
+IO lowering, then run pan_nir_lower_clip_distance_{vs,fs}.
+
+From: Christian Gmeiner <cgmeiner@igalia.com>
+Subject: [PATCH 09/10] panvk: Wire clip prolog into draw path
+
+When a draw uses shader clip distance, look up a combined prolog + main
+FS binary in the device's linked shader cache. On a miss, build the
+clip distance FS prolog, compile it against the VS's varying layout so
+its LD_VAR_BUF byte offsets for CLIP_DIST0/1 match what the main FS
+reads, concatenate with the main FS via pan_fast_link(), upload the
+combined binary, and cache an SPD descriptor pointing at it.
+
+Set skip_atest on the prolog so it does not emit a second ATEST
+alongside the main FS's. Account for the prolog's discard in
+shader_modifies_coverage, allow_forward_pixel_to_kill, and early-Z /
+late-Z update fields.
+
+From: Christian Gmeiner <cgmeiner@igalia.com>
+Subject: [PATCH 10/10] panvk: Advertise shaderClipDistance support
+
+Enable shaderClipDistance with up to 8 clip distances. The clip
+distance lowering is handled by the FS prolog at draw time via
+pan_fast_link().
+
+--- a/src/panfrost/compiler/bifrost/bifrost_compile.c
++++ b/src/panfrost/compiler/bifrost/bifrost_compile.c
+@@ -5594,6 +5594,7 @@ bi_compile_variant(nir_shader *nir,
+    } else {
+       info->preload = preload;
+       info->work_reg_count = ctx->info.work_reg_count;
++      info->flow_end_offset = ctx->info.flow_end_offset;
+ 
+       if (idvs == BI_IDVS_ALL) {
+          /* Varying shader is only enabled if we can have any kind of varying
+--- a/src/panfrost/compiler/bifrost/bifrost_nir.c
++++ b/src/panfrost/compiler/bifrost/bifrost_nir.c
+@@ -1123,7 +1123,7 @@ bifrost_compile_shader_nir(nir_shader *n
+       const bool emit_zs =
+          nir->info.outputs_written & (BITFIELD_BIT(FRAG_RESULT_DEPTH) |
+                                       BITFIELD_BIT(FRAG_RESULT_STENCIL));
+-      const bool skip_atest = inputs->is_blit && !emit_zs;
++      const bool skip_atest = inputs->skip_atest || (inputs->is_blit && !emit_zs);
+       NIR_PASS(_, nir, pan_nir_lower_fs_outputs, skip_atest);
+    }
+ 
+--- a/src/panfrost/compiler/bifrost/compiler.h
++++ b/src/panfrost/compiler/bifrost/compiler.h
+@@ -1093,6 +1093,7 @@ struct bi_shader_info {
+    struct pan_stats stats;
+    unsigned tls_size;
+    unsigned work_reg_count;
++   unsigned flow_end_offset;
+    unsigned push_offset;
+    unsigned init_fau_consts_count;
+    bool has_ld_gclk_instr;
 --- a/src/panfrost/compiler/bifrost/valhall/test/meson.build
 +++ b/src/panfrost/compiler/bifrost/valhall/test/meson.build
 @@ -8,6 +8,7 @@ test(
@@ -330,16 +200,13 @@ index ef6fc22f560c..87d43e6f5e9e 100644
      cpp_args : [cpp_msvc_compat_args],
      gnu_symbol_visibility : 'hidden',
 -    include_directories : [inc_include, inc_src, inc_valhall],
-+    include_directories : [inc_include, inc_src, inc_valhall, include_directories('../../..')],
++    include_directories : [inc_include, inc_src, inc_valhall, inc_panfrost_compiler],
      dependencies: [idep_gtest, idep_nir, idep_bi_opcodes_h, idep_bi_builder_h, idep_valhall_enums_h],
      link_with : [libpanfrost_compiler],
    ),
-diff --git a/src/panfrost/compiler/bifrost/valhall/test/test-fast-link.cpp b/src/panfrost/compiler/bifrost/valhall/test/test-fast-link.cpp
-new file mode 100644
-index 000000000000..dd852337903f
 --- /dev/null
 +++ b/src/panfrost/compiler/bifrost/valhall/test/test-fast-link.cpp
-@@ -0,0 +1,183 @@
+@@ -0,0 +1,184 @@
 +/*
 + * Copyright © 2026 Google, Inc.
 + * SPDX-License-Identifier: MIT
@@ -352,7 +219,8 @@ index 000000000000..dd852337903f
 +
 +/* Helper: build a fake Valhall binary with N instructions padded to
 + * 128-byte alignment (matching the real compiler). The padding is
-+ * zero-filled, which is NOT valid Valhall encoding. */
++ * zero-filled, which is NOT valid Valhall encoding.
++ */
 +static void
 +build_fake_binary(std::vector<uint8_t> &buf, unsigned count)
 +{
@@ -382,13 +250,13 @@ index 000000000000..dd852337903f
 +   struct pan_shader_part prolog = {
 +      .binary = prolog_buf.data(),
 +      .size = (unsigned)prolog_buf.size(),
-+      .last_instr_offset = 3 * 8,
++      .flow_end_offset = 3 * 8,
 +      .work_reg_count = 8,
 +   };
 +   struct pan_shader_part main_part = {
 +      .binary = main_buf.data(),
 +      .size = (unsigned)main_buf.size(),
-+      .last_instr_offset = 7 * 8,
++      .flow_end_offset = 7 * 8,
 +      .work_reg_count = 32,
 +   };
 +
@@ -422,13 +290,13 @@ index 000000000000..dd852337903f
 +   struct pan_shader_part main_part = {
 +      .binary = main_buf.data(),
 +      .size = (unsigned)main_buf.size(),
-+      .last_instr_offset = 7 * 8,
++      .flow_end_offset = 7 * 8,
 +      .work_reg_count = 32,
 +   };
 +   struct pan_shader_part epilog = {
 +      .binary = epilog_buf.data(),
 +      .size = (unsigned)epilog_buf.size(),
-+      .last_instr_offset = 1 * 8,
++      .flow_end_offset = 1 * 8,
 +      .work_reg_count = 16,
 +   };
 +
@@ -463,19 +331,19 @@ index 000000000000..dd852337903f
 +   struct pan_shader_part prolog = {
 +      .binary = prolog_buf.data(),
 +      .size = (unsigned)prolog_buf.size(),
-+      .last_instr_offset = 1 * 8,
++      .flow_end_offset = 1 * 8,
 +      .work_reg_count = 4,
 +   };
 +   struct pan_shader_part main_part = {
 +      .binary = main_buf.data(),
 +      .size = (unsigned)main_buf.size(),
-+      .last_instr_offset = 3 * 8,
++      .flow_end_offset = 3 * 8,
 +      .work_reg_count = 32,
 +   };
 +   struct pan_shader_part epilog = {
 +      .binary = epilog_buf.data(),
 +      .size = (unsigned)epilog_buf.size(),
-+      .last_instr_offset = 1 * 8,
++      .flow_end_offset = 1 * 8,
 +      .work_reg_count = 16,
 +   };
 +
@@ -507,7 +375,7 @@ index 000000000000..dd852337903f
 +   struct pan_shader_part main_part = {
 +      .binary = main_buf.data(),
 +      .size = (unsigned)main_buf.size(),
-+      .last_instr_offset = 3 * 8,
++      .flow_end_offset = 3 * 8,
 +      .work_reg_count = 16,
 +   };
 +
@@ -523,520 +391,198 @@ index 000000000000..dd852337903f
 +
 +   pan_fast_link_cleanup(&linked);
 +}
-diff --git a/src/panfrost/compiler/pan_fast_link.h b/src/panfrost/compiler/pan_fast_link.h
-index 48b5ef51cb5a..9d00d2026324 100644
---- a/src/panfrost/compiler/pan_fast_link.h
-+++ b/src/panfrost/compiler/pan_fast_link.h
-@@ -7,6 +7,10 @@
+--- a/src/panfrost/compiler/bifrost/valhall/va_pack.c
++++ b/src/panfrost/compiler/bifrost/valhall/va_pack.c
+@@ -1215,6 +1215,9 @@ bi_pack_valhall(bi_context *ctx, struct
+       }
+    }
  
- #include "pan_compiler.h"
- 
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
++   const unsigned packed_size = emission->size - orig_size;
++   ctx->info.flow_end_offset = packed_size >= 8 ? packed_size - 8 : 0;
 +
- struct pan_shader_part {
-    const void *binary;
-    unsigned size;
-@@ -26,3 +30,7 @@ bool pan_fast_link(struct pan_linked_shader *linked,
-                    const struct pan_shader_part *epilog);
- 
- void pan_fast_link_cleanup(struct pan_linked_shader *linked);
-+
-+#ifdef __cplusplus
-+}
-+#endif
--- 
-GitLab
-
-
-From 117377dc1f021087f73f402416ac6121d63f2a4e Mon Sep 17 00:00:00 2001
-From: Christian Gmeiner <cgmeiner@igalia.com>
-Date: Wed, 11 Mar 2026 15:52:08 +0100
-Subject: [PATCH 04/10] panfrost: Add FS clip distance prolog NIR builder
-
-Build a standalone fragment shader prolog that loads clip distances
-from individual VAR slots with perspective-correct interpolation,
-multiplies by FragCoord.w to recover linear interpolation, and
-discards fragments where any clip distance is negative.
-
-This is compiled independently and concatenated with the main FS
-via pan_fast_link() at draw time.
-
-Signed-off-by: Christian Gmeiner <cgmeiner@igalia.com>
----
- src/panfrost/compiler/meson.build             |  2 +
- src/panfrost/compiler/pan_nir_prolog_epilog.c | 70 +++++++++++++++++++
- src/panfrost/compiler/pan_nir_prolog_epilog.h | 27 +++++++
- 3 files changed, 99 insertions(+)
- create mode 100644 src/panfrost/compiler/pan_nir_prolog_epilog.c
- create mode 100644 src/panfrost/compiler/pan_nir_prolog_epilog.h
-
-diff --git a/src/panfrost/compiler/meson.build b/src/panfrost/compiler/meson.build
-index d67f0c7e65c3..fd59e6989365 100644
+    /* Pad with zeroes, but keep empty programs empty so they may be omitted
+     * altogether. Failing to do this would result in a program containing only
+     * zeroes, which is invalid and will raise an encoding fault.
 --- a/src/panfrost/compiler/meson.build
 +++ b/src/panfrost/compiler/meson.build
-@@ -15,6 +15,8 @@ libpanfrost_compiler_files = files(
+@@ -4,6 +4,8 @@
+ libpanfrost_compiler_files = files(
+   'pan_compiler.c',
+   'pan_compiler.h',
++  'pan_fast_link.c',
++  'pan_fast_link.h',
+   'pan_nir_collect_varyings.c',
+   'pan_nir_lower_bool_to_bitsize.c',
+   'pan_nir_lower_var_special.c',
+@@ -14,6 +16,8 @@ libpanfrost_compiler_files = files(
    'pan_nir_lower_image_index.c',
    'pan_nir_lower_image_ms.c',
    'pan_nir_lower_noperspective.c',
 +  'pan_nir_prolog_epilog.c',
 +  'pan_nir_prolog_epilog.h',
    'pan_nir_lower_sample_position.c',
-   'pan_nir_lower_store_component.c',
    'pan_nir_lower_texel_buffer_index.c',
-diff --git a/src/panfrost/compiler/pan_nir_prolog_epilog.c b/src/panfrost/compiler/pan_nir_prolog_epilog.c
-new file mode 100644
-index 000000000000..a50e372755c9
+   'pan_nir_lower_vertex_id.c',
+@@ -22,6 +26,8 @@ libpanfrost_compiler_files = files(
+   'pan_nir_resize_varying_io.c',
+ )
+ 
++inc_panfrost_compiler = include_directories('.')
++
+ subdir('bifrost')
+ subdir('midgard')
+ 
+--- a/src/panfrost/compiler/pan_compiler.h
++++ b/src/panfrost/compiler/pan_compiler.h
+@@ -28,6 +28,7 @@ struct pan_compile_inputs {
+    uint64_t gpu_id;
+    uint32_t gpu_variant;
+    bool is_blend, is_blit;
++   bool skip_atest;
+    bool no_idvs;
+    uint32_t view_mask;
+ 
+@@ -366,6 +367,7 @@ struct midgard_shader_info {
+ struct pan_shader_info {
+    mesa_shader_stage stage;
+    unsigned work_reg_count;
++   unsigned flow_end_offset;
+    unsigned tls_size;
+    unsigned wls_size;
+ 
 --- /dev/null
-+++ b/src/panfrost/compiler/pan_nir_prolog_epilog.c
-@@ -0,0 +1,70 @@
++++ b/src/panfrost/compiler/pan_fast_link.c
+@@ -0,0 +1,77 @@
 +/*
 + * Copyright © 2026 Google, Inc.
 + * SPDX-License-Identifier: MIT
 + */
 +
-+#include "pan_nir_prolog_epilog.h"
-+#include "compiler/nir/nir_builder.h"
-+#include "compiler/shader_enums.h"
-+#include "pan_nir.h"
++#include "pan_fast_link.h"
++#include <string.h>
++#include "valhall_enums.h"
 +
-+/* Build a standalone fragment shader prolog that interpolates clip distance
-+ * varyings and discards fragments where any clip distance is negative.
-+ *
-+ * This replicates the logic of lower_clip_fs() from nir_lower_clip.c but as
-+ * a standalone shader that can be compiled independently and concatenated with
-+ * the main FS via pan_fast_link().
-+ */
-+nir_shader *
-+pan_nir_build_fs_prolog(const struct panvk_fs_prolog_key *key,
-+                        const nir_shader_compiler_options *options)
++static void
++patch_flow_end(void *binary, unsigned instr_offset)
 +{
-+   assert(key->clip_distance_array_size > 0);
-+   assert(key->clip_distance_array_size <= 8);
++   uint64_t *instr = (uint64_t *)((uint8_t *)binary + instr_offset);
++   uint64_t flow_mask = (uint64_t)0x1f << 59;
 +
-+   nir_builder b = nir_builder_init_simple_shader(MESA_SHADER_FRAGMENT, options,
-+                                                  "pan-fs-clip-prolog");
-+
-+   b.shader->info.io_lowered = true;
-+
-+   /* Get barycentric coordinates for interpolation */
-+   nir_def *barycentric = nir_load_barycentric(
-+      &b, nir_intrinsic_load_barycentric_pixel, INTERP_MODE_NONE);
-+
-+   nir_def *clipdist[8] = {NULL};
-+
-+   /* Each clip distance occupies its own varying slot (compact=false after
-+    * remapping from CLIP_DIST0/1 to VAR slots). Load each one individually.
-+    *
-+    * The VS multiplied clip distances by W (see pan_nir_lower_clip_distance_vs)
-+    * so they are stored as clip_dist * W. The hardware loads them with
-+    * perspective-correct interpolation. We multiply by fragcoord_w to recover
-+    * the linearly interpolated value.
-+    */
-+   nir_def *fragcoord_w =
-+      nir_load_frag_coord_zw_pan(&b, barycentric, .component = 3);
-+
-+   for (unsigned i = 0; i < key->clip_distance_array_size; i++) {
-+      unsigned var_slot = VARYING_SLOT_VAR0 + key->clip_dist_var_slot + i;
-+
-+      nir_def *load = nir_load_interpolated_input(
-+         &b, 1, 32, barycentric, nir_imm_int(&b, 0), .base = 0,
-+         .io_semantics.location = var_slot, .io_semantics.num_slots = 1);
-+
-+      clipdist[i] = nir_fmul(&b, load, fragcoord_w);
-+      b.shader->info.inputs_read |= BITFIELD64_BIT(var_slot);
-+   }
-+
-+   /* Test each clip distance against zero and OR the results */
-+   nir_def *cond = NULL;
-+   for (unsigned i = 0; i < key->clip_distance_array_size; i++) {
-+      nir_def *negative = nir_flt_imm(&b, clipdist[i], 0.0);
-+      cond = cond ? nir_ior(&b, cond, negative) : negative;
-+   }
-+
-+   /* Demote fragments where any clip distance is negative */
-+   nir_demote_if(&b, cond);
-+   b.shader->info.fs.uses_discard = true;
-+
-+   return b.shader;
++   assert((*instr & flow_mask) == ((uint64_t)VA_FLOW_END << 59));
++   *instr = (*instr & ~flow_mask) | ((uint64_t)VA_FLOW_NONE << 59);
 +}
-diff --git a/src/panfrost/compiler/pan_nir_prolog_epilog.h b/src/panfrost/compiler/pan_nir_prolog_epilog.h
-new file mode 100644
-index 000000000000..6fa63509976c
++
++bool
++pan_fast_link(struct pan_linked_shader *linked,
++              const struct pan_shader_part *prolog,
++              const struct pan_shader_part *main,
++              const struct pan_shader_part *epilog)
++{
++   assert(main && main->binary && main->size > 0);
++
++   bool has_prolog = prolog && prolog->size > 0;
++   bool has_epilog = epilog && epilog->size > 0;
++
++   /* Non-final parts stop at flow_end_offset + 8. Zero padding past the
++    * last real instruction decodes as INSTR_INVALID_ENC.
++    */
++   const unsigned prolog_copy = has_prolog ? prolog->flow_end_offset + 8 : 0;
++   const unsigned main_copy = has_epilog ? main->flow_end_offset + 8 : main->size;
++   const unsigned epilog_copy = has_epilog ? epilog->size : 0;
++   const unsigned total_size = prolog_copy + main_copy + epilog_copy;
++
++   linked->binary = malloc(total_size);
++   if (!linked->binary)
++      return false;
++
++   linked->size = total_size;
++   linked->work_reg_count = main->work_reg_count;
++
++   unsigned offset = 0;
++
++   if (has_prolog) {
++      memcpy(linked->binary, prolog->binary, prolog_copy);
++      patch_flow_end(linked->binary, prolog->flow_end_offset);
++      linked->work_reg_count =
++         MAX2(linked->work_reg_count, prolog->work_reg_count);
++      offset += prolog_copy;
++   }
++
++   memcpy((uint8_t *)linked->binary + offset, main->binary, main_copy);
++
++   if (has_epilog) {
++      patch_flow_end((uint8_t *)linked->binary + offset,
++                     main->flow_end_offset);
++      offset += main_copy;
++
++      memcpy((uint8_t *)linked->binary + offset, epilog->binary, epilog_copy);
++      linked->work_reg_count =
++         MAX2(linked->work_reg_count, epilog->work_reg_count);
++   }
++
++   return true;
++}
++
++void
++pan_fast_link_cleanup(struct pan_linked_shader *linked)
++{
++   free(linked->binary);
++   linked->binary = NULL;
++   linked->size = 0;
++}
 --- /dev/null
-+++ b/src/panfrost/compiler/pan_nir_prolog_epilog.h
-@@ -0,0 +1,27 @@
++++ b/src/panfrost/compiler/pan_fast_link.h
+@@ -0,0 +1,39 @@
 +/*
 + * Copyright © 2026 Google, Inc.
 + * SPDX-License-Identifier: MIT
 + */
 +
-+#pragma once
++#ifndef __PAN_FAST_LINK_H__
++#define __PAN_FAST_LINK_H__
 +
-+#include "compiler/nir/nir.h"
 +#include "pan_compiler.h"
 +
-+struct panvk_fs_prolog_key {
-+   uint8_t clip_distance_array_size;
-+   /* First VARYING_SLOT_VAR* index where clip distances were remapped to
-+    * (e.g. 2 means VARYING_SLOT_VAR0 + 2). */
-+   uint8_t clip_dist_var_slot;
-+};
++#ifdef __cplusplus
++extern "C" {
++#endif
 +
-+nir_shader *pan_nir_build_fs_prolog(const struct panvk_fs_prolog_key *key,
-+                                    const nir_shader_compiler_options *options);
-+
-+bool pan_nir_lower_clip_distance_vs(nir_shader *shader,
-+                                    unsigned clip_dist_var_slot,
-+                                    unsigned clip_distance_array_size);
-+
-+bool pan_nir_lower_clip_distance_fs(nir_shader *shader,
-+                                    unsigned clip_dist_var_slot,
-+                                    unsigned clip_distance_array_size);
--- 
-GitLab
-
-
-From 6f671200ba23c7a46c8b624c39ecaf922289f29d Mon Sep 17 00:00:00 2001
-From: Christian Gmeiner <cgmeiner@igalia.com>
-Date: Wed, 11 Mar 2026 16:27:48 +0100
-Subject: [PATCH 05/10] panvk: Add linked shader cache
-
-Device-level hash table caching linked (prolog + main) shader binaries
-and their SPD descriptors. Keyed on main shader binary pointer identity
-and FS prolog parameters.
-
-Invalidate cache entries when a shader is destroyed to prevent stale
-pointer matches from malloc address reuse.
-
-Signed-off-by: Christian Gmeiner <cgmeiner@igalia.com>
----
- src/panfrost/vulkan/meson.build               |   1 +
- src/panfrost/vulkan/panvk_device.h            |   2 +
- .../vulkan/panvk_linked_shader_cache.c        | 142 ++++++++++++++++++
- .../vulkan/panvk_linked_shader_cache.h        |  47 ++++++
- src/panfrost/vulkan/panvk_vX_device.c         |   4 +
- src/panfrost/vulkan/panvk_vX_shader.c         |   4 +
- 6 files changed, 200 insertions(+)
- create mode 100644 src/panfrost/vulkan/panvk_linked_shader_cache.c
- create mode 100644 src/panfrost/vulkan/panvk_linked_shader_cache.h
-
-diff --git a/src/panfrost/vulkan/meson.build b/src/panfrost/vulkan/meson.build
-index b0cc0f133cb4..8948b49dbdc0 100644
---- a/src/panfrost/vulkan/meson.build
-+++ b/src/panfrost/vulkan/meson.build
-@@ -42,6 +42,7 @@ libpanvk_files = files(
-   'panvk_host_copy.c',
-   'panvk_image.c',
-   'panvk_instance.c',
-+  'panvk_linked_shader_cache.c',
-   'panvk_mempool.c',
-   'panvk_physical_device.c',
-   'panvk_priv_bo.c',
-diff --git a/src/panfrost/vulkan/panvk_device.h b/src/panfrost/vulkan/panvk_device.h
-index eff928c5f1b0..23332632862c 100644
---- a/src/panfrost/vulkan/panvk_device.h
-+++ b/src/panfrost/vulkan/panvk_device.h
-@@ -14,6 +14,7 @@
- 
- #include "panvk_blend.h"
- #include "panvk_instance.h"
-+#include "panvk_linked_shader_cache.h"
- #include "panvk_macros.h"
- #include "panvk_mempool.h"
- #include "panvk_physical_device.h"
-@@ -102,6 +103,7 @@ struct panvk_device {
-    struct panvk_device_queue_family queue_families[PANVK_QUEUE_FAMILY_COUNT];
- 
-    struct panvk_precomp_cache *precomp_cache;
-+   struct panvk_linked_shader_cache linked_shader_cache;
- 
-    struct {
-       struct u_trace_context utctx;
-diff --git a/src/panfrost/vulkan/panvk_linked_shader_cache.c b/src/panfrost/vulkan/panvk_linked_shader_cache.c
-new file mode 100644
-index 000000000000..9259d1b756ef
---- /dev/null
-+++ b/src/panfrost/vulkan/panvk_linked_shader_cache.c
-@@ -0,0 +1,142 @@
-+/*
-+ * Copyright © 2026 Google, Inc.
-+ * SPDX-License-Identifier: MIT
-+ */
-+
-+#include "panvk_linked_shader_cache.h"
-+#include "panvk_device.h"
-+
-+#include "util/hash_table.h"
-+#include "util/ralloc.h"
-+
-+static uint32_t
-+panvk_linked_shader_key_hash(const void *data)
-+{
-+   return _mesa_hash_data(data, sizeof(struct panvk_linked_shader_key));
-+}
-+
-+static bool
-+panvk_linked_shader_key_equal(const void *a, const void *b)
-+{
-+   return memcmp(a, b, sizeof(struct panvk_linked_shader_key)) == 0;
-+}
-+
-+void
-+panvk_linked_shader_cache_init(struct panvk_linked_shader_cache *cache)
-+{
-+   cache->ht = _mesa_hash_table_create(NULL, panvk_linked_shader_key_hash,
-+                                       panvk_linked_shader_key_equal);
-+   simple_mtx_init(&cache->lock, mtx_plain);
-+}
-+
-+void
-+panvk_linked_shader_cache_destroy(struct panvk_linked_shader_cache *cache,
-+                                  struct panvk_device *dev)
-+{
-+   hash_table_foreach(cache->ht, entry)
-+   {
-+      struct panvk_linked_shader_entry *e = entry->data;
-+
-+      panvk_pool_free_mem(&e->code_mem);
-+      panvk_pool_free_mem(&e->spd);
-+      ralloc_free((void *)entry->key);
-+      ralloc_free(e);
-+   }
-+
-+   _mesa_hash_table_destroy(cache->ht, NULL);
-+   cache->ht = NULL;
-+   simple_mtx_destroy(&cache->lock);
-+}
-+
-+struct panvk_linked_shader_entry *
-+panvk_linked_shader_cache_lookup(struct panvk_linked_shader_cache *cache,
-+                                 const struct panvk_linked_shader_key *key)
-+{
-+   uint32_t hash = panvk_linked_shader_key_hash(key);
-+
-+   simple_mtx_lock(&cache->lock);
-+   struct hash_entry *entry =
-+      _mesa_hash_table_search_pre_hashed(cache->ht, hash, key);
-+   simple_mtx_unlock(&cache->lock);
-+
-+   return entry ? entry->data : NULL;
-+}
-+
-+struct panvk_linked_shader_entry *
-+panvk_linked_shader_cache_insert(struct panvk_linked_shader_cache *cache,
-+                                 struct panvk_device *dev,
-+                                 const struct panvk_linked_shader_key *key,
-+                                 const struct pan_linked_shader *linked)
-+{
-+   struct panvk_linked_shader_entry *entry =
-+      rzalloc(NULL, struct panvk_linked_shader_entry);
-+   if (!entry)
-+      return NULL;
-+
-+   entry->work_reg_count = linked->work_reg_count;
-+
-+   if (linked->size) {
-+      entry->code_mem = panvk_pool_upload_aligned(
-+         &dev->mempools.exec, linked->binary, linked->size, 128);
-+      if (!panvk_priv_mem_check_alloc(entry->code_mem)) {
-+         ralloc_free(entry);
-+         return NULL;
-+      }
-+   }
-+
-+   struct panvk_linked_shader_key *key_copy =
-+      rzalloc(NULL, struct panvk_linked_shader_key);
-+   if (!key_copy) {
-+      panvk_pool_free_mem(&entry->code_mem);
-+      ralloc_free(entry);
-+      return NULL;
-+   }
-+   memcpy(key_copy, key, sizeof(*key));
-+
-+   uint32_t hash = panvk_linked_shader_key_hash(key);
-+
-+   simple_mtx_lock(&cache->lock);
-+
-+   /* Check if another thread inserted while we were linking */
-+   struct hash_entry *existing =
-+      _mesa_hash_table_search_pre_hashed(cache->ht, hash, key);
-+   if (existing) {
-+      simple_mtx_unlock(&cache->lock);
-+      panvk_pool_free_mem(&entry->code_mem);
-+      ralloc_free(key_copy);
-+      ralloc_free(entry);
-+      return existing->data;
-+   }
-+
-+   _mesa_hash_table_insert_pre_hashed(cache->ht, hash, key_copy, entry);
-+   simple_mtx_unlock(&cache->lock);
-+
-+   return entry;
-+}
-+
-+void
-+panvk_linked_shader_cache_invalidate(struct panvk_linked_shader_cache *cache,
-+                                     const void *main_binary)
-+{
-+   if (!cache->ht)
-+      return;
-+
-+   simple_mtx_lock(&cache->lock);
-+
-+   hash_table_foreach(cache->ht, entry)
-+   {
-+      const struct panvk_linked_shader_key *key = entry->key;
-+
-+      if (key->main_binary == main_binary) {
-+         struct panvk_linked_shader_entry *e = entry->data;
-+
-+         panvk_pool_free_mem(&e->code_mem);
-+         panvk_pool_free_mem(&e->spd);
-+         ralloc_free((void *)entry->key);
-+         ralloc_free(e);
-+         _mesa_hash_table_remove(cache->ht, entry);
-+      }
-+   }
-+
-+   simple_mtx_unlock(&cache->lock);
-+}
-diff --git a/src/panfrost/vulkan/panvk_linked_shader_cache.h b/src/panfrost/vulkan/panvk_linked_shader_cache.h
-new file mode 100644
-index 000000000000..56bcc2e69b98
---- /dev/null
-+++ b/src/panfrost/vulkan/panvk_linked_shader_cache.h
-@@ -0,0 +1,47 @@
-+/*
-+ * Copyright © 2026 Google, Inc.
-+ * SPDX-License-Identifier: MIT
-+ */
-+
-+#pragma once
-+
-+#include "util/hash_table.h"
-+#include "util/simple_mtx.h"
-+#include "pan_fast_link.h"
-+#include "pan_nir_prolog_epilog.h"
-+#include "panvk_mempool.h"
-+
-+struct panvk_device;
-+
-+struct panvk_linked_shader_key {
-+   const void *main_binary; /* pointer identity for the main shader */
-+   struct panvk_fs_prolog_key fs_prolog;
-+};
-+
-+struct panvk_linked_shader_entry {
-+   struct panvk_priv_mem code_mem;
++struct pan_shader_part {
++   const void *binary;
++   unsigned size;
++   unsigned flow_end_offset;
 +   unsigned work_reg_count;
 +};
 +
-+struct panvk_linked_shader_cache {
-+   struct hash_table *ht;
-+   simple_mtx_t lock;
++struct pan_linked_shader {
++   void *binary;
++   unsigned size;
++   unsigned work_reg_count;
 +};
 +
-+void panvk_linked_shader_cache_init(struct panvk_linked_shader_cache *cache);
-+void panvk_linked_shader_cache_destroy(struct panvk_linked_shader_cache *cache,
-+                                       struct panvk_device *dev);
++bool pan_fast_link(struct pan_linked_shader *linked,
++                   const struct pan_shader_part *prolog,
++                   const struct pan_shader_part *main,
++                   const struct pan_shader_part *epilog);
 +
-+struct panvk_linked_shader_entry *
-+panvk_linked_shader_cache_lookup(struct panvk_linked_shader_cache *cache,
-+                                 const struct panvk_linked_shader_key *key);
++void pan_fast_link_cleanup(struct pan_linked_shader *linked);
 +
-+struct panvk_linked_shader_entry *
-+panvk_linked_shader_cache_insert(struct panvk_linked_shader_cache *cache,
-+                                 struct panvk_device *dev,
-+                                 const struct panvk_linked_shader_key *key,
-+                                 const struct pan_linked_shader *linked);
++#ifdef __cplusplus
++}
++#endif
 +
-+void
-+panvk_linked_shader_cache_invalidate(struct panvk_linked_shader_cache *cache,
-+                                     const void *main_binary);
-diff --git a/src/panfrost/vulkan/panvk_vX_device.c b/src/panfrost/vulkan/panvk_vX_device.c
-index c32d2f279e8b..ed8b02770e69 100644
---- a/src/panfrost/vulkan/panvk_vX_device.c
-+++ b/src/panfrost/vulkan/panvk_vX_device.c
-@@ -541,6 +541,8 @@ panvk_per_arch(create_device)(struct panvk_physical_device *physical_device,
-    if (result != VK_SUCCESS)
-       goto err_free_priv_bos;
- 
-+   panvk_linked_shader_cache_init(&device->linked_shader_cache);
-+
-    struct vk_pipeline_cache_create_info cache_info = {
-       .weak_ref = true,
-    };
-@@ -621,6 +623,7 @@ err_free_draw_ctx:
- err_free_mem_cache:
- #endif
-    vk_pipeline_cache_destroy(device->vk.mem_cache, NULL);
-+   panvk_linked_shader_cache_destroy(&device->linked_shader_cache, device);
- err_free_precomp:
-    panvk_precomp_cleanup(device);
- err_free_priv_bos:
-@@ -679,6 +682,7 @@ panvk_per_arch(destroy_device)(struct panvk_device *device,
-    }
- 
-    panvk_precomp_cleanup(device);
-+   panvk_linked_shader_cache_destroy(&device->linked_shader_cache, device);
- #if PAN_ARCH >= 10
-    panvk_per_arch(device_draw_context_cleanup)(device);
- #endif
-diff --git a/src/panfrost/vulkan/panvk_vX_shader.c b/src/panfrost/vulkan/panvk_vX_shader.c
-index c696a1039257..9d41989b6d49 100644
---- a/src/panfrost/vulkan/panvk_vX_shader.c
-+++ b/src/panfrost/vulkan/panvk_vX_shader.c
-@@ -1245,10 +1245,14 @@ static void
- panvk_shader_destroy(struct vk_device *vk_dev, struct vk_shader *vk_shader,
-                      const VkAllocationCallbacks *pAllocator)
- {
-+   struct panvk_device *dev = to_panvk_device(vk_dev);
-    struct panvk_shader *shader =
-       container_of(vk_shader, struct panvk_shader, vk);
- 
-    panvk_shader_foreach_variant(shader, variant) {
-+      if (variant->bin_ptr)
-+         panvk_linked_shader_cache_invalidate(&dev->linked_shader_cache,
-+                                              variant->bin_ptr);
-       panvk_shader_variant_destroy(variant);
-    }
- 
--- 
-GitLab
-
-
-From 3d351e2e17b0a3f161affb55930ae73a648f24dd Mon Sep 17 00:00:00 2001
-From: Christian Gmeiner <cgmeiner@igalia.com>
-Date: Thu, 12 Mar 2026 19:56:05 +0100
-Subject: [PATCH 06/10] panfrost: Factor out pan_nir_find_pos_store() into
- pan_nir.h
-
-Move the position store lookup helper from a static function in
-pan_nir_lower_noperspective.c to a shared inline in pan_nir.h so
-it can be reused by other passes.
-
-Signed-off-by: Christian Gmeiner <cgmeiner@igalia.com>
----
- src/panfrost/compiler/pan_nir.h               | 21 +++++++++++++++++
- .../compiler/pan_nir_lower_noperspective.c    | 23 +------------------
- 2 files changed, 22 insertions(+), 22 deletions(-)
-
-diff --git a/src/panfrost/compiler/pan_nir.h b/src/panfrost/compiler/pan_nir.h
-index 32b7ebbb4c9e..1b56846edaba 100644
++#endif /* __PAN_FAST_LINK_H__ */
 --- a/src/panfrost/compiler/pan_nir.h
 +++ b/src/panfrost/compiler/pan_nir.h
-@@ -94,4 +94,25 @@ enum pan_mediump_vary {
- void pan_nir_collect_varyings(nir_shader *s, struct pan_shader_info *info,
-                               enum pan_mediump_vary mediump);
+@@ -88,4 +88,45 @@ uint32_t pan_nir_collect_noperspective_v
+ bool pan_nir_resize_varying_io(nir_shader *nir,
+                                const struct pan_varying_layout *varying_layout);
  
 +static inline nir_intrinsic_instr *
 +pan_nir_find_pos_store(nir_function_impl *impl)
 +{
 +   nir_block *block = nir_impl_last_block(impl);
-+   nir_foreach_instr_safe(instr, block)
-+   {
++   nir_foreach_instr(instr, block) {
 +      if (instr->type != nir_instr_type_intrinsic)
 +         continue;
 +      nir_intrinsic_instr *intrin = nir_instr_as_intrinsic(instr);
@@ -1052,12 +598,31 @@ index 32b7ebbb4c9e..1b56846edaba 100644
 +   return NULL;
 +}
 +
++/* Move all store_output instructions in @after's block that precede @after to
++ * after it, so a value defined at @after dominates subsequent store rewrites.
++ */
++static inline void
++pan_nir_move_output_stores_after(nir_instr *after)
++{
++   nir_cursor cursor = nir_after_instr(after);
++   nir_block *block = nir_cursor_current_block(cursor);
++   nir_foreach_instr_safe(instr, block) {
++      if (instr == after)
++         break;
++
++      if (instr->type != nir_instr_type_intrinsic)
++         continue;
++      nir_intrinsic_instr *intrin = nir_instr_as_intrinsic(instr);
++
++      if (intrin->intrinsic == nir_intrinsic_store_output)
++         nir_instr_move(cursor, instr);
++   }
++}
++
  #endif /* __PAN_NIR_H__ */
-diff --git a/src/panfrost/compiler/pan_nir_lower_noperspective.c b/src/panfrost/compiler/pan_nir_lower_noperspective.c
-index f189c51da95b..73e50c2bb65f 100644
 --- a/src/panfrost/compiler/pan_nir_lower_noperspective.c
 +++ b/src/panfrost/compiler/pan_nir_lower_noperspective.c
-@@ -28,27 +28,6 @@
+@@ -29,27 +29,6 @@
   * nir_lower_viewport_transform may clamp large W values, and we need to use
   * the clamped value here. */
  
@@ -1085,89 +650,154 @@ index f189c51da95b..73e50c2bb65f 100644
  static bool
  is_noperspective_load(nir_intrinsic_instr* intrin)
  {
-@@ -253,7 +232,7 @@ pan_nir_lower_noperspective_vs(nir_shader *shader)
-    if (!maybe_noperspective_outputs)
-       return false;
+@@ -152,28 +131,6 @@ lower_noperspective_fs(nir_builder *b, n
+    return true;
+ }
+ 
+-/**
+- * Move all stores to output variables that occur before the specified
+- * instruction in the same block to after the specified instruction.
+- */
+-static void
+-move_output_stores_after(nir_instr *after)
+-{
+-   nir_cursor cursor = nir_after_instr(after);
+-   nir_block *block = nir_cursor_current_block(cursor);
+-   nir_foreach_instr_safe(instr, block) {
+-      if (instr == after)
+-         break;
+-
+-      if (instr->type != nir_instr_type_intrinsic)
+-         continue;
+-      nir_intrinsic_instr *intrin = nir_instr_as_intrinsic(instr);
+-
+-      if (intrin->intrinsic == nir_intrinsic_store_output)
+-         nir_instr_move(cursor, instr);
+-   }
+-}
+-
+ bool
+ pan_nir_lower_noperspective_vs(nir_shader *shader)
+ {
+@@ -184,7 +141,7 @@ pan_nir_lower_noperspective_vs(nir_shade
+ 
+    nir_function_impl *impl = nir_shader_get_entrypoint(shader);
  
 -   nir_intrinsic_instr *pos_store = find_pos_store(impl);
 +   nir_intrinsic_instr *pos_store = pan_nir_find_pos_store(impl);
-    assert(pos_store);
-    assert(nir_intrinsic_write_mask(pos_store) & BITFIELD_BIT(3));
+    /* gl_Position may be written, it can also be left undefined */
+    bool has_pos_w =
+       pos_store && !!(nir_intrinsic_write_mask(pos_store) & BITFIELD_BIT(3));
+@@ -198,7 +155,7 @@ pan_nir_lower_noperspective_vs(nir_shade
+    nir_def *pos_w = nir_frcp(&b, pos_w_recip);
  
--- 
-GitLab
-
-
-From b5e1b8bd48efdcc1d17d3d41b8eca81289a1161b Mon Sep 17 00:00:00 2001
-From: Christian Gmeiner <cgmeiner@igalia.com>
-Date: Thu, 12 Mar 2026 19:56:48 +0100
-Subject: [PATCH 07/10] panfrost: Add clip distance VS/FS lowering passes
-
-Mali only supports perspective-correct or flat varying interpolation.
-To get linear interpolation for clip distances (required by Vulkan):
-
-- VS pass (pan_nir_lower_clip_distance_vs): Multiply clip distance
-  store_outputs by position W before viewport transform.
-- FS pass (pan_nir_lower_clip_distance_fs): Multiply
-  load_interpolated_input at clip distance slots by FragCoord.w.
-
-Also add skip_atest to pan_compile_inputs so the prolog compiler can
-suppress alpha-test emission.
-
-Signed-off-by: Christian Gmeiner <cgmeiner@igalia.com>
----
- .../compiler/bifrost/bifrost_compile.c        |   3 +-
- src/panfrost/compiler/pan_compiler.h          |   1 +
- src/panfrost/compiler/pan_nir_prolog_epilog.c | 126 ++++++++++++++++++
- 3 files changed, 129 insertions(+), 1 deletion(-)
-
-diff --git a/src/panfrost/compiler/bifrost/bifrost_compile.c b/src/panfrost/compiler/bifrost/bifrost_compile.c
-index 3e8f68ddd6a6..c20e31c857a8 100644
---- a/src/panfrost/compiler/bifrost/bifrost_compile.c
-+++ b/src/panfrost/compiler/bifrost/bifrost_compile.c
-@@ -7040,7 +7040,8 @@ bifrost_compile_shader_nir(nir_shader *nir,
-       const bool emit_zs =
-          nir->info.outputs_written & (BITFIELD_BIT(FRAG_RESULT_DEPTH) |
-                                       BITFIELD_BIT(FRAG_RESULT_STENCIL));
--      const bool skip_atest = inputs->is_blit && !emit_zs;
-+      const bool skip_atest =
-+         inputs->skip_atest || (inputs->is_blit && !emit_zs);
-       NIR_PASS(_, nir, pan_nir_lower_fs_outputs, skip_atest);
-    }
+    /* Reorder stores to ensure pos_w def is available */
+-   move_output_stores_after(nir_def_instr(pos_w));
++   pan_nir_move_output_stores_after(nir_def_instr(pos_w));
  
-diff --git a/src/panfrost/compiler/pan_compiler.h b/src/panfrost/compiler/pan_compiler.h
-index ebd2a31e075c..d4d6218e0636 100644
---- a/src/panfrost/compiler/pan_compiler.h
-+++ b/src/panfrost/compiler/pan_compiler.h
-@@ -105,6 +105,7 @@ struct pan_compile_inputs {
-    unsigned gpu_id;
-    uint32_t gpu_variant;
-    bool is_blend, is_blit;
-+   bool skip_atest;
-    bool no_idvs;
-    uint32_t view_mask;
- 
-diff --git a/src/panfrost/compiler/pan_nir_prolog_epilog.c b/src/panfrost/compiler/pan_nir_prolog_epilog.c
-index a50e372755c9..aafd0dd085a9 100644
---- a/src/panfrost/compiler/pan_nir_prolog_epilog.c
+    nir_def *noperspective_outputs = nir_load_noperspective_varyings_pan(&b);
+    struct lower_noperspective_vs_state state = {
+--- /dev/null
 +++ b/src/panfrost/compiler/pan_nir_prolog_epilog.c
-@@ -68,3 +68,129 @@ pan_nir_build_fs_prolog(const struct panvk_fs_prolog_key *key,
- 
-    return b.shader;
- }
-+
-+/* Multiply clip distance store_outputs by position W for correct linear
-+ * interpolation on Mali hardware.
-+ *
-+ * Mali only supports perspective-correct or flat varying interpolation.
-+ * Clip distances must be linearly interpolated per the Vulkan spec. To get
-+ * linear interpolation from perspective-correct hardware, the VS stores
-+ * (clip_dist * W) and the FS loads with perspective-correct interpolation
-+ * then multiplies by fragcoord_w to recover linear values.
-+ *
-+ * This pass handles the VS side. It must run before
-+ * nir_lower_viewport_transform so that position W is the raw clip-space W.
+@@ -0,0 +1,173 @@
++/*
++ * Copyright © 2026 Google, Inc.
++ * SPDX-License-Identifier: MIT
 + */
++
++#include "pan_nir_prolog_epilog.h"
++#include "bi_opcodes.h"
++#include "compiler/nir/nir_builder.h"
++#include "compiler/shader_enums.h"
++#include "pan_nir.h"
++
++/* Build a standalone fragment shader prolog that interpolates clip distances
++ * from the VAR slots the VS remapped them to (compact=false, one varying slot
++ * per clip distance) and demotes fragments where any clip distance is
++ * negative.  The prolog is compiled against the VS's varying layout and
++ * concatenated with the main FS by pan_fast_link().
++ */
++nir_shader *
++pan_nir_build_fs_prolog(const struct panvk_fs_prolog_key *key,
++                        const nir_shader_compiler_options *options)
++{
++   assert(key->clip_distance_array_size > 0);
++   assert(key->clip_distance_array_size <= 8);
++
++   nir_builder b = nir_builder_init_simple_shader(MESA_SHADER_FRAGMENT, options,
++                                                  "pan-fs-clip-prolog");
++
++   b.shader->info.io_lowered = true;
++
++   nir_def *barycentric =
++      nir_load_barycentric(&b, nir_intrinsic_load_barycentric_pixel,
++                           INTERP_MODE_NONE);
++
++   /* The VS stores clip_dist * W; the hardware loads with perspective-correct
++    * interpolation.  Multiply by fragcoord_w to recover linear values. */
++   nir_def *fragcoord_w =
++      nir_load_var_special_pan(&b, 1, barycentric,
++                               .flags = BI_VARYING_NAME_FRAG_W);
++
++   nir_def *cond = NULL;
++   for (unsigned i = 0; i < key->clip_distance_array_size; i++) {
++      unsigned var_slot = VARYING_SLOT_VAR0 + key->clip_dist_var_slot + i;
++
++      nir_def *load =
++         nir_load_interpolated_input(&b, 1, 32, barycentric,
++                                     nir_imm_int(&b, 0),
++                                     .base = 0,
++                                     .io_semantics.location = var_slot,
++                                     .io_semantics.num_slots = 1);
++
++      nir_def *clipdist = nir_fmul(&b, load, fragcoord_w);
++      nir_def *negative = nir_flt_imm(&b, clipdist, 0.0);
++      cond = cond ? nir_ior(&b, cond, negative) : negative;
++
++      b.shader->info.inputs_read |= BITFIELD64_BIT(var_slot);
++   }
++
++   nir_demote_if(&b, cond);
++   b.shader->info.fs.uses_discard = true;
++
++   return b.shader;
++}
++
++/* Mali only supports perspective-correct or flat interpolation. To get linear
++ * interpolation for clip distances (required by Vulkan), the VS stores
++ * (clip_dist * W) and the FS divides out by multiplying by FragCoord.w after
++ * perspective-correct interpolation.
++ *
++ * pan_nir_lower_clip_distance_vs must run before nir_lower_viewport_transform
++ * so position W is the raw clip-space W (not 1/W).
++ */
++
++struct vs_lower_clip_data {
++   nir_def *pos_w;
++   unsigned base_loc;
++   unsigned array_size;
++};
++
++static bool
++multiply_clip_store_by_pos_w(nir_builder *b, nir_intrinsic_instr *intrin,
++                             void *data)
++{
++   struct vs_lower_clip_data *d = data;
++
++   if (intrin->intrinsic != nir_intrinsic_store_output)
++      return false;
++
++   unsigned loc = nir_intrinsic_io_semantics(intrin).location;
++   if (loc < d->base_loc || loc >= d->base_loc + d->array_size)
++      return false;
++
++   b->cursor = nir_before_instr(&intrin->instr);
++   nir_def *scaled = nir_fmul(b, intrin->src[0].ssa, d->pos_w);
++   nir_src_rewrite(&intrin->src[0], scaled);
++
++   return true;
++}
++
 +bool
 +pan_nir_lower_clip_distance_vs(nir_shader *shader, unsigned clip_dist_var_slot,
 +                               unsigned clip_distance_array_size)
@@ -1185,78 +815,36 @@ index a50e372755c9..aafd0dd085a9 100644
 +   if (!pos_store)
 +      return false;
 +
-+   /* Before nir_lower_viewport_transform, position W is the raw clip-space W.
-+    * We multiply clip distances by W directly (no frcp needed).
-+    */
 +   nir_builder b = nir_builder_at(nir_after_instr(&pos_store->instr));
 +   nir_def *pos_w = nir_channel(&b, pos_store->src[0].ssa, 3);
 +
-+   /* Move all output stores after pos_w to ensure SSA dominance */
-+   nir_cursor cursor = nir_after_instr(nir_def_instr(pos_w));
-+   nir_block *block = nir_impl_last_block(impl);
-+   nir_foreach_instr_safe(instr, block)
-+   {
-+      if (instr == nir_def_instr(pos_w))
-+         break;
++   pan_nir_move_output_stores_after(nir_def_instr(pos_w));
 +
-+      if (instr->type != nir_instr_type_intrinsic)
-+         continue;
-+
-+      nir_intrinsic_instr *intrin = nir_instr_as_intrinsic(instr);
-+
-+      if (intrin->intrinsic == nir_intrinsic_store_output)
-+         nir_instr_move(cursor, instr);
-+   }
-+
-+   /* Multiply clip distance stores by W. Each clip distance occupies its own
-+    * varying slot (compact=false after remapping).
-+    */
-+   unsigned base_loc = VARYING_SLOT_VAR0 + clip_dist_var_slot;
-+
-+   nir_foreach_instr_safe(instr, block)
-+   {
-+      if (instr->type != nir_instr_type_intrinsic)
-+         continue;
-+
-+      nir_intrinsic_instr *intrin = nir_instr_as_intrinsic(instr);
-+
-+      if (intrin->intrinsic != nir_intrinsic_store_output)
-+         continue;
-+
-+      unsigned loc = nir_intrinsic_io_semantics(intrin).location;
-+      if (loc < base_loc || loc >= base_loc + clip_distance_array_size)
-+         continue;
-+
-+      b.cursor = nir_before_instr(&intrin->instr);
-+      nir_def *old_value = intrin->src[0].ssa;
-+      nir_def *new_value = nir_fmul(&b, old_value, pos_w);
-+      nir_src_rewrite(&intrin->src[0], new_value);
-+   }
-+
-+   nir_progress(true, impl, nir_metadata_control_flow);
-+
-+   return true;
++   struct vs_lower_clip_data data = {
++      .pos_w = pos_w,
++      .base_loc = VARYING_SLOT_VAR0 + clip_dist_var_slot,
++      .array_size = clip_distance_array_size,
++   };
++   return nir_shader_intrinsics_pass(shader, multiply_clip_store_by_pos_w,
++                                     nir_metadata_control_flow, &data);
 +}
 +
-+/* Lower clip distance input reads in the fragment shader.
-+ *
-+ * The VS stores clip_dist * W at the remapped varying slots. The hardware
-+ * loads them with perspective-correct interpolation. To recover the linearly
-+ * interpolated clip distance, multiply by gl_FragCoord.w.
-+ */
++struct fs_lower_clip_data {
++   unsigned base_loc;
++   unsigned array_size;
++};
++
 +static bool
 +lower_clip_distance_fs_instr(nir_builder *b, nir_intrinsic_instr *intrin,
 +                             void *data)
 +{
-+   unsigned *params = data;
-+   unsigned base_loc = VARYING_SLOT_VAR0 + params[0];
-+   unsigned array_size = params[1];
++   struct fs_lower_clip_data *d = data;
 +
 +   if (intrin->intrinsic != nir_intrinsic_load_interpolated_input)
 +      return false;
 +
 +   unsigned loc = nir_intrinsic_io_semantics(intrin).location;
-+   if (loc < base_loc || loc >= base_loc + array_size)
++   if (loc < d->base_loc || loc >= d->base_loc + d->array_size)
 +      return false;
 +
 +   b->cursor = nir_after_instr(&intrin->instr);
@@ -1265,6 +853,7 @@ index a50e372755c9..aafd0dd085a9 100644
 +   nir_def *corrected = nir_fmul(b, &intrin->def, fragcoord_w);
 +
 +   nir_def_rewrite_uses_after(&intrin->def, corrected);
++
 +   return true;
 +}
 +
@@ -1277,39 +866,479 @@ index a50e372755c9..aafd0dd085a9 100644
 +   if (clip_distance_array_size == 0)
 +      return false;
 +
-+   unsigned params[2] = {clip_dist_var_slot, clip_distance_array_size};
++   struct fs_lower_clip_data data = {
++      .base_loc = VARYING_SLOT_VAR0 + clip_dist_var_slot,
++      .array_size = clip_distance_array_size,
++   };
 +   return nir_shader_intrinsics_pass(shader, lower_clip_distance_fs_instr,
-+                                     nir_metadata_control_flow, params);
++                                     nir_metadata_control_flow, &data);
 +}
--- 
-GitLab
-
-
-From b8eb3263e40bc8f188bbd9c5e9192493f7a2fccd Mon Sep 17 00:00:00 2001
-From: Christian Gmeiner <cgmeiner@igalia.com>
-Date: Thu, 12 Mar 2026 12:37:36 +0100
-Subject: [PATCH 08/10] panvk: Remap clip distances to VAR slots and wire up
- lowering
-
-Remap CLIP_DIST0/1 output/input variables to VARYING_SLOT_VAR0+N to
-avoid byte-offset collisions (CLIP_DIST locations map to offset 0 with
-fixed_varying_mask=0 on Vulkan, colliding with VAR0).
-
-For VS: remap outputs, clear compact flag, update outputs_written with
-individual bits per clip distance, and call pan_nir_lower_clip_distance_vs.
-
-For FS: scan input variables to find CLIP_DIST0/1 (inputs_read not yet
-populated), remap to matching VAR slots, and call
-pan_nir_lower_clip_distance_fs after IO lowering.
-
-Signed-off-by: Christian Gmeiner <cgmeiner@igalia.com>
----
- src/panfrost/vulkan/panvk_shader.h    |   8 ++
- src/panfrost/vulkan/panvk_vX_shader.c | 102 ++++++++++++++++++++++++++
- 2 files changed, 110 insertions(+)
-
-diff --git a/src/panfrost/vulkan/panvk_shader.h b/src/panfrost/vulkan/panvk_shader.h
-index aac73645b8b8..05d01d56250e 100644
+--- /dev/null
++++ b/src/panfrost/compiler/pan_nir_prolog_epilog.h
+@@ -0,0 +1,28 @@
++/*
++ * Copyright © 2026 Google, Inc.
++ * SPDX-License-Identifier: MIT
++ */
++
++#pragma once
++
++#include "compiler/nir/nir.h"
++#include "pan_compiler.h"
++
++struct panvk_fs_prolog_key {
++   uint8_t clip_distance_array_size;
++   /* First VARYING_SLOT_VAR* index the VS remapped clip distances to. The
++    * prolog reads from VARYING_SLOT_VAR0 + clip_dist_var_slot + i for each
++    * active clip distance i. */
++   uint8_t clip_dist_var_slot;
++};
++
++nir_shader *pan_nir_build_fs_prolog(const struct panvk_fs_prolog_key *key,
++                                    const nir_shader_compiler_options *options);
++
++bool pan_nir_lower_clip_distance_vs(nir_shader *shader,
++                                    unsigned clip_dist_var_slot,
++                                    unsigned clip_distance_array_size);
++
++bool pan_nir_lower_clip_distance_fs(nir_shader *shader,
++                                    unsigned clip_dist_var_slot,
++                                    unsigned clip_distance_array_size);
+--- a/src/panfrost/vulkan/csf/panvk_vX_cmd_draw.c
++++ b/src/panfrost/vulkan/csf/panvk_vX_cmd_draw.c
+@@ -30,6 +30,7 @@
+ #include "panvk_image_view.h"
+ #include "panvk_instance.h"
+ #include "panvk_instr.h"
++#include "panvk_linked_shader_cache.h"
+ #include "panvk_priv_bo.h"
+ #include "panvk_query_pool.h"
+ #include "panvk_shader.h"
+@@ -38,6 +39,7 @@
+ #include "pan_desc.h"
+ #include "pan_earlyzs.h"
+ #include "pan_encoder.h"
++#include "pan_fast_link.h"
+ #include "pan_format.h"
+ #include "pan_jc.h"
+ #include "pan_props.h"
+@@ -1607,6 +1609,124 @@ prepare_vs(struct panvk_cmd_buffer *cmdb
+    return VK_SUCCESS;
+ }
+ 
++/* Returns the linked-shader cache entry for the clip-distance prolog + this
++ * draw's main FS, or NULL if no prolog is needed.
++ */
++static struct panvk_linked_shader_entry *
++link_fs_clip_prolog(struct panvk_cmd_buffer *cmdbuf,
++                    const struct panvk_shader_variant *fs)
++{
++   const struct panvk_shader_variant *vs =
++      panvk_shader_hw_variant(cmdbuf->state.gfx.vs.shader);
++
++   if (!vs || vs->vs.clip_distance_array_size == 0)
++      return NULL;
++
++   struct panvk_device *dev = to_panvk_device(cmdbuf->vk.base.device);
++   struct panvk_linked_shader_key key = {
++      .main_binary = fs->bin_ptr,
++      .fs_prolog = {
++         .clip_distance_array_size = vs->vs.clip_distance_array_size,
++         .clip_dist_var_slot = vs->vs.clip_dist_var_slot,
++      },
++   };
++
++   struct panvk_linked_shader_entry *entry =
++      panvk_linked_shader_cache_lookup(&dev->linked_shader_cache, &key);
++   if (entry)
++      return entry;
++
++   struct panvk_physical_device *phys_dev =
++      to_panvk_physical_device(dev->vk.physical);
++   unsigned gpu_id = phys_dev->kmod.dev->props.gpu_id;
++   const nir_shader_compiler_options *nir_options =
++      pan_get_nir_shader_compiler_options(pan_arch(gpu_id), false);
++
++   nir_shader *prolog_nir =
++      pan_nir_build_fs_prolog(&key.fs_prolog, nir_options);
++
++   struct pan_compile_inputs prolog_inputs = {
++      .gpu_id = gpu_id,
++      .gpu_variant = phys_dev->kmod.dev->props.gpu_variant,
++      /* Main FS already emits ATEST; a second one would overwrite coverage. */
++      .skip_atest = true,
++      /* Must match the VS layout so LD_VAR_BUF offsets align after linking. */
++      .varying_layout = &vs->info.varyings.formats,
++   };
++
++   struct util_dynarray prolog_binary = UTIL_DYNARRAY_INIT;
++   struct pan_shader_info prolog_info = {0};
++
++   panvk_per_arch(compiler_lock)();
++   pan_postprocess_nir(prolog_nir, gpu_id);
++   pan_shader_compile(prolog_nir, &prolog_inputs, &prolog_binary, &prolog_info);
++   panvk_per_arch(compiler_unlock)();
++
++   struct pan_shader_part prolog_part = {
++      .binary = util_dynarray_element(&prolog_binary, uint8_t, 0),
++      .size = util_dynarray_num_elements(&prolog_binary, uint8_t),
++      .flow_end_offset = prolog_info.flow_end_offset,
++      .work_reg_count = prolog_info.work_reg_count,
++   };
++
++   struct pan_shader_part main_part = {
++      .binary = fs->bin_ptr,
++      .size = fs->bin_size,
++      .flow_end_offset = fs->info.flow_end_offset,
++      .work_reg_count = fs->info.work_reg_count,
++   };
++
++   struct pan_linked_shader linked = {0};
++   bool ok = pan_fast_link(&linked, &prolog_part, &main_part, NULL);
++
++   ralloc_free(prolog_nir);
++   util_dynarray_fini(&prolog_binary);
++
++   if (!ok)
++      return NULL;
++
++   struct panvk_priv_mem code_mem = {0};
++   if (linked.size) {
++      code_mem = panvk_pool_upload_aligned(&dev->mempools.exec, linked.binary,
++                                           linked.size, 128);
++      if (!panvk_priv_mem_check_alloc(code_mem)) {
++         pan_fast_link_cleanup(&linked);
++         return NULL;
++      }
++   }
++
++   struct panvk_priv_mem spd =
++      panvk_pool_alloc_desc(&dev->mempools.rw, SHADER_PROGRAM);
++   if (!panvk_priv_mem_check_alloc(spd)) {
++      panvk_pool_free_mem(&code_mem);
++      pan_fast_link_cleanup(&linked);
++      return NULL;
++   }
++
++   panvk_priv_mem_write_desc(spd, 0, SHADER_PROGRAM, cfg) {
++      cfg.stage = MALI_SHADER_STAGE_FRAGMENT;
++      cfg.fragment_coverage_bitmask_type = MALI_COVERAGE_BITMASK_TYPE_GL;
++      cfg.register_allocation = pan_register_allocation(linked.work_reg_count);
++      cfg.binary = panvk_priv_mem_dev_addr(code_mem);
++      cfg.preload.r48_r63 = (fs->info.preload >> 48);
++      cfg.requires_helper_threads = fs->info.contains_barrier;
++
++      if (!fs->info.ftz_fp32)
++         cfg.flush_to_zero_mode = MALI_FLUSH_TO_ZERO_MODE_PRESERVE_SUBNORMALS;
++      else if (fs->info.ftz_fp16)
++         cfg.flush_to_zero_mode = MALI_FLUSH_TO_ZERO_MODE_ALWAYS;
++      else
++         cfg.flush_to_zero_mode = MALI_FLUSH_TO_ZERO_MODE_DX11;
++   }
++
++   entry = panvk_linked_shader_cache_insert(&dev->linked_shader_cache, &key,
++                                            code_mem, spd,
++                                            linked.work_reg_count);
++   pan_fast_link_cleanup(&linked);
++
++   return entry;
++}
++
+ static VkResult
+ prepare_fs(struct panvk_cmd_buffer *cmdbuf)
+ {
+@@ -1635,9 +1755,17 @@ prepare_fs(struct panvk_cmd_buffer *cmdb
+       if (fs_user_dirty(cmdbuf) || gfx_state_dirty(cmdbuf, DESC_STATE))
+          cs_move64_to(b, cs_sr_reg64(b, IDVS, FRAGMENT_SRT),
+                       fs ? fs_desc_state->res_table : 0);
+-      if (fs_user_dirty(cmdbuf))
+-         cs_move64_to(b, cs_sr_reg64(b, IDVS, FRAGMENT_SPD),
+-                      fs ? panvk_priv_mem_dev_addr(fs->spd) : 0);
++      if (fs_user_dirty(cmdbuf) || gfx_state_dirty(cmdbuf, VS)) {
++         uint64_t fs_spd = 0;
++
++         if (fs) {
++            struct panvk_linked_shader_entry *linked =
++               link_fs_clip_prolog(cmdbuf, fs);
++            fs_spd = panvk_priv_mem_dev_addr(linked ? linked->spd : fs->spd);
++         }
++
++         cs_move64_to(b, cs_sr_reg64(b, IDVS, FRAGMENT_SPD), fs_spd);
++      }
+    }
+ 
+    return VK_SUCCESS;
+@@ -1899,7 +2027,9 @@ prepare_dcd(struct panvk_cmd_buffer *cmd
+       dyn_gfx_state_dirty(cmdbuf, IA_PRIMITIVE_TOPOLOGY) ||
+       dyn_gfx_state_dirty(cmdbuf, INPUT_ATTACHMENT_MAP) ||
+       fs_user_dirty(cmdbuf) || gfx_state_dirty(cmdbuf, RENDER_STATE) ||
+-      gfx_state_dirty(cmdbuf, OQ) || dcd2_dirty;
++      gfx_state_dirty(cmdbuf, OQ) ||
++      /* has_clip_prolog depends on the VS clip distance config */
++      gfx_state_dirty(cmdbuf, VS) || dcd2_dirty;
+    bool dcd1_dirty = dyn_gfx_state_dirty(cmdbuf, MS_RASTERIZATION_SAMPLES) ||
+                      dyn_gfx_state_dirty(cmdbuf, MS_SAMPLE_MASK) ||
+                      /* line mode needs primitive topology */
+@@ -1924,11 +2054,20 @@ prepare_dcd(struct panvk_cmd_buffer *cmd
+                      MESA_VK_RP_ATTACHMENT_ANY_COLOR_BITS;
+    uint8_t rt_written = 0, rt_read = 0;
+ 
++   /* The clip distance FS prolog uses nir_demote_if (DISCARD_B32) to clip
++    * fragments. This modifies coverage and must be accounted for in the
++    * hardware descriptor even though the main FS itself doesn't discard.
++    */
++   const struct panvk_shader_variant *vs =
++      panvk_shader_hw_variant(cmdbuf->state.gfx.vs.shader);
++   bool has_clip_prolog = vs && vs->vs.clip_distance_array_size > 0;
++
+    if (fs) {
+       rt_written = color_attachment_written_mask(fs, &dyns->cal);
+       rt_read = color_attachment_read_mask(fs, &dyns->ial, rt_mask);
+       shader_modifies_coverage = fs->info.fs.writes_coverage ||
+-                                 fs->info.fs.can_discard || alpha_to_coverage;
++                                 fs->info.fs.can_discard || has_clip_prolog ||
++                                 alpha_to_coverage;
+    }
+ 
+    bool msaa = dyns->ms.rasterization_samples > 1;
+@@ -1963,7 +2102,7 @@ prepare_dcd(struct panvk_cmd_buffer *cmd
+             cfg.allow_forward_pixel_to_kill =
+                fs->info.fs.can_fpk && !(rt_mask & ~rt_written) &&
+                !(rt_read & rt_written) && !alpha_to_coverage &&
+-               !cmdbuf->state.gfx.cb.info.any_dest_read;
++               !cmdbuf->state.gfx.cb.info.any_dest_read && !has_clip_prolog;
+ 
+             cfg.allow_forward_pixel_to_be_killed = !fs->info.writes_global;
+ 
+@@ -1976,6 +2115,13 @@ prepare_dcd(struct panvk_cmd_buffer *cmd
+                pan_earlyzs_get(fs->fs.earlyzs_lut, writes_zs || oq,
+                                alpha_to_coverage, zs_always_passes, zs_read);
+ 
++            /* The clip prolog's discard modifies coverage late. If we're
++             * writing Z/S or using OQ, force late Z/S update so the
++             * coverage change is visible to the depth/stencil write.
++             */
++            if (has_clip_prolog && (writes_zs || oq))
++               earlyzs->update = MALI_PIXEL_KILL_FORCE_LATE;
++
+             cfg.pixel_kill_operation = (enum mali_pixel_kill)earlyzs->kill;
+             cfg.zs_update_operation = (enum mali_pixel_kill)earlyzs->update;
+ 
+--- a/src/panfrost/vulkan/meson.build
++++ b/src/panfrost/vulkan/meson.build
+@@ -42,6 +42,7 @@ libpanvk_files = files(
+   'panvk_host_copy.c',
+   'panvk_image.c',
+   'panvk_instance.c',
++  'panvk_linked_shader_cache.c',
+   'panvk_mempool.c',
+   'panvk_physical_device.c',
+   'panvk_priv_bo.c',
+--- a/src/panfrost/vulkan/panvk_device.h
++++ b/src/panfrost/vulkan/panvk_device.h
+@@ -14,6 +14,7 @@
+ 
+ #include "panvk_blend.h"
+ #include "panvk_instance.h"
++#include "panvk_linked_shader_cache.h"
+ #include "panvk_macros.h"
+ #include "panvk_mempool.h"
+ #include "panvk_physical_device.h"
+@@ -102,6 +103,7 @@ struct panvk_device {
+    struct panvk_device_queue_family queue_families[PANVK_QUEUE_FAMILY_COUNT];
+ 
+    struct panvk_precomp_cache *precomp_cache;
++   struct panvk_linked_shader_cache linked_shader_cache;
+ 
+    struct {
+       struct u_trace_context utctx;
+--- /dev/null
++++ b/src/panfrost/vulkan/panvk_linked_shader_cache.c
+@@ -0,0 +1,131 @@
++/*
++ * Copyright © 2026 Google, Inc.
++ * SPDX-License-Identifier: MIT
++ */
++
++#include "panvk_linked_shader_cache.h"
++
++#include "util/hash_table.h"
++#include "util/ralloc.h"
++
++static uint32_t
++panvk_linked_shader_key_hash(const void *data)
++{
++   return _mesa_hash_data(data, sizeof(struct panvk_linked_shader_key));
++}
++
++static bool
++panvk_linked_shader_key_equal(const void *a, const void *b)
++{
++   return memcmp(a, b, sizeof(struct panvk_linked_shader_key)) == 0;
++}
++
++void
++panvk_linked_shader_cache_init(struct panvk_linked_shader_cache *cache)
++{
++   cache->ht = _mesa_hash_table_create(NULL, panvk_linked_shader_key_hash,
++                                       panvk_linked_shader_key_equal);
++   simple_mtx_init(&cache->lock, mtx_plain);
++}
++
++void
++panvk_linked_shader_cache_destroy(struct panvk_linked_shader_cache *cache)
++{
++   hash_table_foreach(cache->ht, entry) {
++      struct panvk_linked_shader_entry *e = entry->data;
++
++      panvk_pool_free_mem(&e->code_mem);
++      panvk_pool_free_mem(&e->spd);
++      ralloc_free((void *)entry->key);
++      ralloc_free(e);
++   }
++
++   _mesa_hash_table_destroy(cache->ht, NULL);
++   cache->ht = NULL;
++   simple_mtx_destroy(&cache->lock);
++}
++
++struct panvk_linked_shader_entry *
++panvk_linked_shader_cache_lookup(struct panvk_linked_shader_cache *cache,
++                                 const struct panvk_linked_shader_key *key)
++{
++   uint32_t hash = panvk_linked_shader_key_hash(key);
++
++   simple_mtx_lock(&cache->lock);
++   struct hash_entry *entry = _mesa_hash_table_search_pre_hashed(cache->ht, hash, key);
++   simple_mtx_unlock(&cache->lock);
++
++   return entry ? entry->data : NULL;
++}
++
++struct panvk_linked_shader_entry *
++panvk_linked_shader_cache_insert(struct panvk_linked_shader_cache *cache,
++                                 const struct panvk_linked_shader_key *key,
++                                 struct panvk_priv_mem code_mem,
++                                 struct panvk_priv_mem spd,
++                                 unsigned work_reg_count)
++{
++   struct panvk_linked_shader_entry *entry = rzalloc(NULL, struct panvk_linked_shader_entry);
++   struct panvk_linked_shader_key *key_copy =
++      entry ? ralloc_memdup(NULL, key, sizeof(*key)) : NULL;
++
++   if (!entry || !key_copy) {
++      ralloc_free(entry);
++      panvk_pool_free_mem(&code_mem);
++      panvk_pool_free_mem(&spd);
++      return NULL;
++   }
++
++   entry->code_mem = code_mem;
++   entry->spd = spd;
++   entry->work_reg_count = work_reg_count;
++
++   uint32_t hash = panvk_linked_shader_key_hash(key);
++
++   simple_mtx_lock(&cache->lock);
++
++   /* Lost the race with another thread's insert -- drop our duplicate and
++    * return theirs.
++    */
++   struct hash_entry *existing =
++      _mesa_hash_table_search_pre_hashed(cache->ht, hash, key);
++   if (existing) {
++      simple_mtx_unlock(&cache->lock);
++      panvk_pool_free_mem(&entry->code_mem);
++      panvk_pool_free_mem(&entry->spd);
++      ralloc_free(key_copy);
++      ralloc_free(entry);
++      return existing->data;
++   }
++
++   _mesa_hash_table_insert_pre_hashed(cache->ht, hash, key_copy, entry);
++   simple_mtx_unlock(&cache->lock);
++
++   return entry;
++}
++
++void
++panvk_linked_shader_cache_invalidate(struct panvk_linked_shader_cache *cache,
++                                     const void *main_binary)
++{
++   if (!cache->ht)
++      return;
++
++   simple_mtx_lock(&cache->lock);
++
++   hash_table_foreach(cache->ht, entry) {
++      const struct panvk_linked_shader_key *key = entry->key;
++
++      if (key->main_binary == main_binary) {
++         struct panvk_linked_shader_entry *e = entry->data;
++
++         panvk_pool_free_mem(&e->code_mem);
++         panvk_pool_free_mem(&e->spd);
++         ralloc_free((void *)entry->key);
++         ralloc_free(e);
++         _mesa_hash_table_remove(cache->ht, entry);
++      }
++   }
++
++   simple_mtx_unlock(&cache->lock);
++}
+--- /dev/null
++++ b/src/panfrost/vulkan/panvk_linked_shader_cache.h
+@@ -0,0 +1,50 @@
++/*
++ * Copyright © 2026 Google, Inc.
++ * SPDX-License-Identifier: MIT
++ */
++
++#pragma once
++
++#include "util/hash_table.h"
++#include "util/simple_mtx.h"
++#include "pan_nir_prolog_epilog.h"
++#include "panvk_mempool.h"
++
++/* The key is memcmp/hashed as a POD over its whole size, so callers must
++ * zero-initialize the struct (a designated initializer suffices). */
++struct panvk_linked_shader_key {
++   const void *main_binary;
++   struct panvk_fs_prolog_key fs_prolog;
++};
++
++struct panvk_linked_shader_entry {
++   struct panvk_priv_mem code_mem;
++   struct panvk_priv_mem spd;
++   unsigned work_reg_count;
++};
++
++struct panvk_linked_shader_cache {
++   struct hash_table *ht;
++   simple_mtx_t lock;
++};
++
++void panvk_linked_shader_cache_init(struct panvk_linked_shader_cache *cache);
++void panvk_linked_shader_cache_destroy(struct panvk_linked_shader_cache *cache);
++
++struct panvk_linked_shader_entry *
++panvk_linked_shader_cache_lookup(struct panvk_linked_shader_cache *cache,
++                                 const struct panvk_linked_shader_key *key);
++
++/* Publish a new cache entry with pre-built code_mem and spd. On lookup race
++ * (another thread inserted the same key), frees both and returns the existing
++ * entry. */
++struct panvk_linked_shader_entry *
++panvk_linked_shader_cache_insert(struct panvk_linked_shader_cache *cache,
++                                 const struct panvk_linked_shader_key *key,
++                                 struct panvk_priv_mem code_mem,
++                                 struct panvk_priv_mem spd,
++                                 unsigned work_reg_count);
++
++void
++panvk_linked_shader_cache_invalidate(struct panvk_linked_shader_cache *cache,
++                                     const void *main_binary);
 --- a/src/panfrost/vulkan/panvk_shader.h
 +++ b/src/panfrost/vulkan/panvk_shader.h
 @@ -393,6 +393,14 @@ struct panvk_shader_variant {
@@ -1320,26 +1349,89 @@ index aac73645b8b8..05d01d56250e 100644
 +      struct {
 +         uint8_t clip_distance_array_size;
 +         /* First VARYING_SLOT_VAR* slot used for clip distances (remapped
-+          * from VARYING_SLOT_CLIP_DIST0/1 to avoid fixed varying offset
-+          * collisions). */
++          * from VARYING_SLOT_CLIP_DIST0/1 to avoid the fixed varying offset
++          * collision with VAR0). */
 +         uint8_t clip_dist_var_slot;
 +      } vs;
     };
  
     struct panvk_shader_desc_info desc_info;
-diff --git a/src/panfrost/vulkan/panvk_vX_shader.c b/src/panfrost/vulkan/panvk_vX_shader.c
-index 9d41989b6d49..9745524e390e 100644
+--- a/src/panfrost/vulkan/panvk_vX_device.c
++++ b/src/panfrost/vulkan/panvk_vX_device.c
+@@ -550,6 +550,8 @@ panvk_per_arch(create_device)(struct pan
+       goto err_free_precomp;
+    }
+ 
++   panvk_linked_shader_cache_init(&device->linked_shader_cache);
++
+ #if PAN_ARCH >= 10
+    result = panvk_per_arch(device_draw_context_init)(device);
+    if (result != VK_SUCCESS)
+@@ -621,6 +623,7 @@ err_free_draw_ctx:
+ err_free_mem_cache:
+ #endif
+    vk_pipeline_cache_destroy(device->vk.mem_cache, NULL);
++   panvk_linked_shader_cache_destroy(&device->linked_shader_cache);
+ err_free_precomp:
+    panvk_precomp_cleanup(device);
+ err_free_priv_bos:
+@@ -679,6 +682,7 @@ panvk_per_arch(destroy_device)(struct pa
+    }
+ 
+    panvk_precomp_cleanup(device);
++   panvk_linked_shader_cache_destroy(&device->linked_shader_cache);
+ #if PAN_ARCH >= 10
+    panvk_per_arch(device_draw_context_cleanup)(device);
+ #endif
+--- a/src/panfrost/vulkan/panvk_vX_physical_device.c
++++ b/src/panfrost/vulkan/panvk_vX_physical_device.c
+@@ -320,7 +320,7 @@ panvk_per_arch(get_physical_device_featu
+       .shaderSampledImageArrayDynamicIndexing = true,
+       .shaderStorageBufferArrayDynamicIndexing = true,
+       .shaderStorageImageArrayDynamicIndexing = true,
+-      .shaderClipDistance = false,
++      .shaderClipDistance = PAN_ARCH >= 10,
+       .shaderCullDistance = false,
+       .shaderFloat64 = false,
+       .shaderInt64 = true,
+@@ -902,9 +902,9 @@ panvk_per_arch(get_physical_device_prope
+          PAN_ARCH >= 10 && device->kmod.dev->props.gpu_can_query_timestamp,
+       .timestampPeriod =
+          PAN_ARCH >= 10 ? panvk_get_gpu_system_timestamp_period(device) : 0,
+-      .maxClipDistances = 0,
++      .maxClipDistances = PAN_ARCH >= 10 ? 8 : 0,
+       .maxCullDistances = 0,
+-      .maxCombinedClipAndCullDistances = 0,
++      .maxCombinedClipAndCullDistances = PAN_ARCH >= 10 ? 8 : 0,
+       .discreteQueuePriorities = 2,
+       .pointSizeRange = {pointSizeRangeMin, pointSizeRangeMax},
+       .lineWidthRange = {0.0, 7.9921875},
 --- a/src/panfrost/vulkan/panvk_vX_shader.c
 +++ b/src/panfrost/vulkan/panvk_vX_shader.c
-@@ -40,6 +40,7 @@
- #include "compiler/bifrost/bifrost_nir.h"
+@@ -41,6 +41,7 @@
+ #include "compiler/bifrost/bifrost_compile.h"
  #include "compiler/pan_compiler.h"
  #include "compiler/pan_nir.h"
 +#include "compiler/pan_nir_prolog_epilog.h"
  #include "pan_shader.h"
  
  #include "vk_log.h"
-@@ -1346,9 +1347,58 @@ panvk_compile_shader(struct panvk_device *dev,
+@@ -1319,10 +1320,14 @@ static void
+ panvk_shader_destroy(struct vk_device *vk_dev, struct vk_shader *vk_shader,
+                      const VkAllocationCallbacks *pAllocator)
+ {
++   struct panvk_device *dev = to_panvk_device(vk_dev);
+    struct panvk_shader *shader =
+       container_of(vk_shader, struct panvk_shader, vk);
+ 
+    panvk_shader_foreach_variant(shader, variant) {
++      if (variant->bin_ptr)
++         panvk_linked_shader_cache_invalidate(&dev->linked_shader_cache,
++                                              variant->bin_ptr);
+       panvk_shader_variant_destroy(variant);
+    }
+ 
+@@ -1417,6 +1422,37 @@ panvk_compile_shader(struct panvk_device
              var->data.driver_location =
                 var->data.location - VERT_ATTRIB_GENERIC0;
           }
@@ -1347,7 +1439,9 @@ index 9d41989b6d49..9745524e390e 100644
 +         /* Remap CLIP_DIST0/1 outputs to VAR* slots so they go through the
 +          * normal varying byte-offset calculation (which uses
 +          * fixed_varying_mask=0 on Vulkan). Without remapping, CLIP_DIST0
-+          * would collide with VAR0 at byte offset 0.
++          * would collide with VAR0 at byte offset 0, and the compact
++          * gl_ClipDistance layout (vec3 on partial slots) confuses Mali's
++          * varying-buffer stride on v14+.
 +          */
 +         variant->vs.clip_distance_array_size =
 +            nir->info.clip_distance_array_size;
@@ -1356,25 +1450,15 @@ index 9d41989b6d49..9745524e390e 100644
 +               util_last_bit(nir->info.outputs_written >> VARYING_SLOT_VAR0);
 +            variant->vs.clip_dist_var_slot = next_var;
 +
-+            nir_foreach_shader_out_variable(var, nir)
-+            {
++            nir_foreach_shader_out_variable(var, nir) {
 +               if (var->data.location == VARYING_SLOT_CLIP_DIST0) {
 +                  var->data.location = VARYING_SLOT_VAR0 + next_var;
-+                  /* Clear compact flag: clip distances are declared as
-+                   * compact float arrays, but after remapping to a
-+                   * generic VAR slot the compact layout causes
-+                   * nir_assign_io_var_locations to compute var_size=0
-+                   * for partial slots, breaking the varying buffer.
-+                   */
 +                  var->data.compact = false;
 +               } else if (var->data.location == VARYING_SLOT_CLIP_DIST1) {
 +                  var->data.location = VARYING_SLOT_VAR0 + next_var + 1;
 +                  var->data.compact = false;
 +               }
 +            }
-+            /* Update outputs_written to reflect the remapping. Each clip
-+             * distance occupies its own varying slot (compact=false).
-+             */
 +            nir->info.outputs_written &=
 +               ~(VARYING_BIT_CLIP_DIST0 | VARYING_BIT_CLIP_DIST1);
 +            for (unsigned i = 0; i < nir->info.clip_distance_array_size; i++)
@@ -1384,12 +1468,11 @@ index 9d41989b6d49..9745524e390e 100644
 +
           nir_assign_io_var_locations(nir, nir_var_shader_out);
           panvk_lower_nir_io(nir);
+          /* This somehow folds the location for multi-slot nir_load/nir_store */
+@@ -1433,6 +1469,11 @@ panvk_compile_shader(struct panvk_device
+             inputs.varying_layout = &varying_layout;
+          }
  
-+         /* Multiply clip distance stores by W for correct linear
-+          * interpolation. This runs before nir_lower_viewport_transform
-+          * (which happens inside panvk_compile_nir), so position W is the
-+          * raw clip-space W (not yet inverted/clamped).
-+          */
 +         if (variant->vs.clip_distance_array_size > 0)
 +            NIR_PASS(_, nir, pan_nir_lower_clip_distance_vs,
 +                     variant->vs.clip_dist_var_slot,
@@ -1398,14 +1481,14 @@ index 9d41989b6d49..9745524e390e 100644
           variant->own_bin = true;
  
           result = panvk_compile_nir(dev, nir, info->flags, &inputs, state,
-@@ -1379,6 +1429,51 @@ panvk_compile_shader(struct panvk_device *dev,
+@@ -1463,6 +1504,50 @@ panvk_compile_shader(struct panvk_device
        NIR_PASS(_, nir, panvk_per_arch(nir_lower_input_attachment_loads),
                 state, &variant->fs.input_attachment_read);
  
-+      /* Remap CLIP_DIST0/1 FS inputs to VAR slots, matching the VS layout.
-+       * This must happen before nir_assign_io_var_locations so the byte
-+       * offsets match the VS varying buffer. We scan variables directly
-+       * because inputs_read may not be populated yet.
++      /* Remap CLIP_DIST0/1 FS inputs to VAR slots matching the VS layout.
++       * Scan input variables directly because inputs_read is not yet
++       * populated. Must run before nir_assign_io_var_locations so the byte
++       * offsets match the VS varying buffer.
 +       */
 +      unsigned fs_clip_dist_var_slot = 0;
 +      unsigned fs_clip_array_size = 0;
@@ -1434,7 +1517,6 @@ index 9d41989b6d49..9745524e390e 100644
 +
 +      if (has_clip_input) {
 +         fs_clip_dist_var_slot = max_user_var;
-+
 +         if (clip_dist0_var) {
 +            clip_dist0_var->data.location =
 +               VARYING_SLOT_VAR0 + fs_clip_dist_var_slot;
@@ -1450,421 +1532,15 @@ index 9d41989b6d49..9745524e390e 100644
        /* Lower input intrinsics for fragment shaders early to get the max
         * number of varying loads, as this number is required during descriptor
         * lowering for v9+.
-@@ -1400,6 +1495,13 @@ panvk_compile_shader(struct panvk_device *dev,
+@@ -1478,6 +1563,10 @@ panvk_compile_shader(struct panvk_device
        nir_assign_io_var_locations(nir, nir_var_shader_out);
        panvk_lower_nir_io(nir);
  
-+      /* Multiply clip distance loads by FragCoord.w to recover linearly
-+       * interpolated values (undo the VS W-multiply).
-+       */
 +      if (has_clip_input)
-+         NIR_PASS(_, nir, pan_nir_lower_clip_distance_fs, fs_clip_dist_var_slot,
-+                  fs_clip_array_size);
++         NIR_PASS(_, nir, pan_nir_lower_clip_distance_fs,
++                  fs_clip_dist_var_slot, fs_clip_array_size);
 +
        /* Lower FS outputs now so that we can lower load_blend_descriptor_pan
         * to a driver-provided FAU instead of using the blend descriptors
         * uploaded by the hardware.  See panvk_vX_blend.c for details.
--- 
-GitLab
-
-
-From 31d7bde6da0161c303dcac5b241b42b1aad14dc0 Mon Sep 17 00:00:00 2001
-From: Christian Gmeiner <cgmeiner@igalia.com>
-Date: Thu, 12 Mar 2026 12:37:42 +0100
-Subject: [PATCH 09/10] panvk: Wire clip prolog into draw path
-
-On cache miss, build and compile the clip distance FS prolog, link it
-with the main FS via pan_fast_link(), upload the binary, and build an
-SPD descriptor for the linked result.
-
-Set skip_atest and match use_ld_var_buf with the main FS. Account for
-the prolog's discard in shader_modifies_coverage,
-allow_forward_pixel_to_kill, and early-Z/late-Z update fields.
-
-Signed-off-by: Christian Gmeiner <cgmeiner@igalia.com>
----
- src/panfrost/vulkan/csf/panvk_vX_cmd_draw.c   | 167 +++++++++++++++++-
- .../vulkan/panvk_linked_shader_cache.h        |   1 +
- 2 files changed, 162 insertions(+), 6 deletions(-)
-
-diff --git a/src/panfrost/vulkan/csf/panvk_vX_cmd_draw.c b/src/panfrost/vulkan/csf/panvk_vX_cmd_draw.c
-index d87966be9a50..9ebb8cf01553 100644
---- a/src/panfrost/vulkan/csf/panvk_vX_cmd_draw.c
-+++ b/src/panfrost/vulkan/csf/panvk_vX_cmd_draw.c
-@@ -1660,6 +1660,132 @@ prepare_vs(struct panvk_cmd_buffer *cmdbuf, const struct panvk_draw_info *draw)
-    return VK_SUCCESS;
- }
- 
-+/* Compile a clip distance FS prolog and fast-link it with the main FS.
-+ * Returns the linked cache entry with the combined binary and SPD, or
-+ * NULL if no prolog is needed (clip_distance_array_size == 0).
-+ */
-+static struct panvk_linked_shader_entry *
-+link_fs_clip_prolog(struct panvk_cmd_buffer *cmdbuf,
-+                    const struct panvk_shader_variant *fs)
-+{
-+   const struct panvk_shader_variant *vs =
-+      panvk_shader_hw_variant(cmdbuf->state.gfx.vs.shader);
-+
-+   if (!vs || vs->vs.clip_distance_array_size == 0)
-+      return NULL;
-+
-+   struct panvk_device *dev = to_panvk_device(cmdbuf->vk.base.device);
-+
-+   /* Build the cache key from the main FS binary pointer and the VS
-+    * clip distance parameters.
-+    */
-+   struct panvk_linked_shader_key key = {
-+      .main_binary = fs->bin_ptr,
-+      .fs_prolog =
-+         {
-+            .clip_distance_array_size = vs->vs.clip_distance_array_size,
-+            .clip_dist_var_slot = vs->vs.clip_dist_var_slot,
-+         },
-+   };
-+
-+   /* Fast path: cache hit */
-+   struct panvk_linked_shader_entry *entry =
-+      panvk_linked_shader_cache_lookup(&dev->linked_shader_cache, &key);
-+   if (entry)
-+      return entry;
-+
-+   /* Cache miss: build, compile and link the prolog */
-+   struct panvk_physical_device *phys_dev =
-+      to_panvk_physical_device(dev->vk.physical);
-+   unsigned gpu_id = phys_dev->kmod.dev->props.gpu_id;
-+   const nir_shader_compiler_options *nir_options =
-+      pan_get_nir_shader_compiler_options(pan_arch(gpu_id));
-+
-+   nir_shader *prolog_nir =
-+      pan_nir_build_fs_prolog(&key.fs_prolog, nir_options);
-+
-+   struct pan_compile_inputs prolog_inputs = {
-+      .gpu_id = gpu_id,
-+      .gpu_variant = phys_dev->kmod.dev->props.gpu_variant,
-+      /* The prolog must not emit ATEST -- the main FS already has one.
-+       * A double ATEST would overwrite the coverage set by the prolog. */
-+      .skip_atest = true,
-+      /* Must match the main FS varying load mechanism so the prolog
-+       * uses the same instruction path (LD_VAR_BUF vs LD_VAR). */
-+      .valhall.use_ld_var_buf = fs->desc_info.fs_varying_attr_desc_count == 0,
-+   };
-+
-+   struct util_dynarray prolog_binary = UTIL_DYNARRAY_INIT;
-+   struct pan_shader_info prolog_info = {0};
-+
-+   panvk_per_arch(compiler_lock)();
-+   pan_postprocess_nir(prolog_nir, gpu_id);
-+   pan_shader_compile(prolog_nir, &prolog_inputs, &prolog_binary, &prolog_info);
-+   panvk_per_arch(compiler_unlock)();
-+
-+   /* Set up fast-link parts */
-+   struct pan_shader_part prolog_part = {
-+      .binary = util_dynarray_element(&prolog_binary, uint8_t, 0),
-+      .size = util_dynarray_num_elements(&prolog_binary, uint8_t),
-+      .last_instr_offset = prolog_info.last_instr_offset,
-+      .work_reg_count = prolog_info.work_reg_count,
-+   };
-+
-+   struct pan_shader_part main_part = {
-+      .binary = fs->bin_ptr,
-+      .size = fs->bin_size,
-+      .last_instr_offset = fs->info.last_instr_offset,
-+      .work_reg_count = fs->info.work_reg_count,
-+   };
-+
-+   struct pan_linked_shader linked = {0};
-+   bool ok = pan_fast_link(&linked, &prolog_part, &main_part, NULL);
-+
-+   ralloc_free(prolog_nir);
-+   util_dynarray_fini(&prolog_binary);
-+
-+   if (!ok)
-+      return NULL;
-+
-+   /* Insert into cache (this uploads the binary and handles races) */
-+   entry = panvk_linked_shader_cache_insert(&dev->linked_shader_cache, dev,
-+                                            &key, &linked);
-+
-+   pan_fast_link_cleanup(&linked);
-+
-+   if (!entry)
-+      return NULL;
-+
-+   /* Build the SPD for the linked shader if not yet done */
-+   if (!panvk_priv_mem_check_alloc(entry->spd)) {
-+      entry->spd = panvk_pool_alloc_desc(&dev->mempools.rw, SHADER_PROGRAM);
-+      if (!panvk_priv_mem_check_alloc(entry->spd))
-+         return NULL;
-+
-+      panvk_priv_mem_write_desc(entry->spd, 0, SHADER_PROGRAM, cfg) {
-+         cfg.stage = MALI_SHADER_STAGE_FRAGMENT;
-+         cfg.fragment_coverage_bitmask_type = MALI_COVERAGE_BITMASK_TYPE_GL;
-+         cfg.register_allocation =
-+            pan_register_allocation(entry->work_reg_count);
-+         cfg.binary = panvk_priv_mem_dev_addr(entry->code_mem);
-+         cfg.preload.r48_r63 = (fs->info.preload >> 48);
-+         cfg.requires_helper_threads = fs->info.contains_barrier;
-+
-+         /* Use the main FS's FTZ mode */
-+         if (fs->info.ftz_fp32) {
-+            cfg.flush_to_zero_mode = fs->info.ftz_fp16
-+                                        ? MALI_FLUSH_TO_ZERO_MODE_ALWAYS
-+                                        : MALI_FLUSH_TO_ZERO_MODE_DX11;
-+         } else {
-+            cfg.flush_to_zero_mode =
-+               MALI_FLUSH_TO_ZERO_MODE_PRESERVE_SUBNORMALS;
-+         }
-+      }
-+   }
-+
-+   return entry;
-+}
-+
- static VkResult
- prepare_fs(struct panvk_cmd_buffer *cmdbuf)
- {
-@@ -1686,9 +1812,20 @@ prepare_fs(struct panvk_cmd_buffer *cmdbuf)
-       if (fs_user_dirty(cmdbuf) || gfx_state_dirty(cmdbuf, DESC_STATE))
-          cs_move64_to(b, cs_sr_reg64(b, IDVS, FRAGMENT_SRT),
-                       fs ? fs_desc_state->res_table : 0);
--      if (fs_user_dirty(cmdbuf))
--         cs_move64_to(b, cs_sr_reg64(b, IDVS, FRAGMENT_SPD),
--                      fs ? panvk_priv_mem_dev_addr(fs->spd) : 0);
-+      if (fs_user_dirty(cmdbuf) || gfx_state_dirty(cmdbuf, VS)) {
-+         uint64_t fs_spd = 0;
-+
-+         if (fs) {
-+            /* Check if we need a clip distance prolog linked with the FS */
-+            struct panvk_linked_shader_entry *linked =
-+               link_fs_clip_prolog(cmdbuf, fs);
-+
-+            fs_spd = linked ? panvk_priv_mem_dev_addr(linked->spd)
-+                            : panvk_priv_mem_dev_addr(fs->spd);
-+         }
-+
-+         cs_move64_to(b, cs_sr_reg64(b, IDVS, FRAGMENT_SPD), fs_spd);
-+      }
-    }
- 
-    return VK_SUCCESS;
-@@ -1950,7 +2087,9 @@ prepare_dcd(struct panvk_cmd_buffer *cmdbuf,
-       dyn_gfx_state_dirty(cmdbuf, IA_PRIMITIVE_TOPOLOGY) ||
-       dyn_gfx_state_dirty(cmdbuf, INPUT_ATTACHMENT_MAP) ||
-       fs_user_dirty(cmdbuf) || gfx_state_dirty(cmdbuf, RENDER_STATE) ||
--      gfx_state_dirty(cmdbuf, OQ) || dcd2_dirty;
-+      gfx_state_dirty(cmdbuf, OQ) ||
-+      /* has_clip_prolog depends on the VS clip distance config */
-+      gfx_state_dirty(cmdbuf, VS) || dcd2_dirty;
-    bool dcd1_dirty = dyn_gfx_state_dirty(cmdbuf, MS_RASTERIZATION_SAMPLES) ||
-                      dyn_gfx_state_dirty(cmdbuf, MS_SAMPLE_MASK) ||
-                      /* line mode needs primitive topology */
-@@ -1960,6 +2097,7 @@ prepare_dcd(struct panvk_cmd_buffer *cmdbuf,
-    bool alpha_to_coverage = dyns->ms.alpha_to_coverage_enable;
-    bool writes_z = writes_depth(cmdbuf);
-    bool writes_s = writes_stencil(cmdbuf);
-+   bool shader_modifies_coverage = false;
-    uint8_t rt_mask = cmdbuf->state.gfx.render.bound_attachments &
-                      MESA_VK_RP_ATTACHMENT_ANY_COLOR_BITS;
-    uint8_t rt_written = 0, rt_read = 0;
-@@ -1975,9 +2114,20 @@ prepare_dcd(struct panvk_cmd_buffer *cmdbuf,
-                      MESA_VK_RP_ATTACHMENT_ANY_COLOR_BITS;
-    uint8_t rt_written = 0, rt_read = 0;
- 
-+   /* The clip distance FS prolog uses nir_demote_if (DISCARD_B32) to clip
-+    * fragments. This modifies coverage and must be accounted for in the
-+    * hardware descriptor even though the main FS itself doesn't discard.
-+    */
-+   const struct panvk_shader_variant *vs =
-+      panvk_shader_hw_variant(cmdbuf->state.gfx.vs.shader);
-+   bool has_clip_prolog = vs && vs->vs.clip_distance_array_size > 0;
-+
-    if (fs) {
-       rt_written = color_attachment_written_mask(fs, &dyns->cal);
-       rt_read = color_attachment_read_mask(fs, &dyns->ial, rt_mask);
-+      shader_modifies_coverage = fs->info.fs.writes_coverage ||
-+                                 fs->info.fs.can_discard || has_clip_prolog ||
-+                                 alpha_to_coverage;
-    }
- 
-    bool msaa = dyns->ms.rasterization_samples > 1;
-@@ -2014,7 +2162,7 @@ prepare_dcd(struct panvk_cmd_buffer *cmdbuf,
-             cfg.allow_forward_pixel_to_kill =
-                fs->info.fs.can_fpk && !(rt_mask & ~rt_written) &&
-                !(rt_read & rt_written) && !alpha_to_coverage &&
--               !cmdbuf->state.gfx.cb.info.any_dest_read;
-+               !cmdbuf->state.gfx.cb.info.any_dest_read && !has_clip_prolog;
- 
-             cfg.allow_forward_pixel_to_be_killed = !fs->info.writes_global;
- 
-@@ -2027,6 +2175,13 @@ prepare_dcd(struct panvk_cmd_buffer *cmdbuf,
-                pan_earlyzs_get(fs->fs.earlyzs_lut, writes_zs || oq,
-                                alpha_to_coverage, zs_always_passes, zs_read);
- 
-+            /* The clip prolog's discard modifies coverage late. If we're
-+             * writing Z/S or using OQ, force late Z/S update so the
-+             * coverage change is visible to the depth/stencil write.
-+             */
-+            if (has_clip_prolog && (writes_zs || oq))
-+               earlyzs->update = MALI_PIXEL_KILL_FORCE_LATE;
-+
-             cfg.pixel_kill_operation = (enum mali_pixel_kill)earlyzs->kill;
-             cfg.zs_update_operation = (enum mali_pixel_kill)earlyzs->update;
- 
-@@ -2037,9 +2185,7 @@ prepare_dcd(struct panvk_cmd_buffer *cmdbuf,
-                 cmdbuf->state.gfx.cb.info.needs_shader) &&
-                (dyns->ms.rasterization_samples > 1);
- 
--            cfg.shader_modifies_coverage = fs->info.fs.writes_coverage ||
--                                           fs->info.fs.can_discard ||
--                                           alpha_to_coverage;
-+            cfg.shader_modifies_coverage = shader_modifies_coverage;
-          } else {
-             cfg.allow_forward_pixel_to_kill = true;
-             cfg.allow_forward_pixel_to_be_killed = true;
-diff --git a/src/panfrost/vulkan/panvk_linked_shader_cache.h b/src/panfrost/vulkan/panvk_linked_shader_cache.h
-index 56bcc2e69b98..13abfc30a3f3 100644
---- a/src/panfrost/vulkan/panvk_linked_shader_cache.h
-+++ b/src/panfrost/vulkan/panvk_linked_shader_cache.h
-@@ -20,6 +20,7 @@ struct panvk_linked_shader_key {
- 
- struct panvk_linked_shader_entry {
-    struct panvk_priv_mem code_mem;
-+   struct panvk_priv_mem spd;
-    unsigned work_reg_count;
- };
- 
--- 
-GitLab
-
-
-From f3c7461127ca6bf374f99caf5062f0dcef093a90 Mon Sep 17 00:00:00 2001
-From: Christian Gmeiner <cgmeiner@igalia.com>
-Date: Wed, 11 Mar 2026 17:09:20 +0100
-Subject: [PATCH 10/10] panvk: Advertise shaderClipDistance support
-
-Enable shaderClipDistance with up to 8 clip distances. The clip
-distance lowering is handled by the FS prolog at draw time via
-pan_fast_link().
-
-Signed-off-by: Christian Gmeiner <cgmeiner@igalia.com>
----
- .../vulkan/panvk_vX_physical_device.c         | 46 +++++++++++--------
- 1 file changed, 27 insertions(+), 19 deletions(-)
-
-diff --git a/src/panfrost/vulkan/panvk_vX_physical_device.c b/src/panfrost/vulkan/panvk_vX_physical_device.c
-index 6bc7dc93bfde..eedb2b5e60ea 100644
---- a/src/panfrost/vulkan/panvk_vX_physical_device.c
-+++ b/src/panfrost/vulkan/panvk_vX_physical_device.c
-@@ -310,7 +310,7 @@ panvk_per_arch(get_physical_device_features)(
-       .shaderSampledImageArrayDynamicIndexing = true,
-       .shaderStorageBufferArrayDynamicIndexing = true,
-       .shaderStorageImageArrayDynamicIndexing = true,
--      .shaderClipDistance = false,
-+      .shaderClipDistance = true,
-       .shaderCullDistance = false,
-       .shaderFloat64 = false,
-       .shaderInt64 = true,
-@@ -325,7 +325,8 @@ panvk_per_arch(get_physical_device_features)(
-       .sparseResidency4Samples = false,
-       .sparseResidency8Samples = false,
-       .sparseResidency16Samples = false,
--      .sparseResidencyAliased = false, /* https://gitlab.freedesktop.org/panfrost/mesa/-/issues/237 */
-+      .sparseResidencyAliased =
-+         false, /* https://gitlab.freedesktop.org/panfrost/mesa/-/issues/237 */
-       .variableMultisampleRate = false,
-       .inheritedQueries = false,
- 
-@@ -855,9 +856,9 @@ panvk_per_arch(get_physical_device_properties)(
-          PAN_ARCH >= 10 && device->kmod.dev->props.gpu_can_query_timestamp,
-       .timestampPeriod =
-          PAN_ARCH >= 10 ? panvk_get_gpu_system_timestamp_period(device) : 0,
--      .maxClipDistances = 0,
-+      .maxClipDistances = 8,
-       .maxCullDistances = 0,
--      .maxCombinedClipAndCullDistances = 0,
-+      .maxCombinedClipAndCullDistances = 8,
-       .discreteQueuePriorities = 2,
-       .pointSizeRange = {pointSizeRangeMin, pointSizeRangeMax},
-       .lineWidthRange = {0.0, 7.9921875},
-@@ -869,7 +870,8 @@ panvk_per_arch(get_physical_device_properties)(
-       .optimalBufferCopyRowPitchAlignment = 64,
- 
-       /* If we can't detect the cacheline size, assume 64 bytes cachelines. */
--      .nonCoherentAtomSize = util_has_cache_ops() ? util_cache_granularity() : 64,
-+      .nonCoherentAtomSize =
-+         util_has_cache_ops() ? util_cache_granularity() : 64,
- 
-       /* Vulkan 1.0 sparse properties */
-       .sparseResidencyNonResidentStrict = false,
-@@ -937,8 +939,7 @@ panvk_per_arch(get_physical_device_properties)(
-       .shaderRoundingModeRTZFloat16 = true,
-       .shaderRoundingModeRTZFloat32 = true,
-       .shaderRoundingModeRTZFloat64 = false,
--      .maxUpdateAfterBindDescriptorsInAllPools =
--         PAN_ARCH >= 9 ? UINT32_MAX : 0,
-+      .maxUpdateAfterBindDescriptorsInAllPools = PAN_ARCH >= 9 ? UINT32_MAX : 0,
-       /* VK_EXT_descriptor_indexing */
-       .maxUpdateAfterBindDescriptorsInAllPools = PAN_ARCH >= 9 ? UINT32_MAX : 0,
-       .shaderUniformBufferArrayNonUniformIndexingNative = false,
-@@ -978,10 +979,9 @@ panvk_per_arch(get_physical_device_properties)(
-          PAN_ARCH >= 9 ? MAX_PER_SET_STORAGE_IMAGES : 0,
-       .maxDescriptorSetUpdateAfterBindInputAttachments =
-          PAN_ARCH >= 9 ? MAX_PER_SET_INPUT_ATTACHMENTS : 0,
--      .supportedDepthResolveModes = VK_RESOLVE_MODE_SAMPLE_ZERO_BIT |
--                                    VK_RESOLVE_MODE_AVERAGE_BIT |
--                                    VK_RESOLVE_MODE_MIN_BIT |
--                                    VK_RESOLVE_MODE_MAX_BIT,
-+      .supportedDepthResolveModes =
-+         VK_RESOLVE_MODE_SAMPLE_ZERO_BIT | VK_RESOLVE_MODE_AVERAGE_BIT |
-+         VK_RESOLVE_MODE_MIN_BIT | VK_RESOLVE_MODE_MAX_BIT,
-       .supportedStencilResolveModes = VK_RESOLVE_MODE_SAMPLE_ZERO_BIT |
-                                       VK_RESOLVE_MODE_MIN_BIT |
-                                       VK_RESOLVE_MODE_MAX_BIT,
-@@ -1026,19 +1026,26 @@ panvk_per_arch(get_physical_device_properties)(
-       .integerDotProduct64BitMixedSignednessAccelerated = false,
-       .integerDotProductAccumulatingSaturating8BitUnsignedAccelerated = false,
-       .integerDotProductAccumulatingSaturating8BitSignedAccelerated = false,
--      .integerDotProductAccumulatingSaturating8BitMixedSignednessAccelerated = false,
--      .integerDotProductAccumulatingSaturating4x8BitPackedUnsignedAccelerated = PAN_ARCH >= 9,
--      .integerDotProductAccumulatingSaturating4x8BitPackedSignedAccelerated = PAN_ARCH >= 9,
--      .integerDotProductAccumulatingSaturating4x8BitPackedMixedSignednessAccelerated = false,
-+      .integerDotProductAccumulatingSaturating8BitMixedSignednessAccelerated =
-+         false,
-+      .integerDotProductAccumulatingSaturating4x8BitPackedUnsignedAccelerated =
-+         PAN_ARCH >= 9,
-+      .integerDotProductAccumulatingSaturating4x8BitPackedSignedAccelerated =
-+         PAN_ARCH >= 9,
-+      .integerDotProductAccumulatingSaturating4x8BitPackedMixedSignednessAccelerated =
-+         false,
-       .integerDotProductAccumulatingSaturating16BitUnsignedAccelerated = false,
-       .integerDotProductAccumulatingSaturating16BitSignedAccelerated = false,
--      .integerDotProductAccumulatingSaturating16BitMixedSignednessAccelerated = false,
-+      .integerDotProductAccumulatingSaturating16BitMixedSignednessAccelerated =
-+         false,
-       .integerDotProductAccumulatingSaturating32BitUnsignedAccelerated = false,
-       .integerDotProductAccumulatingSaturating32BitSignedAccelerated = false,
--      .integerDotProductAccumulatingSaturating32BitMixedSignednessAccelerated = false,
-+      .integerDotProductAccumulatingSaturating32BitMixedSignednessAccelerated =
-+         false,
-       .integerDotProductAccumulatingSaturating64BitUnsignedAccelerated = false,
-       .integerDotProductAccumulatingSaturating64BitSignedAccelerated = false,
--      .integerDotProductAccumulatingSaturating64BitMixedSignednessAccelerated = false,
-+      .integerDotProductAccumulatingSaturating64BitMixedSignednessAccelerated =
-+         false,
-       .storageTexelBufferOffsetAlignmentBytes = 64,
-       .storageTexelBufferOffsetSingleTexelAlignment = false,
-       .uniformTexelBufferOffsetAlignmentBytes = 4,
-@@ -1107,7 +1114,8 @@ panvk_per_arch(get_physical_device_properties)(
-       /* VK_KHR_maintenance9 */
-       /* Sparse binding not supported yet. */
-       .image2DViewOf3DSparse = false,
--      .defaultVertexAttributeValue = VK_DEFAULT_VERTEX_ATTRIBUTE_VALUE_ZERO_ZERO_ZERO_ZERO_KHR,
-+      .defaultVertexAttributeValue =
-+         VK_DEFAULT_VERTEX_ATTRIBUTE_VALUE_ZERO_ZERO_ZERO_ZERO_KHR,
- 
-       /* VK_EXT_custom_border_color */
-       .maxCustomBorderColorSamplers = 32768,
--- 
-GitLab
 END
