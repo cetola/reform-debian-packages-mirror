@@ -1,0 +1,19 @@
+commit 5f9ac2ce2751d02a5767e3bf29ac6e1315b64334
+Author: Lucie L. Hartmann <lukas@mntre.com>
+Date:   Fri May 29 17:36:19 2026 +0200
+
+    classic reform panel-edp timing: loosen up the htotal to fix IVO panel glitches
+
+diff --git a/drivers/gpu/drm/panel/panel-edp.c b/drivers/gpu/drm/panel/panel-edp.c
+index 679f4af..ef0319f 100644
+--- a/drivers/gpu/drm/panel/panel-edp.c
++++ b/drivers/gpu/drm/panel/panel-edp.c
+@@ -1323,7 +1323,7 @@ static const struct drm_display_mode innolux_n125hce_gn1_mode = {
+ 	.hdisplay = 1920,
+ 	.hsync_start = 1920 + 40,
+ 	.hsync_end = 1920 + 40 + 40,
+-	.htotal = 1920 + 40 + 40 + 80,
++	.htotal = 1920 + 40 + 40 + 100,
+ 	.vdisplay = 1080,
+ 	.vsync_start = 1080 + 4,
+ 	.vsync_end = 1080 + 4 + 4,
