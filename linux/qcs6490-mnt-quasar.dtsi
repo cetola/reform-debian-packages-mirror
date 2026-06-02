@@ -1142,6 +1142,10 @@
 	status = "okay";
 };
 
+&lpass_tlmm {
+	status = "disabled";
+};
+
 &pdc_reset {
 	status = "okay";
 };

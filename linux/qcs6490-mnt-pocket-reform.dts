@@ -83,7 +83,7 @@ No SS phy
 		reg = <0>;
 
 		/* CHECK: not sure if DSI controller is alive in .prepare on qcom */
-		//init-in-enable;
+		init-in-enable;
 
 		/* Reset and dcdc_en are wired to syscon */
 		// reset-gpios = <&mnt_sc GPIO_DISP_RESET GPIO_ACTIVE_LOW>;
