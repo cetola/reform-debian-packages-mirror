@@ -9,15 +9,23 @@
 #include <dt-bindings/leds/common.h>
 #include <dt-bindings/regulator/qcom,rpmh-regulator.h>
 #include "qcs8550.dtsi"
-//#include "pm8010.dtsi"
 #include "pm8550.dtsi"
 #include "pm8550b.dtsi"
 #define PMK8550VE_SID 5
 #include "pm8550ve.dtsi"
 #include "pm8550vs.dtsi"
 #include "pmk8550.dtsi"
-//#include "pmr735d_a.dtsi"
-//#include "pmr735d_b.dtsi"
+
+/delete-node/ &aop_image_mem;
+/delete-node/ &aop_config_mem;
+/delete-node/ &camera_mem;
+/delete-node/ &ipa_fw_mem;
+/delete-node/ &ipa_gsi_mem;
+
+/delete-node/ &mpss_dsm_mem;
+/delete-node/ &mpss_mem;
+/delete-node/ &q6_mpss_dtb_mem;
+/delete-node/ &remoteproc_mpss;
 
 / {
 	model = "MNT Reform Next with QUASAR QCS8550 Module";
@@ -39,6 +47,97 @@
 
 	chosen {
 		stdout-path = "serial0:115200n8";
+	};
+
+	// via qcs8550-ayn-common.dtsi
+	reserved-memory {
+		hyp_mem: hyp-region@80000000 {
+			reg = <0 0x80000000 0 0xa00000>;
+			no-map;
+		};
+
+		cpusys_vm_mem: cpusys-vm-region@80a00000 {
+			reg = <0 0x80a00000 0 0x400000>;
+			no-map;
+		};
+
+		hyp_tags_mem: hyp-tags-region@80e00000 {
+			reg = <0 0x80e00000 0 0x3d0000>;
+			no-map;
+		};
+
+		xbl_sc_mem: xbl-sc-region@d8100000 {
+			reg = <0 0xd8100000 0 0x40000>;
+			no-map;
+		};
+
+		hyp_tags_reserved_mem: hyp-tags-reserved-region@811d0000 {
+			reg = <0 0x811d0000 0 0x30000>;
+			no-map;
+		};
+
+		xbl_dt_log_merged_mem: xbl-dt-log-merged-region@81a00000 {
+			reg = <0 0x81a00000 0 0x260000>;
+			no-map;
+		};
+
+		aop_config_merged_mem: aop-config-merged-region@81c80000 {
+			reg = <0 0x81c80000 0 0x74000>;
+			no-map;
+		};
+
+		chipinfo_mem: chipinfo-region@81cf4000 {
+			reg = <0 0x81cf4000 0 0x1000>;
+			no-map;
+		};
+
+		global_sync_mem: global-sync-region@82600000 {
+			reg = <0 0x82600000 0 0x100000>;
+			no-map;
+		};
+
+		tz_stat_mem: tz-stat-region@82700000 {
+			reg = <0 0x82700000 0 0x100000>;
+			no-map;
+		};
+
+		cpucp_fw_mem: cpucp-fw-region@d8140000 {
+			reg = <0 0xd8140000 0 0x1c0000>;
+			no-map;
+		};
+
+		qtee_mem: qtee-region@d8300000 {
+			reg = <0 0xd8300000 0 0x500000>;
+			no-map;
+		};
+
+		hwfence_shbuf: hwfence-shbuf-region@e6440000 {
+			reg = <0 0xe6440000 0 0x2dd000>;
+			no-map;
+		};
+
+		hyp_ext_reserved_mem: hyp-ext-reserved-region@ff700000 {
+			reg = <0 0xff700000 0 0x100000>;
+			no-map;
+		};
+
+		/* NOTE: unusual */
+		llcc_lpi_mem: llcc_lpi_region@ff800000 {
+			reg = <0 0xff800000 0 0x600000>;
+			no-map;
+		};
+
+		hyp_ext_tags_mem: hyp-ext-tags-region@fce00000 {
+			reg = <0 0xfce00000 0 0x2900000>;
+			no-map;
+		};
+
+		/* TODO: test */
+		splash_region: splash_region@b8000000 {
+			reg = <0x0 0xb8000000 0x0 0x2b00000>;
+			label = "cont_splash_region";
+			no-map;
+		};
 	};
 
 	vin_5v0: vin-5v0-regulator {
@@ -416,7 +515,7 @@
 	regulators-5 {
 		compatible = "qcom,pm8550vs-rpmh-regulators";
 		qcom,pmic-id = "g";
-    
+
 		vdd-l1-supply = <&vreg_s4g_1p25>;
 		vdd-l2-supply = <&vreg_s4g_1p25>;
 		vdd-l3-supply = <&vreg_s4g_1p25>;
@@ -476,13 +575,12 @@
 			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
 		};
 
-		// FIXME: missing in sm8550-qrd.dts
-		/*vreg_l2g_1p2: ldo2 {
+		vreg_l2g_1p2: ldo2 {
 			regulator-name = "vreg_l2g_1p2";
 			regulator-min-microvolt = <1100000>;
 			regulator-max-microvolt = <1200000>;
 			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
-		};*/
+		};
 
 		vreg_l3g_1p2: ldo3 {
 			regulator-name = "vreg_l3g_1p2";
@@ -493,13 +591,13 @@
 	};
 };
 
-&i2c_master_hub_0 {
+/*&i2c_master_hub_0 {
 	status = "okay";
 };
 
 &i2c_hub_2 {
 	status = "okay";
-};
+};*/
 
 &i2c13 {
 	clock-frequency = <400000>;
@@ -562,68 +660,112 @@
 	};
 };
 
+/*&spi8 {
+	status = "okay";
+	num-cs = <1>;
+
+	spidev@0 {
+		compatible = "mntre,lpc11u24";
+		spi-max-frequency = <1000000>;
+		reg = <0>;
+	};
+};*/
+
 / {
+	/* normally spi8, but loading geni qup2_se0 firmware crashes */
+	spi {
+		compatible = "spi-gpio";
+		#address-cells = <1>;
+		ranges;
+
+		sck-gpios = <&tlmm 58 0>;
+		miso-gpios = <&tlmm 56 0>;
+		mosi-gpios = <&tlmm 57 0>;
+		cs-gpios = <&tlmm 59 0>;
+		num-chipselects = <1>;
+
+		spidev@0 {
+			compatible = "mntre,lpc11u24";
+			spi-max-frequency = <1000000>;
+			reg = <0>;
+		};
+	};
+
 	sound {
 		compatible = "qcom,sm8550-sndcard", "qcom,sm8450-sndcard";
 		model = "MNT-Quasar-8550";
 		pinctrl-names = "default";
 		pinctrl-0 = <&i2s_pins>;
-		#address-cells = <0x01>;
-		#size-cells = <0x00>;
+		#address-cells = <1>;
+		#size-cells = <0>;
 		status = "okay";
 
 		speaker-i2s-dai-link {
 			link-name = "Primary MI2S Playback";
 
 			codec {
-				sound-dai = <&tlv320aic3100 0x00>;
+				sound-dai = <&tlv320aic3100 0>;
 			};
 
 			cpu {
-				sound-dai = <&q6apmbedai 0x10>;
+				sound-dai = <&q6apmbedai PRIMARY_MI2S_RX>;
 			};
 
 			platform {
 				sound-dai = <&q6apm>;
 			};
 		};
+
+		/*dp0-dai-link {
+			link-name = "DP0 Playback";
+			cpu {
+				sound-dai = <&q6apmbedai DISPLAY_PORT_RX_0>;
+			};
+
+			platform {
+				sound-dai = <&q6apm>;
+			};
+
+			codec {
+				sound-dai = <&mdss_dp0>;
+			};
+		};*/
 	};
 };
 
-/*&ipa {
-	qcom,gsi-loader = "self";
-	memory-region = <&ipa_fw_mem>;
-	firmware-name = "qcom/sm8550/ipa_fws.mbn";
+&ipa {
+	status = "disabled";
+};
+
+&iris {
 	status = "okay";
 };
 
-// TODO not in qcs dts
-&iris {
-	status = "okay";
-};*/
-
 &ice {
-  status = "disabled";
+	status = "disabled";
 };
 
 &lpass_vamacro {
-  status = "disabled";
+	status = "disabled";
 };
 &lpass_wsamacro {
-  status = "disabled";
+	status = "disabled";
 };
 &lpass_wsa2macro {
-  status = "disabled";
+	status = "disabled";
 };
 &lpass_txmacro {
-  status = "disabled";
+	status = "disabled";
 };
 &lpass_rxmacro {
-  status = "disabled";
+	status = "disabled";
 };
 
-// TODO not in qcs dts, but in sm8550
 &gpi_dma1 {
+	status = "okay";
+};
+
+&gpi_dma2 {
 	status = "okay";
 };
 
@@ -642,7 +784,7 @@
 &mdss_dp0 {
 	/delete-property/ #sound-dai-cells;
 	data-lanes = <0 1>;
-	
+
 	status = "okay";
 
 	aux-bus {
@@ -679,7 +821,7 @@
 				//pinctrl-0 = <&dp_hot_plug_det>;
 			};
 		};
-	};	
+	};
 };
 
 &mdss_dsi1 {
@@ -735,7 +877,7 @@
 };
 
 &lpass_tlmm {
-	status = "disabled";
+	/*status = "disabled";*/
 };
 
 &pcie1 {
@@ -807,34 +949,46 @@ gpio set soc4
 	};
 };
 
+// TODO PWM
 &pm8550_pwm {
 	status = "disabled";
+};
 
-	multi-led {
-		color = <LED_COLOR_ID_RGB>;
-		function = LED_FUNCTION_STATUS;
-
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		led@1 {
-			reg = <1>;
-			color = <LED_COLOR_ID_RED>;
-		};
-
-		led@2 {
-			reg = <2>;
-			color = <LED_COLOR_ID_GREEN>;
-		};
-
-		led@3 {
-			reg = <3>;
-			color = <LED_COLOR_ID_BLUE>;
-		};
+// TODO verify
+&pmk8550 {
+	pmk8550_sdam_9d00: nvram@9d00 {
+		compatible = "qcom,spmi-sdam";
+		reg = <0x9d00>;
 	};
+
+	/* TODO verify
+	pmk8550_sdam_9d00: nvram@9d00 {
+		compatible = "qcom,spmi-sdam";
+		reg = <0x9d00>;
+	};
+	*/
+};
+
+// TODO verify
+&pmk8550_gpios {
+	/*pwm_backlight_default: pwm-backlight-default-state {
+		pins = "gpio5";
+		function = "func3";
+		input-disable;
+		output-low;
+		output-enable;
+		bias-disable;
+		power-source = <0>;
+		qcom,drive-strength = <2>;
+	};*/
 };
 
 &pm8550b_eusb2_repeater {
+	// TODO verify
+	qcom,tune-usb2-disc-thres = /bits/ 8 <0x6>;
+	qcom,tune-usb2-amplitude = /bits/ 8 <0xb>;
+	qcom,tune-usb2-preem = /bits/ 8 <0x3>;
+
 	vdd18-supply = <&vreg_l15b_1p8>;
 	vdd3-supply = <&vreg_l5b_3p1>;
 };
@@ -891,7 +1045,7 @@ gpio set soc4
 &tlmm {
 	// reserved for SPI fingerprint sensor
 	gpio-reserved-ranges = <32 8>;
-  
+
 	backlight_enable: backlight-enable-state {
 		pins = "gpio22";
 		function = "gpio";
@@ -946,7 +1100,7 @@ gpio set soc4
 		output-low;
 		bias-disable;
 	};
-	
+
 	i2s_pins: i2s0-default-state {
 		mclk-pins {
 			pins = "gpio125";

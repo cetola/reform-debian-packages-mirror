@@ -47,7 +47,7 @@ No SS phy
 	};
 };
 
-&i2c6 {
+&i2c4 {
 	tlv320aic3100: codec@18 {
 		compatible = "ti,tlv320aic3100";
 		reg = <0x18>;
@@ -65,6 +65,12 @@ No SS phy
 	};
 };
 
+&mnt_sc {
+	backlight: backlight {
+		status = "okay";
+	};
+};
+
 &mdss_dsi {
 	#address-cells = <1>;
 	#size-cells = <0>;
@@ -77,12 +83,15 @@ No SS phy
 		reg = <0>;
 
 		/* CHECK: not sure if DSI controller is alive in .prepare on qcom */
-		init-in-enable;
+		//init-in-enable;
 
 		/* Reset and dcdc_en are wired to syscon */
-		// reset-gpios = <&tlmm 44 GPIO_ACTIVE_LOW>;
+		// reset-gpios = <&mnt_sc GPIO_DISP_RESET GPIO_ACTIVE_LOW>;
 		/* Actually backlight enable */
 		enable-gpios = <&tlmm 94 GPIO_ACTIVE_HIGH>;
+		/* Stub supplies so driver will load */
+		vddp-supply = <&main_3v3>;
+		iovcc-supply = <&main_3v3>;
 
 		pinctrl-0 = <&mdp_vsync>;
 		pinctrl-names = "default";

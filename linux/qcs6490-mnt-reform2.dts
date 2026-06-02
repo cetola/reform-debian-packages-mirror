@@ -56,7 +56,7 @@
 	bias-disable;
 };
 
-&i2c6 {
+&i2c4 {
 	wm8960: codec@1a {
 		compatible = "wlf,wm8960";
 		reg = <0x1a>;

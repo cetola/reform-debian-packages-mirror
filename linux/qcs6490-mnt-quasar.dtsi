@@ -675,30 +675,23 @@
 	};
 };
 
-&spi14 {
+&spi6 {
 	status = "okay";
 	num-cs = <1>;
 
-	spidev@0 {
-		compatible = "mntre,lpc11u24";
+	mnt_sc: spidev@0 {
+		compatible = "mntre,system-controller";
 		spi-max-frequency = <1000000>;
 		reg = <0>;
+
+		gpio-controller;
+		#gpio-cells = <2>;
 	};
 };
 
 &i2c4 {
 	clock-frequency = <400000>;
 	status = "okay";
-};
-
-&i2c6 {
-	clock-frequency = <400000>;
-	status = "okay";
-
-	// in schematic:
-	// DAC_SDA / DAC_SCL
-	// SE1_SDA_1V8 / SE1_SCL_1V8
-	// TODO: PCIE switch
 
 	rtc@68 {
 		compatible = "nxp,pcf8523";
@@ -914,26 +907,6 @@
 	status = "okay";
 };
 
-&tlmm {
-	gpio-reserved-ranges = <32 2>, /* ADSP */
-	  <48 4>; /* NFC */
-
-	usbhub_reset: usb-hub-reset-state {
-		pins = "gpio0";
-		function = "gpio";
-		drive-strength = <2>;
-		bias-pull-down;
-	};
-
-	wakeup_key: wakeup-key-state {
-		pins = "gpio7";
-		function = "gpio";
-		drive-strength = <2>;
-		bias-pull-down;
-		input-enable;
-	};
-};
-
 &uart5 {
 	status = "okay";
 };
@@ -942,9 +915,22 @@
 	dr_mode = "host";
 
 	pinctrl-names = "default";
-	pinctrl-0 = <&usbhub_reset>;
+	pinctrl-0 = <&usb_hub_reset &usb_hub_mux>;
 
 	status = "okay";
+
+	/* USB2412 2.0 hub to BT and MB_USB1 */
+	hub_2_0_som: hub@1 {
+		compatible = "usb424,2514";
+		reg = <1>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reset-gpios = <&tlmm 0 GPIO_ACTIVE_LOW>;
+		ax210-bluetooth@2 {
+			compatible = "usb8087,32";
+			reg = <2>;
+		};
+	};
 };
 
 &usb_1_dwc3_ss {
@@ -972,27 +958,13 @@
 };
 
 &usb_2 {
+	dr_mode = "host";
 	#address-cells = <1>;
 	#size-cells = <0>;
 
-	dr_mode = "host";
+	wakeup-source;
+
 	status = "okay";
-
-	/* USB2412 2.0 hub to BT and MB_USB1 */
-	hub_2_0_som: hub@1 {
-		// FIXME: changed to 4-port hub in Quasar V2
-		compatible = "usb424,2412";
-		reg = <1>;
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		reset-gpios = <&tlmm 0 GPIO_ACTIVE_LOW>;
-
-		ax210-bluetooth@2 {
-			compatible = "usb8087,32";
-			reg = <2>;
-		};
-	};
 };
 
 &usb_2_hsphy {
@@ -1056,6 +1028,8 @@
 };
 
 &tlmm {
+	gpio-reserved-ranges = <32 2>, /* ADSP */ <48 4>; /* NFC */
+
 	backlight_enable: backlight-enable-state {
 		pins = "gpio94";
 		function = "gpio";
@@ -1127,7 +1101,23 @@
 		pins = "gpio0";
 		function = "gpio";
 		drive-strength = <8>;
+		bias-pull-up;
+	};
+
+	/* Muxes usb_1 to USB hub instead of direct to type-c */
+	usb_hub_mux: usb-mux-state {
+		pins = "gpio1";
+		function = "gpio";
+		drive-strength = <8>;
 		output-high;
+	};
+
+	wakeup_key: wakeup-key-state {
+		pins = "gpio7";
+		function = "gpio";
+		drive-strength = <2>;
+		bias-pull-down;
+		input-enable;
 	};
 };
 
