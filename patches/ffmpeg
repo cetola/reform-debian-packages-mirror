@@ -17,10 +17,10 @@ set -e
 # mpv --hwdec=v4l2request --gpu-context=wayland
 
 patch -p1 << 'EOF'
-diff -Nru ffmpeg-8.0/debian/control ffmpeg-8.0/debian/control
---- ffmpeg-8.0/debian/control	2025-09-10 23:07:13.000000000 +0200
-+++ ffmpeg-8.0/debian/control	2025-11-06 00:06:24.000000000 +0100
-@@ -150,6 +150,8 @@
+diff -Nru ffmpeg-8.1/debian/control ffmpeg-8.1/debian/control
+--- ffmpeg-8.1/debian/control	2026-03-20 11:54:24.000000000 +0100
++++ ffmpeg-8.1/debian/control	2026-04-06 16:56:18.000000000 +0200
+@@ -145,6 +145,8 @@
   libtheora-dev,
  # --enable-libtwolame
   libtwolame-dev,
@@ -29,9 +29,9 @@ diff -Nru ffmpeg-8.0/debian/control ffmpeg-8.0/debian/control
  # This is not necessary, see explanation in debian/rules.
  # # --enable-libv4l2
  # libv4l-dev [!hurd-any],
-diff -Nru ffmpeg-8.0.1/debian/patches/0001-avutil-hwcontext-Add-hwdevice-type-for-V4L2-Request-.patch ffmpeg-8.0.1/debian/patches/0001-avutil-hwcontext-Add-hwdevice-type-for-V4L2-Request-.patch
---- ffmpeg-8.0.1/debian/patches/0001-avutil-hwcontext-Add-hwdevice-type-for-V4L2-Request-.patch	1970-01-01 01:00:00.000000000 +0100
-+++ ffmpeg-8.0.1/debian/patches/0001-avutil-hwcontext-Add-hwdevice-type-for-V4L2-Request-.patch	2025-12-29 14:41:25.000000000 +0100
+diff -Nru ffmpeg-8.1/debian/patches/0001-avutil-hwcontext-Add-hwdevice-type-for-V4L2-Request-.patch ffmpeg-8.1/debian/patches/0001-avutil-hwcontext-Add-hwdevice-type-for-V4L2-Request-.patch
+--- ffmpeg-8.1/debian/patches/0001-avutil-hwcontext-Add-hwdevice-type-for-V4L2-Request-.patch	1970-01-01 01:00:00.000000000 +0100
++++ ffmpeg-8.1/debian/patches/0001-avutil-hwcontext-Add-hwdevice-type-for-V4L2-Request-.patch	2026-04-06 16:56:18.000000000 +0200
 @@ -0,0 +1,905 @@
 +From bb10d3d5a10c0023ef4fc61996a9010ecb4d282d Mon Sep 17 00:00:00 2001
 +From: Jonas Karlman <jonas@kwiboo.se>
@@ -938,9 +938,9 @@ diff -Nru ffmpeg-8.0.1/debian/patches/0001-avutil-hwcontext-Add-hwdevice-type-fo
 +-- 
 +2.47.3
 +
-diff -Nru ffmpeg-8.0.1/debian/patches/0002-avutil-hwcontext_v4l2request-Probe-for-a-capable-med.patch ffmpeg-8.0.1/debian/patches/0002-avutil-hwcontext_v4l2request-Probe-for-a-capable-med.patch
---- ffmpeg-8.0.1/debian/patches/0002-avutil-hwcontext_v4l2request-Probe-for-a-capable-med.patch	1970-01-01 01:00:00.000000000 +0100
-+++ ffmpeg-8.0.1/debian/patches/0002-avutil-hwcontext_v4l2request-Probe-for-a-capable-med.patch	2025-12-29 14:38:11.000000000 +0100
+diff -Nru ffmpeg-8.1/debian/patches/0002-avutil-hwcontext_v4l2request-Probe-for-a-capable-med.patch ffmpeg-8.1/debian/patches/0002-avutil-hwcontext_v4l2request-Probe-for-a-capable-med.patch
+--- ffmpeg-8.1/debian/patches/0002-avutil-hwcontext_v4l2request-Probe-for-a-capable-med.patch	1970-01-01 01:00:00.000000000 +0100
++++ ffmpeg-8.1/debian/patches/0002-avutil-hwcontext_v4l2request-Probe-for-a-capable-med.patch	2026-04-06 16:56:18.000000000 +0200
 @@ -0,0 +1,621 @@
 +From 3f72885fb236169642fd428632a072e31fecabac Mon Sep 17 00:00:00 2001
 +From: Jonas Karlman <jonas@kwiboo.se>
@@ -1563,9 +1563,9 @@ diff -Nru ffmpeg-8.0.1/debian/patches/0002-avutil-hwcontext_v4l2request-Probe-fo
 +-- 
 +2.47.3
 +
-diff -Nru ffmpeg-8.0.1/debian/patches/0003-avcodec-Add-common-V4L2-Request-API-code.patch ffmpeg-8.0.1/debian/patches/0003-avcodec-Add-common-V4L2-Request-API-code.patch
---- ffmpeg-8.0.1/debian/patches/0003-avcodec-Add-common-V4L2-Request-API-code.patch	1970-01-01 01:00:00.000000000 +0100
-+++ ffmpeg-8.0.1/debian/patches/0003-avcodec-Add-common-V4L2-Request-API-code.patch	2025-12-29 14:41:25.000000000 +0100
+diff -Nru ffmpeg-8.1/debian/patches/0003-avcodec-Add-common-V4L2-Request-API-code.patch ffmpeg-8.1/debian/patches/0003-avcodec-Add-common-V4L2-Request-API-code.patch
+--- ffmpeg-8.1/debian/patches/0003-avcodec-Add-common-V4L2-Request-API-code.patch	1970-01-01 01:00:00.000000000 +0100
++++ ffmpeg-8.1/debian/patches/0003-avcodec-Add-common-V4L2-Request-API-code.patch	2026-04-06 16:56:18.000000000 +0200
 @@ -0,0 +1,371 @@
 +From fa79ad8b0e7213a32733e1a659c69fba891967c3 Mon Sep 17 00:00:00 2001
 +From: Jonas Karlman <jonas@kwiboo.se>
@@ -1938,9 +1938,9 @@ diff -Nru ffmpeg-8.0.1/debian/patches/0003-avcodec-Add-common-V4L2-Request-API-c
 ++                         int (*post_frames_ctx)(AVCodecContext *avctx));
 ++
 ++#endif /* AVCODEC_V4L2_REQUEST_H */
-diff -Nru ffmpeg-8.0.1/debian/patches/0004-avcodec-v4l2request-Add-common-decode-support-for-hw.patch ffmpeg-8.0.1/debian/patches/0004-avcodec-v4l2request-Add-common-decode-support-for-hw.patch
---- ffmpeg-8.0.1/debian/patches/0004-avcodec-v4l2request-Add-common-decode-support-for-hw.patch	1970-01-01 01:00:00.000000000 +0100
-+++ ffmpeg-8.0.1/debian/patches/0004-avcodec-v4l2request-Add-common-decode-support-for-hw.patch	2025-12-29 14:38:11.000000000 +0100
+diff -Nru ffmpeg-8.1/debian/patches/0004-avcodec-v4l2request-Add-common-decode-support-for-hw.patch ffmpeg-8.1/debian/patches/0004-avcodec-v4l2request-Add-common-decode-support-for-hw.patch
+--- ffmpeg-8.1/debian/patches/0004-avcodec-v4l2request-Add-common-decode-support-for-hw.patch	1970-01-01 01:00:00.000000000 +0100
++++ ffmpeg-8.1/debian/patches/0004-avcodec-v4l2request-Add-common-decode-support-for-hw.patch	2026-04-06 16:56:18.000000000 +0200
 @@ -0,0 +1,698 @@
 +From 49cbf00a3abdfa7d947ff75e0c2bf2324a108644 Mon Sep 17 00:00:00 2001
 +From: Jonas Karlman <jonas@kwiboo.se>
@@ -2640,9 +2640,9 @@ diff -Nru ffmpeg-8.0.1/debian/patches/0004-avcodec-v4l2request-Add-common-decode
 +-- 
 +2.47.3
 +
-diff -Nru ffmpeg-8.0.1/debian/patches/0005-avcodec-Add-V4L2-Request-API-mpeg2-hwaccel.patch ffmpeg-8.0.1/debian/patches/0005-avcodec-Add-V4L2-Request-API-mpeg2-hwaccel.patch
---- ffmpeg-8.0.1/debian/patches/0005-avcodec-Add-V4L2-Request-API-mpeg2-hwaccel.patch	1970-01-01 01:00:00.000000000 +0100
-+++ ffmpeg-8.0.1/debian/patches/0005-avcodec-Add-V4L2-Request-API-mpeg2-hwaccel.patch	2025-12-29 14:38:11.000000000 +0100
+diff -Nru ffmpeg-8.1/debian/patches/0005-avcodec-Add-V4L2-Request-API-mpeg2-hwaccel.patch ffmpeg-8.1/debian/patches/0005-avcodec-Add-V4L2-Request-API-mpeg2-hwaccel.patch
+--- ffmpeg-8.1/debian/patches/0005-avcodec-Add-V4L2-Request-API-mpeg2-hwaccel.patch	1970-01-01 01:00:00.000000000 +0100
++++ ffmpeg-8.1/debian/patches/0005-avcodec-Add-V4L2-Request-API-mpeg2-hwaccel.patch	2026-04-06 16:56:18.000000000 +0200
 @@ -0,0 +1,309 @@
 +From 969a4e8c3628c98aec82844cad5fd4d986d7c583 Mon Sep 17 00:00:00 2001
 +From: Jonas Karlman <jonas@kwiboo.se>
@@ -2953,9 +2953,9 @@ diff -Nru ffmpeg-8.0.1/debian/patches/0005-avcodec-Add-V4L2-Request-API-mpeg2-hw
 +-- 
 +2.47.3
 +
-diff -Nru ffmpeg-8.0.1/debian/patches/0006-avcodec-h264dec-add-ref_pic_marking-and-pic_order_cn.patch ffmpeg-8.0.1/debian/patches/0006-avcodec-h264dec-add-ref_pic_marking-and-pic_order_cn.patch
---- ffmpeg-8.0.1/debian/patches/0006-avcodec-h264dec-add-ref_pic_marking-and-pic_order_cn.patch	1970-01-01 01:00:00.000000000 +0100
-+++ ffmpeg-8.0.1/debian/patches/0006-avcodec-h264dec-add-ref_pic_marking-and-pic_order_cn.patch	2025-12-29 14:38:11.000000000 +0100
+diff -Nru ffmpeg-8.1/debian/patches/0006-avcodec-h264dec-add-ref_pic_marking-and-pic_order_cn.patch ffmpeg-8.1/debian/patches/0006-avcodec-h264dec-add-ref_pic_marking-and-pic_order_cn.patch
+--- ffmpeg-8.1/debian/patches/0006-avcodec-h264dec-add-ref_pic_marking-and-pic_order_cn.patch	1970-01-01 01:00:00.000000000 +0100
++++ ffmpeg-8.1/debian/patches/0006-avcodec-h264dec-add-ref_pic_marking-and-pic_order_cn.patch	2026-04-06 16:56:18.000000000 +0200
 @@ -0,0 +1,90 @@
 +From 5491f1d2ac70c29afb4ae92e9981bb968b6d901f Mon Sep 17 00:00:00 2001
 +From: Boris Brezillon <boris.brezillon@collabora.com>
@@ -3047,9 +3047,9 @@ diff -Nru ffmpeg-8.0.1/debian/patches/0006-avcodec-h264dec-add-ref_pic_marking-a
 +-- 
 +2.47.3
 +
-diff -Nru ffmpeg-8.0.1/debian/patches/0007-avcodec-Add-V4L2-Request-API-h264-hwaccel.patch ffmpeg-8.0.1/debian/patches/0007-avcodec-Add-V4L2-Request-API-h264-hwaccel.patch
---- ffmpeg-8.0.1/debian/patches/0007-avcodec-Add-V4L2-Request-API-h264-hwaccel.patch	1970-01-01 01:00:00.000000000 +0100
-+++ ffmpeg-8.0.1/debian/patches/0007-avcodec-Add-V4L2-Request-API-h264-hwaccel.patch	2025-12-29 14:38:11.000000000 +0100
+diff -Nru ffmpeg-8.1/debian/patches/0007-avcodec-Add-V4L2-Request-API-h264-hwaccel.patch ffmpeg-8.1/debian/patches/0007-avcodec-Add-V4L2-Request-API-h264-hwaccel.patch
+--- ffmpeg-8.1/debian/patches/0007-avcodec-Add-V4L2-Request-API-h264-hwaccel.patch	1970-01-01 01:00:00.000000000 +0100
++++ ffmpeg-8.1/debian/patches/0007-avcodec-Add-V4L2-Request-API-h264-hwaccel.patch	2026-04-06 16:56:18.000000000 +0200
 @@ -0,0 +1,656 @@
 +From 152b1cc6db0b3667699bfcde85a1d231ca71bb91 Mon Sep 17 00:00:00 2001
 +From: Jernej Skrabec <jernej.skrabec@gmail.com>
@@ -3707,9 +3707,9 @@ diff -Nru ffmpeg-8.0.1/debian/patches/0007-avcodec-Add-V4L2-Request-API-h264-hwa
 +-- 
 +2.47.3
 +
-diff -Nru ffmpeg-8.0.1/debian/patches/0008-avcodec-Add-V4L2-Request-API-hevc-hwaccel.patch ffmpeg-8.0.1/debian/patches/0008-avcodec-Add-V4L2-Request-API-hevc-hwaccel.patch
---- ffmpeg-8.0.1/debian/patches/0008-avcodec-Add-V4L2-Request-API-hevc-hwaccel.patch	1970-01-01 01:00:00.000000000 +0100
-+++ ffmpeg-8.0.1/debian/patches/0008-avcodec-Add-V4L2-Request-API-hevc-hwaccel.patch	2025-12-29 14:38:11.000000000 +0100
+diff -Nru ffmpeg-8.1/debian/patches/0008-avcodec-Add-V4L2-Request-API-hevc-hwaccel.patch ffmpeg-8.1/debian/patches/0008-avcodec-Add-V4L2-Request-API-hevc-hwaccel.patch
+--- ffmpeg-8.1/debian/patches/0008-avcodec-Add-V4L2-Request-API-hevc-hwaccel.patch	1970-01-01 01:00:00.000000000 +0100
++++ ffmpeg-8.1/debian/patches/0008-avcodec-Add-V4L2-Request-API-hevc-hwaccel.patch	2026-04-06 16:56:18.000000000 +0200
 @@ -0,0 +1,891 @@
 +From 64dd728bd2440640c34f3d8ef54c410000bbd79d Mon Sep 17 00:00:00 2001
 +From: Jernej Skrabec <jernej.skrabec@gmail.com>
@@ -4602,9 +4602,9 @@ diff -Nru ffmpeg-8.0.1/debian/patches/0008-avcodec-Add-V4L2-Request-API-hevc-hwa
 +-- 
 +2.47.3
 +
-diff -Nru ffmpeg-8.0.1/debian/patches/0009-avcodec-Add-V4L2-Request-API-vp8-hwaccel.patch ffmpeg-8.0.1/debian/patches/0009-avcodec-Add-V4L2-Request-API-vp8-hwaccel.patch
---- ffmpeg-8.0.1/debian/patches/0009-avcodec-Add-V4L2-Request-API-vp8-hwaccel.patch	1970-01-01 01:00:00.000000000 +0100
-+++ ffmpeg-8.0.1/debian/patches/0009-avcodec-Add-V4L2-Request-API-vp8-hwaccel.patch	2025-12-29 14:38:11.000000000 +0100
+diff -Nru ffmpeg-8.1/debian/patches/0009-avcodec-Add-V4L2-Request-API-vp8-hwaccel.patch ffmpeg-8.1/debian/patches/0009-avcodec-Add-V4L2-Request-API-vp8-hwaccel.patch
+--- ffmpeg-8.1/debian/patches/0009-avcodec-Add-V4L2-Request-API-vp8-hwaccel.patch	1970-01-01 01:00:00.000000000 +0100
++++ ffmpeg-8.1/debian/patches/0009-avcodec-Add-V4L2-Request-API-vp8-hwaccel.patch	2026-04-06 16:56:18.000000000 +0200
 @@ -0,0 +1,344 @@
 +From 449917e1b969014af92d6dbb5b3aba488519e306 Mon Sep 17 00:00:00 2001
 +From: Boris Brezillon <boris.brezillon@collabora.com>
@@ -4950,9 +4950,9 @@ diff -Nru ffmpeg-8.0.1/debian/patches/0009-avcodec-Add-V4L2-Request-API-vp8-hwac
 +-- 
 +2.47.3
 +
-diff -Nru ffmpeg-8.0.1/debian/patches/0010-avcodec-Add-V4L2-Request-API-vp9-hwaccel.patch ffmpeg-8.0.1/debian/patches/0010-avcodec-Add-V4L2-Request-API-vp9-hwaccel.patch
---- ffmpeg-8.0.1/debian/patches/0010-avcodec-Add-V4L2-Request-API-vp9-hwaccel.patch	1970-01-01 01:00:00.000000000 +0100
-+++ ffmpeg-8.0.1/debian/patches/0010-avcodec-Add-V4L2-Request-API-vp9-hwaccel.patch	2025-12-29 14:38:11.000000000 +0100
+diff -Nru ffmpeg-8.1/debian/patches/0010-avcodec-Add-V4L2-Request-API-vp9-hwaccel.patch ffmpeg-8.1/debian/patches/0010-avcodec-Add-V4L2-Request-API-vp9-hwaccel.patch
+--- ffmpeg-8.1/debian/patches/0010-avcodec-Add-V4L2-Request-API-vp9-hwaccel.patch	1970-01-01 01:00:00.000000000 +0100
++++ ffmpeg-8.1/debian/patches/0010-avcodec-Add-V4L2-Request-API-vp9-hwaccel.patch	2026-04-06 16:56:18.000000000 +0200
 @@ -0,0 +1,640 @@
 +From 9558cb0439010c59139a46bb11cf9f62840c6a16 Mon Sep 17 00:00:00 2001
 +From: Boris Brezillon <boris.brezillon@collabora.com>
@@ -5594,9 +5594,9 @@ diff -Nru ffmpeg-8.0.1/debian/patches/0010-avcodec-Add-V4L2-Request-API-vp9-hwac
 +-- 
 +2.47.3
 +
-diff -Nru ffmpeg-8.0.1/debian/patches/0011-avcodec-Add-V4L2-Request-API-av1-hwaccel.patch ffmpeg-8.0.1/debian/patches/0011-avcodec-Add-V4L2-Request-API-av1-hwaccel.patch
---- ffmpeg-8.0.1/debian/patches/0011-avcodec-Add-V4L2-Request-API-av1-hwaccel.patch	1970-01-01 01:00:00.000000000 +0100
-+++ ffmpeg-8.0.1/debian/patches/0011-avcodec-Add-V4L2-Request-API-av1-hwaccel.patch	2025-12-29 14:38:11.000000000 +0100
+diff -Nru ffmpeg-8.1/debian/patches/0011-avcodec-Add-V4L2-Request-API-av1-hwaccel.patch ffmpeg-8.1/debian/patches/0011-avcodec-Add-V4L2-Request-API-av1-hwaccel.patch
+--- ffmpeg-8.1/debian/patches/0011-avcodec-Add-V4L2-Request-API-av1-hwaccel.patch	1970-01-01 01:00:00.000000000 +0100
++++ ffmpeg-8.1/debian/patches/0011-avcodec-Add-V4L2-Request-API-av1-hwaccel.patch	2026-04-06 16:56:18.000000000 +0200
 @@ -0,0 +1,752 @@
 +From eea5530b31653d05c2b37e23d5a1cf9c3908219f Mon Sep 17 00:00:00 2001
 +From: Jonas Karlman <jonas@kwiboo.se>
@@ -6350,9 +6350,9 @@ diff -Nru ffmpeg-8.0.1/debian/patches/0011-avcodec-Add-V4L2-Request-API-av1-hwac
 +-- 
 +2.47.3
 +
-diff -Nru ffmpeg-8.0.1/debian/patches/0012-avutil-hwcontext_v4l2request-Add-support-for-AFBC_16.patch ffmpeg-8.0.1/debian/patches/0012-avutil-hwcontext_v4l2request-Add-support-for-AFBC_16.patch
---- ffmpeg-8.0.1/debian/patches/0012-avutil-hwcontext_v4l2request-Add-support-for-AFBC_16.patch	1970-01-01 01:00:00.000000000 +0100
-+++ ffmpeg-8.0.1/debian/patches/0012-avutil-hwcontext_v4l2request-Add-support-for-AFBC_16.patch	2025-12-29 14:38:11.000000000 +0100
+diff -Nru ffmpeg-8.1/debian/patches/0012-avutil-hwcontext_v4l2request-Add-support-for-AFBC_16.patch ffmpeg-8.1/debian/patches/0012-avutil-hwcontext_v4l2request-Add-support-for-AFBC_16.patch
+--- ffmpeg-8.1/debian/patches/0012-avutil-hwcontext_v4l2request-Add-support-for-AFBC_16.patch	1970-01-01 01:00:00.000000000 +0100
++++ ffmpeg-8.1/debian/patches/0012-avutil-hwcontext_v4l2request-Add-support-for-AFBC_16.patch	2026-04-06 16:56:18.000000000 +0200
 @@ -0,0 +1,78 @@
 +From f83acd4a000476bfda7bcc40b8226fa5a7eab383 Mon Sep 17 00:00:00 2001
 +From: Jernej Skrabec <jernej.skrabec@gmail.com>
@@ -6432,9 +6432,9 @@ diff -Nru ffmpeg-8.0.1/debian/patches/0012-avutil-hwcontext_v4l2request-Add-supp
 +-- 
 +2.47.3
 +
-diff -Nru ffmpeg-8.0.1/debian/patches/0013-avutil-hwcontext_v4l2request-Add-support-for-BROADCO.patch ffmpeg-8.0.1/debian/patches/0013-avutil-hwcontext_v4l2request-Add-support-for-BROADCO.patch
---- ffmpeg-8.0.1/debian/patches/0013-avutil-hwcontext_v4l2request-Add-support-for-BROADCO.patch	1970-01-01 01:00:00.000000000 +0100
-+++ ffmpeg-8.0.1/debian/patches/0013-avutil-hwcontext_v4l2request-Add-support-for-BROADCO.patch	2025-12-29 14:38:11.000000000 +0100
+diff -Nru ffmpeg-8.1/debian/patches/0013-avutil-hwcontext_v4l2request-Add-support-for-BROADCO.patch ffmpeg-8.1/debian/patches/0013-avutil-hwcontext_v4l2request-Add-support-for-BROADCO.patch
+--- ffmpeg-8.1/debian/patches/0013-avutil-hwcontext_v4l2request-Add-support-for-BROADCO.patch	1970-01-01 01:00:00.000000000 +0100
++++ ffmpeg-8.1/debian/patches/0013-avutil-hwcontext_v4l2request-Add-support-for-BROADCO.patch	2026-04-06 16:56:18.000000000 +0200
 @@ -0,0 +1,68 @@
 +From a73da69fc8b6cc4fccc07705e179b698f1e9a634 Mon Sep 17 00:00:00 2001
 +From: Jonas Karlman <jonas@kwiboo.se>
@@ -6504,9 +6504,9 @@ diff -Nru ffmpeg-8.0.1/debian/patches/0013-avutil-hwcontext_v4l2request-Add-supp
 +-- 
 +2.47.3
 +
-diff -Nru ffmpeg-8.0.1/debian/patches/0014-HACK-define-drm-and-v4l2-pix-fmts.patch ffmpeg-8.0.1/debian/patches/0014-HACK-define-drm-and-v4l2-pix-fmts.patch
---- ffmpeg-8.0.1/debian/patches/0014-HACK-define-drm-and-v4l2-pix-fmts.patch	1970-01-01 01:00:00.000000000 +0100
-+++ ffmpeg-8.0.1/debian/patches/0014-HACK-define-drm-and-v4l2-pix-fmts.patch	2025-12-29 14:38:11.000000000 +0100
+diff -Nru ffmpeg-8.1/debian/patches/0014-HACK-define-drm-and-v4l2-pix-fmts.patch ffmpeg-8.1/debian/patches/0014-HACK-define-drm-and-v4l2-pix-fmts.patch
+--- ffmpeg-8.1/debian/patches/0014-HACK-define-drm-and-v4l2-pix-fmts.patch	1970-01-01 01:00:00.000000000 +0100
++++ ffmpeg-8.1/debian/patches/0014-HACK-define-drm-and-v4l2-pix-fmts.patch	2026-04-06 16:56:18.000000000 +0200
 @@ -0,0 +1,79 @@
 +From a84b39c59d4b11a0c5ebb15694ab3a0971f4a38f Mon Sep 17 00:00:00 2001
 +From: Jonas Karlman <jonas@kwiboo.se>
@@ -6587,9 +6587,9 @@ diff -Nru ffmpeg-8.0.1/debian/patches/0014-HACK-define-drm-and-v4l2-pix-fmts.pat
 +-- 
 +2.47.3
 +
-diff -Nru ffmpeg-8.0.1/debian/patches/0015-avutil-pixfmt-Add-NV15-NV20BS-and-NV30.patch ffmpeg-8.0.1/debian/patches/0015-avutil-pixfmt-Add-NV15-NV20BS-and-NV30.patch
---- ffmpeg-8.0.1/debian/patches/0015-avutil-pixfmt-Add-NV15-NV20BS-and-NV30.patch	1970-01-01 01:00:00.000000000 +0100
-+++ ffmpeg-8.0.1/debian/patches/0015-avutil-pixfmt-Add-NV15-NV20BS-and-NV30.patch	2025-12-29 14:38:11.000000000 +0100
+diff -Nru ffmpeg-8.1/debian/patches/0015-avutil-pixfmt-Add-NV15-NV20BS-and-NV30.patch ffmpeg-8.1/debian/patches/0015-avutil-pixfmt-Add-NV15-NV20BS-and-NV30.patch
+--- ffmpeg-8.1/debian/patches/0015-avutil-pixfmt-Add-NV15-NV20BS-and-NV30.patch	1970-01-01 01:00:00.000000000 +0100
++++ ffmpeg-8.1/debian/patches/0015-avutil-pixfmt-Add-NV15-NV20BS-and-NV30.patch	2026-04-06 16:56:18.000000000 +0200
 @@ -0,0 +1,209 @@
 +From 6f80a60864385543f87a5373e6e3fc5eafc31412 Mon Sep 17 00:00:00 2001
 +From: Jonas Karlman <jonas@kwiboo.se>
@@ -6800,9 +6800,9 @@ diff -Nru ffmpeg-8.0.1/debian/patches/0015-avutil-pixfmt-Add-NV15-NV20BS-and-NV3
 +-- 
 +2.47.3
 +
-diff -Nru ffmpeg-8.0.1/debian/patches/0016-swscale-input-Add-support-for-NV15-NV20BS-and-NV30.patch ffmpeg-8.0.1/debian/patches/0016-swscale-input-Add-support-for-NV15-NV20BS-and-NV30.patch
---- ffmpeg-8.0.1/debian/patches/0016-swscale-input-Add-support-for-NV15-NV20BS-and-NV30.patch	1970-01-01 01:00:00.000000000 +0100
-+++ ffmpeg-8.0.1/debian/patches/0016-swscale-input-Add-support-for-NV15-NV20BS-and-NV30.patch	2025-12-29 14:38:11.000000000 +0100
+diff -Nru ffmpeg-8.1/debian/patches/0016-swscale-input-Add-support-for-NV15-NV20BS-and-NV30.patch ffmpeg-8.1/debian/patches/0016-swscale-input-Add-support-for-NV15-NV20BS-and-NV30.patch
+--- ffmpeg-8.1/debian/patches/0016-swscale-input-Add-support-for-NV15-NV20BS-and-NV30.patch	1970-01-01 01:00:00.000000000 +0100
++++ ffmpeg-8.1/debian/patches/0016-swscale-input-Add-support-for-NV15-NV20BS-and-NV30.patch	2026-04-06 16:56:18.000000000 +0200
 @@ -0,0 +1,94 @@
 +From ef31dac1c2a2833e469894059b183d07f695741a Mon Sep 17 00:00:00 2001
 +From: Jonas Karlman <jonas@kwiboo.se>
@@ -6898,9 +6898,9 @@ diff -Nru ffmpeg-8.0.1/debian/patches/0016-swscale-input-Add-support-for-NV15-NV
 +-- 
 +2.47.3
 +
-diff -Nru ffmpeg-8.0.1/debian/patches/0017-avcodec-v4l2request-Add-sw_format-for-NV15-and-NV20-.patch ffmpeg-8.0.1/debian/patches/0017-avcodec-v4l2request-Add-sw_format-for-NV15-and-NV20-.patch
---- ffmpeg-8.0.1/debian/patches/0017-avcodec-v4l2request-Add-sw_format-for-NV15-and-NV20-.patch	1970-01-01 01:00:00.000000000 +0100
-+++ ffmpeg-8.0.1/debian/patches/0017-avcodec-v4l2request-Add-sw_format-for-NV15-and-NV20-.patch	2025-12-29 14:38:11.000000000 +0100
+diff -Nru ffmpeg-8.1/debian/patches/0017-avcodec-v4l2request-Add-sw_format-for-NV15-and-NV20-.patch ffmpeg-8.1/debian/patches/0017-avcodec-v4l2request-Add-sw_format-for-NV15-and-NV20-.patch
+--- ffmpeg-8.1/debian/patches/0017-avcodec-v4l2request-Add-sw_format-for-NV15-and-NV20-.patch	1970-01-01 01:00:00.000000000 +0100
++++ ffmpeg-8.1/debian/patches/0017-avcodec-v4l2request-Add-sw_format-for-NV15-and-NV20-.patch	2026-04-06 16:56:18.000000000 +0200
 @@ -0,0 +1,52 @@
 +From 1d9dae761ef82f6f351861e233207ef53039585b Mon Sep 17 00:00:00 2001
 +From: Jonas Karlman <jonas@kwiboo.se>
@@ -6954,9 +6954,9 @@ diff -Nru ffmpeg-8.0.1/debian/patches/0017-avcodec-v4l2request-Add-sw_format-for
 +-- 
 +2.47.3
 +
-diff -Nru ffmpeg-8.0.1/debian/patches/series ffmpeg-8.0.1/debian/patches/series
---- ffmpeg-8.0.1/debian/patches/series	1970-01-01 01:00:00.000000000 +0100
-+++ ffmpeg-8.0.1/debian/patches/series	2025-12-29 14:41:25.000000000 +0100
+diff -Nru ffmpeg-8.1/debian/patches/series ffmpeg-8.1/debian/patches/series
+--- ffmpeg-8.1/debian/patches/series	1970-01-01 01:00:00.000000000 +0100
++++ ffmpeg-8.1/debian/patches/series	2026-04-06 16:56:18.000000000 +0200
 @@ -0,0 +1,17 @@
 +0001-avutil-hwcontext-Add-hwdevice-type-for-V4L2-Request-.patch
 +0002-avutil-hwcontext_v4l2request-Probe-for-a-capable-med.patch
@@ -6975,9 +6975,9 @@ diff -Nru ffmpeg-8.0.1/debian/patches/series ffmpeg-8.0.1/debian/patches/series
 +0015-avutil-pixfmt-Add-NV15-NV20BS-and-NV30.patch
 +0016-swscale-input-Add-support-for-NV15-NV20BS-and-NV30.patch
 +0017-avcodec-v4l2request-Add-sw_format-for-NV15-and-NV20-.patch
-diff -Nru ffmpeg-8.0/debian/rules ffmpeg-8.0/debian/rules
---- ffmpeg-8.0/debian/rules	2025-09-11 00:18:21.000000000 +0200
-+++ ffmpeg-8.0/debian/rules	2025-11-06 00:07:53.000000000 +0100
+diff -Nru ffmpeg-8.1/debian/rules ffmpeg-8.1/debian/rules
+--- ffmpeg-8.1/debian/rules	2026-03-20 21:39:37.000000000 +0100
++++ ffmpeg-8.1/debian/rules	2026-04-06 16:56:18.000000000 +0200
 @@ -60,6 +60,8 @@
  	--enable-libspeex \
  	--enable-libtheora \
