@@ -236,19 +236,45 @@
 	status = "okay";
 };
 
-// internal HDMI, currently unused on pocket,
-// but could be used for 3rd display
-/*&hdmi0 {
-	tmds-enable-gpios = <&gpio4 RK_PA0 GPIO_ACTIVE_HIGH>;
-	frl-enable-gpios = <&gpio4 RK_PA0 GPIO_ACTIVE_HIGH>;
+&pd_gpu {
 	status = "okay";
 };
 
-&hdmi0_in {
-	hdmi0_in_vp1: endpoint {
-		remote-endpoint = <&vp1_out_hdmi0>;
+/* internal eDP/HDMI connector, can feed USB-C DP Alt Mode
+   on MNT Pocket Reform Mainboard 2.0 */
+&edp0 {
+	enable-gpios = <&gpio4 RK_PA0 GPIO_ACTIVE_LOW>;
+	force-hpd;
+	/* TODO: we can actually set a hpd gpio and let SC provide that */
+	rockchip,lane-count = <2>;
+	status = "okay";
+
+	aux-bus {
+		panel {
+			compatible = "edp-panel";
+			power-supply = <&vcc3v3_pcie30>;
+			no-hpd;
+
+			port {
+				panel_in_edp: endpoint {
+					remote-endpoint = <&edp_out_panel>;
+				};
+			};
+		};
 	};
-};*/
+};
+
+&edp0_in {
+	edp0_in_vp1: endpoint {
+		remote-endpoint = <&vp1_out_edp0>;
+	};
+};
+
+&edp0_out {
+	edp_out_panel: endpoint {
+		remote-endpoint = <&panel_in_edp>;
+	};
+};
 
 &hdptxphy0 {
 	status = "okay";
@@ -488,10 +514,12 @@
 	pinctrl-0 = <&spi1m2_cs0 &spi1m2_pins>;
 	num-cs = <1>;
 
-	spidev@0 {
-		compatible = "mntre,lpc11u24";
+	mnt_sc: spidev@0 {
+		compatible = "mntre,system-controller";
 		spi-max-frequency = <1000000>;
 		reg = <0>;
+		gpio-controller;
+		#gpio-cells = <2>;
 	};
 };
 
@@ -1030,22 +1058,23 @@
 	};
 };
 
-/*&vp2 {
-	vp2_out_hdmi0: endpoint@ROCKCHIP_VOP2_EP_HDMI0 {
-		reg = <ROCKCHIP_VOP2_EP_HDMI0>;
-		remote-endpoint = <&hdmi0_in_vp2>;
+&vp1 {
+	vp1_out_edp0: endpoint@ROCKCHIP_VOP2_EP_EDP0 {
+		reg = <ROCKCHIP_VOP2_EP_EDP0>;
+		remote-endpoint = <&edp0_in_vp1>;
 	};
-};*/
+};
 
 &dsi1 {
 	status = "okay";
 	rockchip,lane-rate = <972000>;
 
-	panel {
+	panel@0 {
 		compatible = "jdi,lt070me05000";
 		reg = <0>;
 
-		// reset is driven by rp2040
+		// TODO reset is driven by SC (rp2040)
+		// reset-gpios = <&mnt_sc 0 GPIO_ACTIVE_LOW>;
 		// dcdc en is also driven by rp2040
 		// actually backlight enable
 		enable-gpios = <&gpio2 RK_PB5 GPIO_ACTIVE_HIGH>;
