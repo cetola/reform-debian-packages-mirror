@@ -6957,7 +6957,8 @@ diff -Nru ffmpeg-8.1/debian/patches/0017-avcodec-v4l2request-Add-sw_format-for-N
 diff -Nru ffmpeg-8.1/debian/patches/series ffmpeg-8.1/debian/patches/series
 --- ffmpeg-8.1/debian/patches/series	1970-01-01 01:00:00.000000000 +0100
 +++ ffmpeg-8.1/debian/patches/series	2026-04-06 16:56:18.000000000 +0200
-@@ -0,0 +1,17 @@
+@@ -1 +1,18 @@
+ 0001-aarch64-vp9lpf-Fix-GCS-violations.patch
 +0001-avutil-hwcontext-Add-hwdevice-type-for-V4L2-Request-.patch
 +0002-avutil-hwcontext_v4l2request-Probe-for-a-capable-med.patch
 +0003-avcodec-Add-common-V4L2-Request-API-code.patch
