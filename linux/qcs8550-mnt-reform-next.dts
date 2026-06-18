@@ -643,6 +643,8 @@
 		reg = <0x18>;
 		ai31xx-micbias-vg = <2>;
 		#sound-dai-cells = <0>;
+		clocks = <&q6prmcc LPASS_CLK_ID_PRI_MI2S_IBIT LPASS_CLK_ATTRIBUTE_COUPLE_NO>;
+		clock-names = "mclk";
 
 		HPVDD-supply = <&main_3v3>;
 		SPRVDD-supply = <&vin_5v0>;
@@ -672,6 +674,18 @@
 };*/
 
 / {
+	backlight {
+		compatible = "pwm-backlight";
+		pwms = <&pm8550_pwm 3 50000 0>;
+		enable-gpios = <&tlmm 22 GPIO_ACTIVE_HIGH>;
+		brightness-levels = <0 1000>;
+		default-brightness-level = <50>;
+		num-interpolated-steps = <100>;
+		pinctrl-0 = <&backlight_enable>, <&bl_pwm>;
+		pinctrl-names = "default";
+		status = "okay";
+	};
+	
 	/* normally spi8, but loading geni qup2_se0 firmware crashes */
 	spi {
 		compatible = "spi-gpio";
@@ -700,11 +714,14 @@
 		#size-cells = <0>;
 		status = "okay";
 
+		clocks = <&q6prmcc LPASS_CLK_ID_PRI_MI2S_IBIT LPASS_CLK_ATTRIBUTE_COUPLE_NO>;
+		clock-names = "i2s_clk";
+
 		speaker-i2s-dai-link {
 			link-name = "Primary MI2S Playback";
 
 			codec {
-				sound-dai = <&tlv320aic3100 0>;
+				sound-dai = <&tlv320aic3100>;
 			};
 
 			cpu {
@@ -796,8 +813,8 @@
 			//backlight = <&backlight>;
 			// hpd-gpios = <&tlmm 47 GPIO_ACTIVE_HIGH>;
 
-			pinctrl-names = "default";
-			pinctrl-0 = <&backlight_enable>;
+			/*pinctrl-names = "default";
+			pinctrl-0 = <&backlight_enable>, <&bl_pwm>;*/
 			status = "okay";
 
 			port {
@@ -947,40 +964,34 @@ gpio set soc4
 		bias-pull-up;
 		input-enable;
 	};
+
+	/* pm8550-gpio7 */
+	/* note: the pwm only works when the gpio is set to low */
+	bl_pwm: bl-pwm-state {
+		pins = "gpio8";
+		function = "func1";
+		input-disable;
+		output-enable;
+		output-low;
+		bias-disable;
+	};
 };
 
 // TODO PWM
 &pm8550_pwm {
-	status = "disabled";
+	status = "okay";
 };
 
 // TODO verify
 &pmk8550 {
-	pmk8550_sdam_9d00: nvram@9d00 {
+	/*pmk8550_sdam_9d00: nvram@9d00 {
 		compatible = "qcom,spmi-sdam";
 		reg = <0x9d00>;
-	};
-
-	/* TODO verify
-	pmk8550_sdam_9d00: nvram@9d00 {
-		compatible = "qcom,spmi-sdam";
-		reg = <0x9d00>;
-	};
-	*/
+	};*/
 };
 
 // TODO verify
 &pmk8550_gpios {
-	/*pwm_backlight_default: pwm-backlight-default-state {
-		pins = "gpio5";
-		function = "func3";
-		input-disable;
-		output-low;
-		output-enable;
-		bias-disable;
-		power-source = <0>;
-		qcom,drive-strength = <2>;
-	};*/
 };
 
 &pm8550b_eusb2_repeater {
@@ -1037,7 +1048,7 @@ gpio set soc4
 
 	bus-width = <4>;
 	no-sdio;
-	//no-mmc;
+	max-frequency = <20000000>;
 
 	status = "okay";
 };
