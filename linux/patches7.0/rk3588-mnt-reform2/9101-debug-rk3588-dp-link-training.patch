@@ -1,0 +1,26 @@
+commit 97c9f21377cdc8f440828dd79290cec14cfac504
+Author: Lucie L. Hartmann <lukas@mntre.com>
+Date:   Tue Jun 30 01:26:14 2026 +0200
+
+    rk3588/analogix_dp: force link_rate/lane_count to max if they can't be read
+
+diff --git a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
+index 8cbd961..0ba9222 100644
+--- a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
++++ b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
+@@ -569,13 +569,13 @@ static int analogix_dp_full_link_train(struct analogix_dp_device *dp,
+ 	    (dp->link_train.link_rate != DP_LINK_BW_5_4)) {
+ 		dev_err(dp->dev, "Rx Max Link Rate is abnormal :%x !\n",
+ 			dp->link_train.link_rate);
+-		dp->link_train.link_rate = DP_LINK_BW_1_62;
++		dp->link_train.link_rate = max_rate;
+ 	}
+ 
+ 	if (dp->link_train.lane_count == 0) {
+ 		dev_err(dp->dev, "Rx Max Lane count is abnormal :%x !\n",
+ 			dp->link_train.lane_count);
+-		dp->link_train.lane_count = (u8)LANE_COUNT1;
++		dp->link_train.lane_count = max_lanes;
+ 	}
+ 
+ 	/* Setup TX lane count & rate */
