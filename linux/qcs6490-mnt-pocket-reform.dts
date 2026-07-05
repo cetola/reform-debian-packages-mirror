@@ -8,6 +8,13 @@
 
 #include "qcs6490-mnt-quasar.dtsi"
 
+#define MNTSC_GPIO_DISP_RESET 0
+#define MNTSC_GPIO_HUB_PWR_EN 1
+#define MNTSC_GPIO_PCIE_PWR_EN 2
+#define MNTSC_GPIO_3V3_EN 3
+#define MNTSC_GPIO_USWITCH_OFF 4
+#define MNTSC_GPIO_DISP_BL_PWR_EN 5
+
 /*
 # USB layout
 
@@ -86,7 +93,7 @@ No SS phy
 		init-in-enable;
 
 		/* Reset and dcdc_en are wired to syscon */
-		// reset-gpios = <&mnt_sc GPIO_DISP_RESET GPIO_ACTIVE_LOW>;
+		reset-gpios = <&mnt_sc MNTSC_GPIO_DISP_RESET GPIO_ACTIVE_LOW>;
 		/* Actually backlight enable */
 		enable-gpios = <&tlmm 94 GPIO_ACTIVE_HIGH>;
 		/* Stub supplies so driver will load */
