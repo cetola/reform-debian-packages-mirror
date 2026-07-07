@@ -662,9 +662,9 @@ if dpkg --compare-versions "$KVER" ge "7.0"; then
 	cp qcs8550-mnt-pocket-reform.dts linux/arch/arm64/boot/dts/qcom/qcs8550-mnt-pocket-reform.dts
 	cp qcs8550-mnt-reform-next.dts linux/arch/arm64/boot/dts/qcom/qcs8550-mnt-reform-next.dts
 	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/qcom/Makefile
-	sed -i '/qcs6490-rb3gen2-vision-mezzanine.dtb/a dtb-$(CONFIG_ARCH_QCOM) += qcs6490-mnt-reform2.dtb' linux/arch/arm64/boot/dts/qcom/Makefile
-	sed -i '/qcs6490-rb3gen2-vision-mezzanine.dtb/a dtb-$(CONFIG_ARCH_QCOM) += qcs6490-mnt-pocket-reform.dtb' linux/arch/arm64/boot/dts/qcom/Makefile
-	sed -i '/qcs6490-rb3gen2-vision-mezzanine.dtb/a dtb-$(CONFIG_ARCH_QCOM) += qcs6490-mnt-reform-next.dtb' linux/arch/arm64/boot/dts/qcom/Makefile
+	sed -i '/= qcs6490-rb3gen2-vision-mezzanine.dtb/a dtb-$(CONFIG_ARCH_QCOM) += qcs6490-mnt-reform2.dtb' linux/arch/arm64/boot/dts/qcom/Makefile
+	sed -i '/= qcs6490-rb3gen2-vision-mezzanine.dtb/a dtb-$(CONFIG_ARCH_QCOM) += qcs6490-mnt-pocket-reform.dtb' linux/arch/arm64/boot/dts/qcom/Makefile
+	sed -i '/= qcs6490-rb3gen2-vision-mezzanine.dtb/a dtb-$(CONFIG_ARCH_QCOM) += qcs6490-mnt-reform-next.dtb' linux/arch/arm64/boot/dts/qcom/Makefile
 	sed -i '/qcs8550-aim300-aiot.dtb/a dtb-$(CONFIG_ARCH_QCOM) += qcs8550-mnt-reform2.dtb' linux/arch/arm64/boot/dts/qcom/Makefile
 	sed -i '/qcs8550-aim300-aiot.dtb/a dtb-$(CONFIG_ARCH_QCOM) += qcs8550-mnt-pocket-reform.dtb' linux/arch/arm64/boot/dts/qcom/Makefile
 	sed -i '/qcs8550-aim300-aiot.dtb/a dtb-$(CONFIG_ARCH_QCOM) += qcs8550-mnt-reform-next.dtb' linux/arch/arm64/boot/dts/qcom/Makefile
