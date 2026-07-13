@@ -241,11 +241,13 @@
 };
 
 /* internal eDP/HDMI connector, can feed USB-C DP Alt Mode
-   on MNT Pocket Reform Mainboard 2.0 */
+on MNT Pocket Reform Mainboard 2.0 */
 &edp0 {
 	enable-gpios = <&gpio4 RK_PA0 GPIO_ACTIVE_LOW>;
-	force-hpd;
-	/* TODO: we can actually set a hpd gpio and let SC provide that */
+	//force-hpd; // TODO: hpd-gpios / dp-connector seems crashy
+	//hpd-gpios = <&gpio1 RK_PA5 GPIO_ACTIVE_HIGH>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&hpd_2>;
 	rockchip,lane-count = <2>;
 	status = "okay";
 
@@ -254,6 +256,9 @@
 			compatible = "edp-panel";
 			power-supply = <&vcc3v3_pcie30>;
 			no-hpd;
+			enable-gpios = <&gpio3 RK_PB3 GPIO_ACTIVE_HIGH>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&edpauxen>;
 
 			port {
 				panel_in_edp: endpoint {
@@ -918,6 +923,16 @@
 	keys {
 		lpc_wakeup: lpc-wakeup {
 			rockchip,pins = <4 RK_PB2 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+	};
+
+	edp {
+		hpd_2: hpd-2 {
+			rockchip,pins = <1 RK_PA5 5 &pcfg_pull_down>;
+		};
+
+		edpauxen: edp-aux-en {
+			rockchip,pins = <3 RK_PA3 RK_FUNC_GPIO &pcfg_pull_up>;
 		};
 	};
 
