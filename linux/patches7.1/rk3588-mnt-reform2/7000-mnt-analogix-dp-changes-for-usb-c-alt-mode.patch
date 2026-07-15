@@ -1,11 +1,11 @@
-commit 1aa47b57152e9747f18f0b376c458ce2496000b2
-Author: Lucie L. Hartmann <lukas@mntre.com>
-Date:   Thu Jul 16 01:18:05 2026 +0200
+commit 7d5638514b7bd6737ef393575ec9a7b3dac63e43
+Author: Lucie L. Hartmann <lucie@mntre.com>
+Date:   Thu Jul 16 01:42:46 2026 +0200
 
-    analogix_dp/rk3588/edp: rewrite parts of driver to work with usb-c PD alt-mode
+    analogix_dp/rk3588/edp: rewrite parts of driver to work with usb-c DP alt-mode
 
 diff --git a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
-index 8dee5f2..d24ad8f 100644
+index 8dee5f2..45371e1 100644
 --- a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 +++ b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 @@ -18,6 +18,8 @@
@@ -234,7 +234,7 @@ index 8dee5f2..d24ad8f 100644
 +			break;
 +	}
 +	if (!drm_edid) {
-+		dev_warn(dp->dev, "[analogix_dp_get_modes] EDID probe failed.\n", i, dp->aux.powered_down);
++		dev_warn(dp->dev, "[analogix_dp_get_modes] EDID probe failed.\n");
 +	} else {
  		drm_edid_connector_update(&dp->connector, drm_edid);
 +		num_modes += drm_edid_connector_add_modes(&dp->connector);
@@ -396,22 +396,22 @@ index 8dee5f2..d24ad8f 100644
  }
  
  static int analogix_dp_set_bridge(struct analogix_dp_device *dp)
-@@ -1089,6 +1182,7 @@ static int analogix_dp_set_bridge(struct analogix_dp_device *dp)
- static void analogix_dp_bridge_mode_set(struct drm_bridge *bridge,
- 					const struct drm_display_mode *mode)
- {
-+	dev_info(dp->dev, "[analogix_dp_bridge_mode_set]\n");
- 	struct analogix_dp_device *dp = to_dp(bridge);
- 	struct drm_display_info *display_info = &dp->connector.display_info;
+@@ -1094,6 +1187,7 @@ static void analogix_dp_bridge_mode_set(struct drm_bridge *bridge,
  	struct video_info *video = &dp->video_info;
-@@ -1165,6 +1259,7 @@ static void analogix_dp_bridge_mode_set(struct drm_bridge *bridge,
- static void analogix_dp_bridge_atomic_enable(struct drm_bridge *bridge,
- 					     struct drm_atomic_state *old_state)
- {
-+	dev_info(dp->dev, "[analogix_dp_bridge_atomic_enable]\n");
- 	struct analogix_dp_device *dp = to_dp(bridge);
- 	struct drm_crtc *crtc;
+ 	struct device_node *dp_node = dp->dev->of_node;
+ 	int vic;
++	dev_info(dp->dev, "[analogix_dp_bridge_mode_set]\n");
+ 
+ 	/* Input video interlaces & hsync pol & vsync pol */
+ 	video->interlaced = !!(mode->flags & DRM_MODE_FLAG_INTERLACE);
+@@ -1170,6 +1264,7 @@ static void analogix_dp_bridge_atomic_enable(struct drm_bridge *bridge,
  	struct drm_crtc_state *old_crtc_state, *new_crtc_state;
+ 	int timeout_loop = 0;
+ 	int ret;
++	dev_info(dp->dev, "[analogix_dp_bridge_atomic_enable]\n");
+ 
+ 	crtc = analogix_dp_get_new_crtc(dp, old_state);
+ 	if (!crtc)
 @@ -1202,12 +1297,13 @@ static void analogix_dp_bridge_atomic_enable(struct drm_bridge *bridge,
  		timeout_loop++;
  		usleep_range(10, 11);
@@ -427,14 +427,14 @@ index 8dee5f2..d24ad8f 100644
  
  	if (dp->dpms_mode != DRM_MODE_DPMS_ON)
  		return;
-@@ -1230,6 +1326,7 @@ static void analogix_dp_bridge_disable(struct drm_bridge *bridge)
- static void analogix_dp_bridge_atomic_disable(struct drm_bridge *bridge,
- 					      struct drm_atomic_state *old_state)
- {
-+	dev_info(dp->dev, "[analogix_dp_bridge_atomic_disable]\n");
- 	struct analogix_dp_device *dp = to_dp(bridge);
- 	struct drm_crtc *old_crtc, *new_crtc;
+@@ -1235,6 +1331,7 @@ static void analogix_dp_bridge_atomic_disable(struct drm_bridge *bridge,
  	struct drm_crtc_state *old_crtc_state = NULL;
+ 	struct drm_crtc_state *new_crtc_state = NULL;
+ 	int ret;
++	dev_info(dp->dev, "[analogix_dp_bridge_atomic_disable]\n");
+ 
+ 	new_crtc = analogix_dp_get_new_crtc(dp, old_state);
+ 	if (!new_crtc)
 @@ -1286,6 +1383,13 @@ static void analogix_dp_bridge_atomic_post_disable(struct drm_bridge *bridge,
  		DRM_ERROR("Failed to enable psr (%d)\n", ret);
  }
@@ -481,7 +481,7 @@ index 8dee5f2..d24ad8f 100644
 -		goto out;
 -
 +	if (msg->request & DP_AUX_I2C_READ) {
-+		dev_info(dp->dev, "[aux:i2c:rx] %d", msg->size);
++		dev_info(dp->dev, "[aux:i2c:rx] %lu", msg->size);
 +	}
 +	// without delay, we get AUX CH error happened: 0x6
 +	// TODO: confirm this delay with the newfound -EBUSY and max size 4

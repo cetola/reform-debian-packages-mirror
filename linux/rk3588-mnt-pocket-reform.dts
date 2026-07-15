@@ -248,7 +248,7 @@ on MNT Pocket Reform Mainboard 2.0 */
 	enable-gpios = <&gpio4 RK_PA0 GPIO_ACTIVE_LOW>;
 	hpd-gpios = <&gpio1 RK_PA5 GPIO_ACTIVE_HIGH>;
 	pinctrl-names = "default";
-	pinctrl-0 = <&hpd_2>, <&edphdmimode>;
+	pinctrl-0 = <&edphpd>, <&edphdmimode>;
 	rockchip,lane-count = <2>;
 	status = "okay";
 
@@ -1088,6 +1088,8 @@ on MNT Pocket Reform Mainboard 2.0 */
 };
 
 &dsi1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
 	status = "okay";
 	rockchip,lane-rate = <972000>;
 
