@@ -1,11 +1,11 @@
-commit 7d5638514b7bd6737ef393575ec9a7b3dac63e43
+commit 4e97fbc27e316b69d8953e6be15423959609df32
 Author: Lucie L. Hartmann <lucie@mntre.com>
-Date:   Thu Jul 16 01:42:46 2026 +0200
+Date:   Thu Jul 16 02:33:57 2026 +0200
 
     analogix_dp/rk3588/edp: rewrite parts of driver to work with usb-c DP alt-mode
 
 diff --git a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
-index 8dee5f2..45371e1 100644
+index 8dee5f2..e7ce441 100644
 --- a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 +++ b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 @@ -18,6 +18,8 @@
@@ -480,8 +480,8 @@ index 8dee5f2..45371e1 100644
 -	if (ret)
 -		goto out;
 -
-+	if (msg->request & DP_AUX_I2C_READ) {
-+		dev_info(dp->dev, "[aux:i2c:rx] %lu", msg->size);
++	if ((msg->request & DP_AUX_I2C_READ) && msg->size > 1) {
++		dev_dbg(dp->dev, "[aux:i2c] %lu", msg->size);
 +	}
 +	// without delay, we get AUX CH error happened: 0x6
 +	// TODO: confirm this delay with the newfound -EBUSY and max size 4
@@ -607,18 +607,62 @@ index 91b215c..349b9c9 100644
  	struct analogix_dp_plat_data *plat_data;
  };
 diff --git a/drivers/gpu/drm/bridge/analogix/analogix_dp_reg.c b/drivers/gpu/drm/bridge/analogix/analogix_dp_reg.c
-index 38fd8d5..b788dbd 100644
+index 38fd8d5..4374870 100644
 --- a/drivers/gpu/drm/bridge/analogix/analogix_dp_reg.c
 +++ b/drivers/gpu/drm/bridge/analogix/analogix_dp_reg.c
-@@ -390,6 +390,8 @@ void analogix_dp_clear_hotplug_interrupts(struct analogix_dp_device *dp)
- 	writel(reg, dp->reg_base + ANALOGIX_DP_INT_STA);
+@@ -376,12 +376,14 @@ int analogix_dp_init_analog_func(struct analogix_dp_device *dp)
+ 	return 0;
  }
  
 +// TODO check: the following three were modified before cleanup
 +// probably those changes were unnecessary, but double check
- void analogix_dp_init_hpd(struct analogix_dp_device *dp)
+ void analogix_dp_clear_hotplug_interrupts(struct analogix_dp_device *dp)
  {
  	u32 reg;
+ 
+-	if (dp->hpd_gpiod)
+-		return;
++	//if (dp->hpd_gpiod)
++	//	return;
+ 
+ 	reg = HOTPLUG_CHG | HPD_LOST | PLUG;
+ 	writel(reg, dp->reg_base + ANALOGIX_DP_COMMON_INT_STA_4);
+@@ -394,8 +396,8 @@ void analogix_dp_init_hpd(struct analogix_dp_device *dp)
+ {
+ 	u32 reg;
+ 
+-	if (dp->hpd_gpiod)
+-		return;
++	//if (dp->hpd_gpiod)
++	//	return;
+ 
+ 	analogix_dp_clear_hotplug_interrupts(dp);
+ 
+@@ -417,13 +419,13 @@ enum dp_irq_type analogix_dp_get_irq_type(struct analogix_dp_device *dp)
+ {
+ 	u32 reg;
+ 
+-	if (dp->hpd_gpiod) {
++	/*if (dp->hpd_gpiod) {
+ 		reg = gpiod_get_value(dp->hpd_gpiod);
+ 		if (reg)
+ 			return DP_IRQ_TYPE_HP_CABLE_IN;
+ 		else
+ 			return DP_IRQ_TYPE_HP_CABLE_OUT;
+-	} else {
++	} else {*/
+ 		/* Parse hotplug interrupt status register */
+ 		reg = readl(dp->reg_base + ANALOGIX_DP_COMMON_INT_STA_4);
+ 
+@@ -437,7 +439,7 @@ enum dp_irq_type analogix_dp_get_irq_type(struct analogix_dp_device *dp)
+ 			return DP_IRQ_TYPE_HP_CHANGE;
+ 
+ 		return DP_IRQ_TYPE_UNKNOWN;
+-	}
++	//}
+ }
+ 
+ void analogix_dp_reset_aux(struct analogix_dp_device *dp)
 @@ -981,6 +983,7 @@ ssize_t analogix_dp_transfer(struct analogix_dp_device *dp,
  	int ret;
  
@@ -634,7 +678,7 @@ index 38fd8d5..b788dbd 100644
 -		if (aux_status == AUX_STATUS_TIMEOUT_ERROR)
 -			return -ETIMEDOUT;
 +		if (aux_status == AUX_STATUS_TIMEOUT_ERROR) {
-+			dev_warn(dp->dev, "AUX TIMEOUT\n");
++			dev_dbg(dp->dev, "AUX TIMEOUT\n");
 +			/* critical change!
 +			 * -EBUSY is the only thing that works to resume on timeouts!
 +			 */
