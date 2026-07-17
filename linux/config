@@ -35,7 +35,6 @@ CONFIG_IMX2_WDT=y
 CONFIG_DRM_SAMSUNG_DSIM=y
 CONFIG_PHY_FSL_SAMSUNG_HDMI_PHY=y
 CONFIG_DRM=y
-# TODO fix the bugs and make it =m again to be able to reload it
 CONFIG_DRM_PANEL_MNT_POCKET_REFORM=y
 CONFIG_IMX8M_BLK_CTRL=y
 CONFIG_IMX_GPCV2_PM_DOMAINS=y
@@ -108,6 +107,5 @@ CONFIG_PINCTRL_SM8750=y
 CONFIG_SM_TCSRCC_8750=y
 
 CONFIG_REGULATOR_QCOM_REFGEN=m
-# TODO make it =m but make sure it's in initramfs and always loaded by default
 CONFIG_MNTRE_SC=y
 
