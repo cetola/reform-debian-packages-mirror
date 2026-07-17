@@ -1,11 +1,11 @@
-commit 4e97fbc27e316b69d8953e6be15423959609df32
+commit e205ccd9857a7c68682c1ec6363303314bf76d6c
 Author: Lucie L. Hartmann <lucie@mntre.com>
-Date:   Thu Jul 16 02:33:57 2026 +0200
+Date:   Fri Jul 17 03:24:32 2026 +0200
 
     analogix_dp/rk3588/edp: rewrite parts of driver to work with usb-c DP alt-mode
 
 diff --git a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
-index 8dee5f2..e7ce441 100644
+index 8dee5f2..d6bfafd 100644
 --- a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 +++ b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 @@ -18,6 +18,8 @@
@@ -21,7 +21,7 @@ index 8dee5f2..e7ce441 100644
  #include "analogix_dp_reg.h"
  
  #define to_dp(nm)	container_of(nm, struct analogix_dp_device, nm)
-+#define HPD_POLL_MS	1000
++#define HPD_POLL_MS	500
  
  static const bool verify_fast_training;
  
@@ -81,17 +81,18 @@ index 8dee5f2..e7ce441 100644
  }
  
  static bool analogix_dp_detect_sink_psr(struct analogix_dp_device *dp)
-@@ -475,23 +453,33 @@ static int analogix_dp_full_link_train(struct analogix_dp_device *dp,
+@@ -475,23 +453,34 @@ static int analogix_dp_full_link_train(struct analogix_dp_device *dp,
  {
  	int retval = 0;
  	bool training_finished = false;
 +	dev_info(dp->dev, "[analogix_dp_full_link_train]\n");
-+
-+	analogix_dp_init_aux(dp);
  
 -	/* Initialize by reading RX's DPCD */
 -	analogix_dp_get_max_rx_bandwidth(dp, &dp->link_train.link_rate);
 -	analogix_dp_get_max_rx_lane_count(dp, &dp->link_train.lane_count);
++	// TODO probably not necessary?
++	analogix_dp_init_aux(dp);
++
 +	for (int i=0; i<10; i++) {
 +		/* Initialize by reading RX's DPCD */
 +		analogix_dp_get_max_rx_bandwidth(dp, &dp->link_train.link_rate);
@@ -122,22 +123,63 @@ index 8dee5f2..e7ce441 100644
  	}
  
  	/* Setup TX lane count & rate */
-@@ -714,7 +702,7 @@ static irqreturn_t analogix_dp_irq_thread(int irq, void *arg)
+@@ -527,12 +516,14 @@ static int analogix_dp_full_link_train(struct analogix_dp_device *dp,
+ 			training_finished = 1;
+ 			break;
+ 		case FAILED:
++			dev_info(dp->dev, "[analogix_dp_full_link_train] EREMOTEIO\n");
+ 			return -EREMOTEIO;
+ 		}
+ 	}
+ 	if (retval)
+ 		dev_err(dp->dev, "eDP link training failed (%d)\n", retval);
+-
++	else
++		dev_info(dp->dev, "[analogix_dp_full_link_train] link training successful.\n");
+ 	return retval;
+ }
+ 
+@@ -540,6 +531,7 @@ static int analogix_dp_fast_link_train(struct analogix_dp_device *dp)
+ {
+ 	int ret;
+ 	u8 link_status[DP_LINK_STATUS_SIZE];
++	dev_info(dp->dev, "[analogix_dp_fast_link_train]\n");
+ 
+ 	analogix_dp_set_link_bandwidth(dp, dp->link_train.link_rate);
+ 	ret = analogix_dp_wait_pll_locked(dp);
+@@ -714,9 +706,9 @@ static irqreturn_t analogix_dp_irq_thread(int irq, void *arg)
  	irq_type = analogix_dp_get_irq_type(dp);
  	if (irq_type & DP_IRQ_TYPE_HP_CABLE_IN ||
  	    irq_type & DP_IRQ_TYPE_HP_CABLE_OUT) {
 -		dev_dbg(dp->dev, "Detected cable status changed!\n");
+-		if (dp->drm_dev)
+-			drm_helper_hpd_irq_event(dp->drm_dev);
 +		dev_info(dp->dev, "detected cable status change\n");
- 		if (dp->drm_dev)
- 			drm_helper_hpd_irq_event(dp->drm_dev);
++		//if (dp->drm_dev)
++		//	drm_helper_hpd_irq_event(dp->drm_dev);
  	}
-@@ -745,10 +733,12 @@ static int analogix_dp_fast_link_train_detection(struct analogix_dp_device *dp)
+ 
+ 	if (irq_type != DP_IRQ_TYPE_UNKNOWN) {
+@@ -738,17 +730,24 @@ static int analogix_dp_fast_link_train_detection(struct analogix_dp_device *dp)
+ 		return ret;
+ 	}
+ 	dp->fast_train_enable = !!(spread & DP_NO_AUX_HANDSHAKE_LINK_TRAINING);
+-	dev_dbg(dp->dev, "fast link training %s\n",
++	dev_info(dp->dev, "fast link training %s\n",
+ 		dp->fast_train_enable ? "supported" : "unsupported");
+ 	return 0;
+ }
  
  static int analogix_dp_commit(struct analogix_dp_device *dp)
  {
 +	dev_info(dp->dev, "[analogix_dp_commit]\n");
  	int ret;
  
++	if (!dp->hpd_state) {
++		dev_info(dp->dev, "[analogix_dp_commit] display not connected, skipping.\n");
++		return -ENODEV;
++	}
++
  	/* Keep the panel disabled while we configure video */
 -	drm_panel_disable(dp->plat_data->panel);
 +	// TODO test if this can be re-enabled
@@ -145,7 +187,7 @@ index 8dee5f2..e7ce441 100644
  
  	ret = analogix_dp_train_link(dp);
  	if (ret) {
-@@ -770,18 +760,22 @@ static int analogix_dp_commit(struct analogix_dp_device *dp)
+@@ -770,18 +769,22 @@ static int analogix_dp_commit(struct analogix_dp_device *dp)
  	}
  
  	/* Safe to enable the panel now */
@@ -154,13 +196,11 @@ index 8dee5f2..e7ce441 100644
 +	//drm_panel_enable(dp->plat_data->panel);
  
  	/* Check whether panel supports fast training */
--	ret = analogix_dp_fast_link_train_detection(dp);
 +	// TODO test if this can be re-enabled
 +	dp->fast_train_enable = false;
-+	/*ret = analogix_dp_fast_link_train_detection(dp);
+ 	ret = analogix_dp_fast_link_train_detection(dp);
  	if (ret)
--		return ret;
-+		return ret;*/
+ 		return ret;
  
 -	if (analogix_dp_detect_sink_psr(dp)) {
 +	// TODO test if this can be re-enabled
@@ -173,7 +213,7 @@ index 8dee5f2..e7ce441 100644
  
  	return ret;
  }
-@@ -792,6 +786,10 @@ static int analogix_dp_enable_psr(struct analogix_dp_device *dp)
+@@ -792,6 +795,10 @@ static int analogix_dp_enable_psr(struct analogix_dp_device *dp)
  	int ret;
  	u8 sink;
  
@@ -184,22 +224,22 @@ index 8dee5f2..e7ce441 100644
  	ret = drm_dp_dpcd_readb(&dp->aux, DP_PSR_STATUS, &sink);
  	if (ret != 1)
  		DRM_DEV_ERROR(dp->dev, "Failed to read psr status %d\n", ret);
-@@ -818,9 +816,12 @@ static int analogix_dp_disable_psr(struct analogix_dp_device *dp)
+@@ -818,9 +825,12 @@ static int analogix_dp_disable_psr(struct analogix_dp_device *dp)
  {
  	struct dp_sdp psr_vsc;
  	int ret;
 -	u8 sink;
 +	//u8 sink;
-+
-+	// TODO test if this can be re-enabled
-+	dev_info(dp->dev, "[analogix_dp_disable_psr] (skip)\n");
  
 -	analogix_dp_set_analog_power_down(dp, POWER_ALL, false);
++	// TODO test if this can be re-enabled
++	dev_info(dp->dev, "[analogix_dp_disable_psr] (skip)\n");
++
 +	/*analogix_dp_set_analog_power_down(dp, POWER_ALL, false);
  
  	ret = drm_dp_dpcd_writeb(&dp->aux, DP_SET_POWER, DP_SET_POWER_D0);
  	if (ret != 1) {
-@@ -835,7 +836,7 @@ static int analogix_dp_disable_psr(struct analogix_dp_device *dp)
+@@ -835,7 +845,7 @@ static int analogix_dp_disable_psr(struct analogix_dp_device *dp)
  	} else if (sink == DP_PSR_SINK_INACTIVE) {
  		DRM_DEV_ERROR(dp->dev, "sink inactive, skip disable psr");
  		return 0;
@@ -208,7 +248,7 @@ index 8dee5f2..e7ce441 100644
  
  	ret = analogix_dp_train_link(dp);
  	if (ret) {
-@@ -862,22 +863,42 @@ static int analogix_dp_get_modes(struct drm_connector *connector)
+@@ -862,22 +872,45 @@ static int analogix_dp_get_modes(struct drm_connector *connector)
  	const struct drm_edid *drm_edid;
  	int num_modes = 0;
  
@@ -221,12 +261,15 @@ index 8dee5f2..e7ce441 100644
 +		dev_info(dp->dev, "[analogix_dp_get_modes] -> disconnected, skip\n");
 +		return 0;
 +	}
-+
+ 
 +	/* TODO quite blunt */
 +	analogix_dp_force_hpd(dp);
 +	connector->force = DRM_FORCE_ON;
 +	dp->aux.powered_down = false;
- 
++
++	// NOTE: not good, kills image when DRM reinits
++	//analogix_dp_resume(dp);
++
 +	for (int i = 0; i < 3; i++) {
 +		dev_info(dp->dev, "[analogix_dp_get_modes] EDID probe %d, powered_down: %d\n", i, dp->aux.powered_down);
 +		drm_edid = drm_edid_read_ddc(connector, &dp->aux.ddc);
@@ -259,7 +302,7 @@ index 8dee5f2..e7ce441 100644
  	return num_modes;
  }
  
-@@ -889,7 +910,6 @@ analogix_dp_best_encoder(struct drm_connector *connector)
+@@ -889,7 +922,6 @@ analogix_dp_best_encoder(struct drm_connector *connector)
  	return dp->encoder;
  }
  
@@ -267,7 +310,7 @@ index 8dee5f2..e7ce441 100644
  static int analogix_dp_atomic_check(struct drm_connector *connector,
  				    struct drm_atomic_state *state)
  {
-@@ -916,10 +936,47 @@ static int analogix_dp_atomic_check(struct drm_connector *connector,
+@@ -916,10 +948,47 @@ static int analogix_dp_atomic_check(struct drm_connector *connector,
  	return 0;
  }
  
@@ -284,7 +327,7 @@ index 8dee5f2..e7ce441 100644
 +	dev_info(dp->dev, "[analogix_dp_detect_ctx] %d\n", status);
 +
 +	return status;
-+};
++}
 +
 +static enum drm_mode_status analogix_dp_mode_valid(struct drm_connector *connector,
 +						   const struct drm_display_mode *mode)
@@ -315,7 +358,7 @@ index 8dee5f2..e7ce441 100644
  };
  
  static enum drm_connector_status
-@@ -928,9 +985,7 @@ analogix_dp_detect(struct drm_connector *connector, bool force)
+@@ -928,9 +997,7 @@ analogix_dp_detect(struct drm_connector *connector, bool force)
  	struct analogix_dp_device *dp = to_dp(connector);
  	enum drm_connector_status status = connector_status_disconnected;
  
@@ -326,7 +369,7 @@ index 8dee5f2..e7ce441 100644
  	if (!analogix_dp_detect_hpd(dp))
  		status = connector_status_connected;
  
-@@ -946,6 +1001,36 @@ static const struct drm_connector_funcs analogix_dp_connector_funcs = {
+@@ -946,6 +1013,36 @@ static const struct drm_connector_funcs analogix_dp_connector_funcs = {
  	.atomic_destroy_state = drm_atomic_helper_connector_destroy_state,
  };
  
@@ -363,7 +406,7 @@ index 8dee5f2..e7ce441 100644
  static int analogix_dp_bridge_attach(struct drm_bridge *bridge,
  				     struct drm_encoder *encoder,
  				     enum drm_bridge_attach_flags flags)
-@@ -965,7 +1050,7 @@ static int analogix_dp_bridge_attach(struct drm_bridge *bridge,
+@@ -965,7 +1062,7 @@ static int analogix_dp_bridge_attach(struct drm_bridge *bridge,
  
  		ret = drm_connector_init(dp->drm_dev, connector,
  					 &analogix_dp_connector_funcs,
@@ -372,7 +415,7 @@ index 8dee5f2..e7ce441 100644
  		if (ret) {
  			DRM_ERROR("Failed to initialize connector with drm\n");
  			return ret;
-@@ -974,6 +1059,13 @@ static int analogix_dp_bridge_attach(struct drm_bridge *bridge,
+@@ -974,6 +1071,13 @@ static int analogix_dp_bridge_attach(struct drm_bridge *bridge,
  		drm_connector_helper_add(connector,
  					 &analogix_dp_connector_helper_funcs);
  		drm_connector_attach_encoder(connector, encoder);
@@ -386,17 +429,29 @@ index 8dee5f2..e7ce441 100644
  	}
  
  	/*
-@@ -1047,7 +1139,8 @@ static void analogix_dp_bridge_atomic_pre_enable(struct drm_bridge *bridge,
+@@ -1047,6 +1151,7 @@ static void analogix_dp_bridge_atomic_pre_enable(struct drm_bridge *bridge,
  	if (old_crtc_state && old_crtc_state->self_refresh_active)
  		return;
  
--	drm_panel_prepare(dp->plat_data->panel);
-+	// TODO testing
-+	//drm_panel_prepare(dp->plat_data->panel);
++	// NOTE: this must stay here for working i2c!
+ 	drm_panel_prepare(dp->plat_data->panel);
  }
  
- static int analogix_dp_set_bridge(struct analogix_dp_device *dp)
-@@ -1094,6 +1187,7 @@ static void analogix_dp_bridge_mode_set(struct drm_bridge *bridge,
+@@ -1065,11 +1170,11 @@ static int analogix_dp_set_bridge(struct analogix_dp_device *dp)
+ 	 * We should first make sure the HPD signal is asserted high by device
+ 	 * when we want to establish a link with it.
+ 	 */
+-	ret = analogix_dp_detect_hpd(dp);
++	/*ret = analogix_dp_detect_hpd(dp);
+ 	if (ret) {
+ 		DRM_ERROR("failed to get hpd single ret = %d\n", ret);
+ 		goto out_dp_init;
+-	}
++	}*/
+ 
+ 	ret = analogix_dp_commit(dp);
+ 	if (ret) {
+@@ -1094,6 +1199,7 @@ static void analogix_dp_bridge_mode_set(struct drm_bridge *bridge,
  	struct video_info *video = &dp->video_info;
  	struct device_node *dp_node = dp->dev->of_node;
  	int vic;
@@ -404,15 +459,20 @@ index 8dee5f2..e7ce441 100644
  
  	/* Input video interlaces & hsync pol & vsync pol */
  	video->interlaced = !!(mode->flags & DRM_MODE_FLAG_INTERLACE);
-@@ -1170,6 +1264,7 @@ static void analogix_dp_bridge_atomic_enable(struct drm_bridge *bridge,
+@@ -1170,6 +1276,12 @@ static void analogix_dp_bridge_atomic_enable(struct drm_bridge *bridge,
  	struct drm_crtc_state *old_crtc_state, *new_crtc_state;
  	int timeout_loop = 0;
  	int ret;
 +	dev_info(dp->dev, "[analogix_dp_bridge_atomic_enable]\n");
++
++	if (!dp->hpd_state) {
++		dev_info(dp->dev, "[analogix_dp_bridge_atomic_enable] display not connected, skipping.\n");
++		return;
++	}
  
  	crtc = analogix_dp_get_new_crtc(dp, old_state);
  	if (!crtc)
-@@ -1202,12 +1297,13 @@ static void analogix_dp_bridge_atomic_enable(struct drm_bridge *bridge,
+@@ -1202,12 +1314,13 @@ static void analogix_dp_bridge_atomic_enable(struct drm_bridge *bridge,
  		timeout_loop++;
  		usleep_range(10, 11);
  	}
@@ -427,7 +487,7 @@ index 8dee5f2..e7ce441 100644
  
  	if (dp->dpms_mode != DRM_MODE_DPMS_ON)
  		return;
-@@ -1235,6 +1331,7 @@ static void analogix_dp_bridge_atomic_disable(struct drm_bridge *bridge,
+@@ -1235,6 +1348,7 @@ static void analogix_dp_bridge_atomic_disable(struct drm_bridge *bridge,
  	struct drm_crtc_state *old_crtc_state = NULL;
  	struct drm_crtc_state *new_crtc_state = NULL;
  	int ret;
@@ -435,7 +495,7 @@ index 8dee5f2..e7ce441 100644
  
  	new_crtc = analogix_dp_get_new_crtc(dp, old_state);
  	if (!new_crtc)
-@@ -1286,6 +1383,13 @@ static void analogix_dp_bridge_atomic_post_disable(struct drm_bridge *bridge,
+@@ -1286,6 +1400,13 @@ static void analogix_dp_bridge_atomic_post_disable(struct drm_bridge *bridge,
  		DRM_ERROR("Failed to enable psr (%d)\n", ret);
  }
  
@@ -449,7 +509,7 @@ index 8dee5f2..e7ce441 100644
  static const struct drm_bridge_funcs analogix_dp_bridge_funcs = {
  	.atomic_duplicate_state = drm_atomic_helper_bridge_duplicate_state,
  	.atomic_destroy_state = drm_atomic_helper_bridge_destroy_state,
-@@ -1295,6 +1399,7 @@ static const struct drm_bridge_funcs analogix_dp_bridge_funcs = {
+@@ -1295,6 +1416,7 @@ static const struct drm_bridge_funcs analogix_dp_bridge_funcs = {
  	.atomic_disable = analogix_dp_bridge_atomic_disable,
  	.atomic_post_disable = analogix_dp_bridge_atomic_post_disable,
  	.attach = analogix_dp_bridge_attach,
@@ -457,7 +517,7 @@ index 8dee5f2..e7ce441 100644
  };
  
  static int analogix_dp_dt_parse_pdata(struct analogix_dp_device *dp)
-@@ -1315,6 +1420,11 @@ static int analogix_dp_dt_parse_pdata(struct analogix_dp_device *dp)
+@@ -1315,6 +1437,11 @@ static int analogix_dp_dt_parse_pdata(struct analogix_dp_device *dp)
  	case RK3588_EDP:
  		video_info->max_link_rate = 0x14;
  		video_info->max_lane_count = 0x04;
@@ -469,11 +529,10 @@ index 8dee5f2..e7ce441 100644
  		break;
  	case EXYNOS_DP:
  		/*
-@@ -1336,17 +1446,13 @@ static ssize_t analogix_dpaux_transfer(struct drm_dp_aux *aux,
- {
+@@ -1337,16 +1464,14 @@ static ssize_t analogix_dpaux_transfer(struct drm_dp_aux *aux,
  	struct analogix_dp_device *dp = to_dp(aux);
  	int ret;
--
+ 
 -	pm_runtime_get_sync(dp->dev);
 -
 -	ret = analogix_dp_detect_hpd(dp);
@@ -481,11 +540,12 @@ index 8dee5f2..e7ce441 100644
 -		goto out;
 -
 +	if ((msg->request & DP_AUX_I2C_READ) && msg->size > 1) {
-+		dev_dbg(dp->dev, "[aux:i2c] %lu", msg->size);
++		//dev_info(dp->dev, "[aux:i2c] %lu", msg->size);
 +	}
 +	// without delay, we get AUX CH error happened: 0x6
 +	// TODO: confirm this delay with the newfound -EBUSY and max size 4
-+	udelay(300);
++	// works without delay on (club3d) apple hdmi, xreal
++	// udelay(300);
  	ret = analogix_dp_transfer(dp, msg);
 -out:
 -	pm_runtime_mark_last_busy(dp->dev);
@@ -493,13 +553,13 @@ index 8dee5f2..e7ce441 100644
  
  	return ret;
  }
-@@ -1354,21 +1460,15 @@ static ssize_t analogix_dpaux_transfer(struct drm_dp_aux *aux,
+@@ -1354,21 +1479,16 @@ static ssize_t analogix_dpaux_transfer(struct drm_dp_aux *aux,
  static int analogix_dpaux_wait_hpd_asserted(struct drm_dp_aux *aux, unsigned long wait_us)
  {
  	struct analogix_dp_device *dp = to_dp(aux);
 -	int val;
 -	int ret;
- 
+-
 -	if (dp->force_hpd)
 -		return 0;
 -
@@ -507,7 +567,7 @@ index 8dee5f2..e7ce441 100644
 -
 -	ret = readx_poll_timeout(analogix_dp_get_plug_in_status, dp, val, !val,
 -				 wait_us / 100, wait_us);
--
+ 
 -	pm_runtime_mark_last_busy(dp->dev);
 -	pm_runtime_put_autosuspend(dp->dev);
 -
@@ -519,11 +579,12 @@ index 8dee5f2..e7ce441 100644
 +		       dp->hpd_state);
 +		if (dp->hpd_state) return 0;
 +	}
++	// TODO should we return 1?
 +	return 0;
  }
  
  struct analogix_dp_device *
-@@ -1437,25 +1537,18 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
+@@ -1437,25 +1557,18 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
  		dp->hpd_gpiod = devm_gpiod_get_optional(dev, "samsung,hpd",
  							GPIOD_IN);
  	if (IS_ERR(dp->hpd_gpiod)) {
@@ -555,7 +616,19 @@ index 8dee5f2..e7ce441 100644
  
  	if (dp->irq == -ENXIO) {
  		dev_err(&pdev->dev, "failed to get irq\n");
-@@ -1489,6 +1582,11 @@ EXPORT_SYMBOL_GPL(analogix_dp_probe);
+@@ -1477,8 +1590,9 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
+ 	dp->aux.dev = dp->dev;
+ 	drm_dp_aux_init(&dp->aux);
+ 
+-	pm_runtime_use_autosuspend(dp->dev);
+-	pm_runtime_set_autosuspend_delay(dp->dev, 100);
++	// TODO changed
++	//pm_runtime_use_autosuspend(dp->dev);
++	//pm_runtime_set_autosuspend_delay(dp->dev, 100);
+ 	ret = devm_pm_runtime_enable(dp->dev);
+ 	if (ret)
+ 		return ERR_PTR(ret);
+@@ -1489,6 +1603,11 @@ EXPORT_SYMBOL_GPL(analogix_dp_probe);
  
  int analogix_dp_suspend(struct analogix_dp_device *dp)
  {
@@ -567,7 +640,7 @@ index 8dee5f2..e7ce441 100644
  	phy_power_off(dp->phy);
  
  	if (dp->plat_data->power_off)
-@@ -1502,6 +1600,7 @@ EXPORT_SYMBOL_GPL(analogix_dp_suspend);
+@@ -1502,6 +1621,7 @@ EXPORT_SYMBOL_GPL(analogix_dp_suspend);
  
  int analogix_dp_resume(struct analogix_dp_device *dp)
  {
@@ -575,6 +648,14 @@ index 8dee5f2..e7ce441 100644
  	int ret;
  
  	ret = clk_prepare_enable(dp->clock);
+@@ -1595,6 +1715,7 @@ EXPORT_SYMBOL_GPL(analogix_dp_aux_to_plat_data);
+ 
+ struct drm_dp_aux *analogix_dp_get_aux(struct analogix_dp_device *dp)
+ {
++	dev_info(dp->dev, "[analogix_dp_get_aux] %p powered_down: %d\n", &dp->aux, dp->aux.powered_down);
+ 	return &dp->aux;
+ }
+ EXPORT_SYMBOL_GPL(analogix_dp_get_aux);
 diff --git a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.h b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.h
 index 91b215c..349b9c9 100644
 --- a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.h
@@ -607,7 +688,7 @@ index 91b215c..349b9c9 100644
  	struct analogix_dp_plat_data *plat_data;
  };
 diff --git a/drivers/gpu/drm/bridge/analogix/analogix_dp_reg.c b/drivers/gpu/drm/bridge/analogix/analogix_dp_reg.c
-index 38fd8d5..4374870 100644
+index 38fd8d5..6eb9be4 100644
 --- a/drivers/gpu/drm/bridge/analogix/analogix_dp_reg.c
 +++ b/drivers/gpu/drm/bridge/analogix/analogix_dp_reg.c
 @@ -376,12 +376,14 @@ int analogix_dp_init_analog_func(struct analogix_dp_device *dp)
@@ -627,7 +708,7 @@ index 38fd8d5..4374870 100644
  
  	reg = HOTPLUG_CHG | HPD_LOST | PLUG;
  	writel(reg, dp->reg_base + ANALOGIX_DP_COMMON_INT_STA_4);
-@@ -394,8 +396,8 @@ void analogix_dp_init_hpd(struct analogix_dp_device *dp)
+@@ -394,14 +396,15 @@ void analogix_dp_init_hpd(struct analogix_dp_device *dp)
  {
  	u32 reg;
  
@@ -638,7 +719,17 @@ index 38fd8d5..4374870 100644
  
  	analogix_dp_clear_hotplug_interrupts(dp);
  
-@@ -417,13 +419,13 @@ enum dp_irq_type analogix_dp_get_irq_type(struct analogix_dp_device *dp)
+-	reg = readl(dp->reg_base + ANALOGIX_DP_SYS_CTL_3);
+-	reg &= ~(F_HPD | HPD_CTRL);
+-	writel(reg, dp->reg_base + ANALOGIX_DP_SYS_CTL_3);
++	// TODO test
++	//reg = readl(dp->reg_base + ANALOGIX_DP_SYS_CTL_3);
++	//reg &= ~(F_HPD | HPD_CTRL);
++	//writel(reg, dp->reg_base + ANALOGIX_DP_SYS_CTL_3);
+ }
+ 
+ void analogix_dp_force_hpd(struct analogix_dp_device *dp)
+@@ -417,13 +420,13 @@ enum dp_irq_type analogix_dp_get_irq_type(struct analogix_dp_device *dp)
  {
  	u32 reg;
  
@@ -654,7 +745,7 @@ index 38fd8d5..4374870 100644
  		/* Parse hotplug interrupt status register */
  		reg = readl(dp->reg_base + ANALOGIX_DP_COMMON_INT_STA_4);
  
-@@ -437,7 +439,7 @@ enum dp_irq_type analogix_dp_get_irq_type(struct analogix_dp_device *dp)
+@@ -437,7 +440,7 @@ enum dp_irq_type analogix_dp_get_irq_type(struct analogix_dp_device *dp)
  			return DP_IRQ_TYPE_HP_CHANGE;
  
  		return DP_IRQ_TYPE_UNKNOWN;
@@ -663,7 +754,7 @@ index 38fd8d5..4374870 100644
  }
  
  void analogix_dp_reset_aux(struct analogix_dp_device *dp)
-@@ -981,6 +983,7 @@ ssize_t analogix_dp_transfer(struct analogix_dp_device *dp,
+@@ -981,6 +984,7 @@ ssize_t analogix_dp_transfer(struct analogix_dp_device *dp,
  	int ret;
  
  	/* Buffer size of AUX CH is 16 bytes */
@@ -671,7 +762,7 @@ index 38fd8d5..4374870 100644
  	if (WARN_ON(msg->size > 16))
  		return -E2BIG;
  
-@@ -1068,8 +1071,13 @@ ssize_t analogix_dp_transfer(struct analogix_dp_device *dp,
+@@ -1068,12 +1072,20 @@ ssize_t analogix_dp_transfer(struct analogix_dp_device *dp,
  
  		writel(AUX_ERR, dp->reg_base + ANALOGIX_DP_INT_STA);
  
@@ -685,9 +776,19 @@ index 38fd8d5..4374870 100644
 +			return -EBUSY;
 +		}
  
- 		dev_warn(dp->dev, "AUX CH error happened: %#x (%d)\n",
- 			 aux_status, !!(reg & AUX_ERR));
-@@ -1103,5 +1111,6 @@ ssize_t analogix_dp_transfer(struct analogix_dp_device *dp,
+-		dev_warn(dp->dev, "AUX CH error happened: %#x (%d)\n",
+-			 aux_status, !!(reg & AUX_ERR));
+-		goto aux_error;
++		if (aux_status != AUX_STATUS_OK) {
++			// TODO: DELL S2722DC has lots of "6" errors (AUX_STATUS_RX_SHORT_ERROR)
++			dev_warn(dp->dev, "AUX CH error happened: %#x (%d)\n",
++				 aux_status, !!(reg & AUX_ERR));
++			goto aux_error;
++		}
+ 	}
+ 
+ 	if (msg->request & DP_AUX_I2C_READ) {
+@@ -1103,5 +1115,6 @@ ssize_t analogix_dp_transfer(struct analogix_dp_device *dp,
  	/* if aux err happen, reset aux */
  	analogix_dp_init_aux(dp);
  
