@@ -603,20 +603,26 @@ cp fsl-ls1028a-mnt-reform2.dts linux/arch/arm64/boot/dts/freescale/fsl-ls1028a-m
 env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/freescale/imx8mq-mnt-reform2-hdmi.dts
 cp imx8mq-mnt-reform2-hdmi.dts linux/arch/arm64/boot/dts/freescale/imx8mq-mnt-reform2-hdmi.dts
 env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/freescale/Makefile
-sed -i '/fsl-ls1028a-rdb.dtb/a dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-ls1028a-mnt-reform2.dtb' linux/arch/arm64/boot/dts/freescale/Makefile
-sed -i '/imx8mq-mnt-reform2.dtb/a dtb-$(CONFIG_ARCH_MXC) += imx8mq-mnt-reform2-hdmi.dtb' linux/arch/arm64/boot/dts/freescale/Makefile
+cat << 'END' >> linux/arch/arm64/boot/dts/freescale/Makefile
+dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-ls1028a-mnt-reform2.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mq-mnt-reform2-hdmi.dtb
+END
 # pocket reform and a311d only work with 6.5 or later
 if dpkg --compare-versions "$KVER" ge "6.5"; then
 	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/freescale/imx8mp-mnt-pocket-reform.dts
 	cp imx8mp-mnt-pocket-reform.dts linux/arch/arm64/boot/dts/freescale/imx8mp-mnt-pocket-reform.dts
 	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/freescale/imx8mp-mnt-reform2.dts
 	cp imx8mp-mnt-reform2.dts linux/arch/arm64/boot/dts/freescale/imx8mp-mnt-reform2.dts
-	sed -i '/imx8mq-mnt-reform2.dtb/a dtb-$(CONFIG_ARCH_MXC) += imx8mp-mnt-pocket-reform.dtb' linux/arch/arm64/boot/dts/freescale/Makefile
-	sed -i '/imx8mq-mnt-reform2.dtb/a dtb-$(CONFIG_ARCH_MXC) += imx8mp-mnt-reform2.dtb' linux/arch/arm64/boot/dts/freescale/Makefile
+	cat << 'END' >> linux/arch/arm64/boot/dts/freescale/Makefile
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-mnt-pocket-reform.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-mnt-reform2.dtb
+END
 	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/amlogic/meson-g12b-bananapi-cm4-mnt-pocket-reform.dts
 	cp meson-g12b-bananapi-cm4-mnt-pocket-reform.dts linux/arch/arm64/boot/dts/amlogic/meson-g12b-bananapi-cm4-mnt-pocket-reform.dts
 	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/amlogic/Makefile
-	sed -i '/meson-g12b-bananapi-cm4-mnt-reform2.dtb/a dtb-$(CONFIG_ARCH_MESON) += meson-g12b-bananapi-cm4-mnt-pocket-reform.dtb' linux/arch/arm64/boot/dts/amlogic/Makefile
+	cat << 'END' >> linux/arch/arm64/boot/dts/amlogic/Makefile
+dtb-$(CONFIG_ARCH_MESON) += meson-g12b-bananapi-cm4-mnt-pocket-reform.dtb
+END
 fi
 # rk3588 needs 6.8 or later
 if dpkg --compare-versions "$KVER" ge "6.8"; then
@@ -631,18 +637,24 @@ if dpkg --compare-versions "$KVER" ge "6.8"; then
 	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/rockchip/Makefile
 	if ! grep --silent --fixed-strings --line-regexp 'dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform2.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile; then
 		# rk3588-mnt-reform2.dtb is included since 6.15
-		sed -i '/^dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-rock-5b.dtb$/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform2.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
+		cat << 'END' >> linux/arch/arm64/boot/dts/rockchip/Makefile
+dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform2.dtb
+END
 	fi
-	sed -i '/rk3588-mnt-reform2.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform2-dsi.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
-	sed -i '/rk3588-mnt-reform2-dsi.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-pocket-reform.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
-	sed -i '/rk3588-mnt-pocket-reform.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-station.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
+	cat << 'END' >> linux/arch/arm64/boot/dts/rockchip/Makefile
+dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform2-dsi.dtb
+dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-pocket-reform.dtb
+dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-station.dtb
+END
 fi
 
 # reform next needs 6.16 or later
 if dpkg --compare-versions "$KVER" ge "6.16"; then
 	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/rockchip/rk3588-mnt-reform-next.dts
 	cp rk3588-mnt-reform-next.dts linux/arch/arm64/boot/dts/rockchip/rk3588-mnt-reform-next.dts
-	sed -i '/rk3588-mnt-pocket-reform.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform-next.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
+	cat << 'END' >> linux/arch/arm64/boot/dts/rockchip/Makefile
+dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform-next.dtb
+END
 fi
 
 # quasar needs 7.0 or later
@@ -662,12 +674,14 @@ if dpkg --compare-versions "$KVER" ge "7.0"; then
 	cp qcs8550-mnt-pocket-reform.dts linux/arch/arm64/boot/dts/qcom/qcs8550-mnt-pocket-reform.dts
 	cp qcs8550-mnt-reform-next.dts linux/arch/arm64/boot/dts/qcom/qcs8550-mnt-reform-next.dts
 	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/qcom/Makefile
-	sed -i '/qcs6490-rb3gen2-vision-mezzanine.dtb/a dtb-$(CONFIG_ARCH_QCOM) += qcs6490-mnt-reform2.dtb' linux/arch/arm64/boot/dts/qcom/Makefile
-	sed -i '/qcs6490-rb3gen2-vision-mezzanine.dtb/a dtb-$(CONFIG_ARCH_QCOM) += qcs6490-mnt-pocket-reform.dtb' linux/arch/arm64/boot/dts/qcom/Makefile
-	sed -i '/qcs6490-rb3gen2-vision-mezzanine.dtb/a dtb-$(CONFIG_ARCH_QCOM) += qcs6490-mnt-reform-next.dtb' linux/arch/arm64/boot/dts/qcom/Makefile
-	sed -i '/qcs8550-aim300-aiot.dtb/a dtb-$(CONFIG_ARCH_QCOM) += qcs8550-mnt-reform2.dtb' linux/arch/arm64/boot/dts/qcom/Makefile
-	sed -i '/qcs8550-aim300-aiot.dtb/a dtb-$(CONFIG_ARCH_QCOM) += qcs8550-mnt-pocket-reform.dtb' linux/arch/arm64/boot/dts/qcom/Makefile
-	sed -i '/qcs8550-aim300-aiot.dtb/a dtb-$(CONFIG_ARCH_QCOM) += qcs8550-mnt-reform-next.dtb' linux/arch/arm64/boot/dts/qcom/Makefile
+	cat << 'END' >> linux/arch/arm64/boot/dts/qcom/Makefile
+dtb-$(CONFIG_ARCH_QCOM) += qcs6490-mnt-reform2.dtb
+dtb-$(CONFIG_ARCH_QCOM) += qcs6490-mnt-pocket-reform.dtb
+dtb-$(CONFIG_ARCH_QCOM) += qcs6490-mnt-reform-next.dtb
+dtb-$(CONFIG_ARCH_QCOM) += qcs8550-mnt-reform2.dtb
+dtb-$(CONFIG_ARCH_QCOM) += qcs8550-mnt-pocket-reform.dtb
+dtb-$(CONFIG_ARCH_QCOM) += qcs8550-mnt-reform-next.dtb
+END
 fi
 
 # finalize dts.patch
