@@ -236,19 +236,52 @@
 	status = "okay";
 };
 
-// internal HDMI, currently unused on pocket,
-// but could be used for 3rd display
-/*&hdmi0 {
-	tmds-enable-gpios = <&gpio4 RK_PA0 GPIO_ACTIVE_HIGH>;
-	frl-enable-gpios = <&gpio4 RK_PA0 GPIO_ACTIVE_HIGH>;
+&pd_gpu {
 	status = "okay";
 };
 
-&hdmi0_in {
-	hdmi0_in_vp1: endpoint {
-		remote-endpoint = <&vp1_out_hdmi0>;
+/* internal eDP/HDMI connector, can feed USB-C DP Alt Mode
+on MNT Pocket Reform Mainboard 2.0 */
+&edp0 {
+	// TODO enable-gpios not actually working! HDMI0_TX_ON (pulldowns)
+	// but it works because of the edphdmimode's pulldown
+	enable-gpios = <&gpio4 RK_PA0 GPIO_ACTIVE_LOW>;
+	hpd-gpios = <&gpio1 RK_PA5 GPIO_ACTIVE_HIGH>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&edphpd>, <&edphdmimode>;
+	rockchip,lane-count = <2>;
+	status = "okay";
+
+	aux-bus {
+		panel {
+			// TODO analogix_dp driver doesn't seem to support connectors?
+			compatible = "edp-panel";
+			//compatible = "dp-connector";
+			power-supply = <&vcc3v3_pcie30>;
+			enable-gpios = <&gpio3 RK_PB3 GPIO_ACTIVE_HIGH>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&edpauxen>;
+
+			port {
+				panel_in_edp: endpoint {
+					remote-endpoint = <&edp_out_panel>;
+				};
+			};
+		};
 	};
-};*/
+};
+
+&edp0_in {
+	edp0_in_vp1: endpoint {
+		remote-endpoint = <&vp1_out_edp0>;
+	};
+};
+
+&edp0_out {
+	edp_out_panel: endpoint {
+		remote-endpoint = <&panel_in_edp>;
+	};
+};
 
 &hdptxphy0 {
 	status = "okay";
@@ -488,10 +521,16 @@
 	pinctrl-0 = <&spi1m2_cs0 &spi1m2_pins>;
 	num-cs = <1>;
 
-	spidev@0 {
-		compatible = "mntre,lpc11u24";
+	mnt_sc: spidev@0 {
+		compatible = "mntre,system-controller";
 		spi-max-frequency = <1000000>;
 		reg = <0>;
+		gpio-controller;
+		#gpio-cells = <2>;
+
+		backlight {
+			// optional backlight populated by SC
+		};
 	};
 };
 
@@ -893,6 +932,21 @@
 		};
 	};
 
+	edp {
+		edphpd: edp-hpd {
+			// TODO RK_FUNC_GPIO?
+			rockchip,pins = <1 RK_PA5 5 &pcfg_pull_down>;
+		};
+
+		edpauxen: edp-aux-en {
+			rockchip,pins = <3 RK_PA3 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+
+		edphdmimode: edp-hdmi-mode {
+			rockchip,pins = <4 RK_PA0 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+	};
+
 	pcie2 {
 		pcie2_0_rst: pcie2-0-rst {
 			rockchip,pins = <3 RK_PD1 RK_FUNC_GPIO &pcfg_pull_none>;
@@ -919,15 +973,15 @@
 };
 
 &gpio4 {
-  /* there are no resistor straps for config options
-  like LED_MODE on RCORE R1, so use a GPIO hog
-  to configure the LED_MODE at PHY reset time */
-  eth-phy-strap-hog {
-    gpios = <RK_PC3 GPIO_ACTIVE_LOW>;
-    output-low;
-    line-name = "ETH PHY LED Mode Strap";
-    gpio-hog;
-  };
+	/* there are no resistor straps for config options
+	like LED_MODE on RCORE R1, so use a GPIO hog
+	to configure the LED_MODE at PHY reset time */
+	eth-phy-strap-hog {
+		gpios = <RK_PC3 GPIO_ACTIVE_LOW>;
+		output-low;
+		line-name = "ETH PHY LED Mode Strap";
+		gpio-hog;
+	};
 };
 
 &u2phy0 {
@@ -1030,22 +1084,25 @@
 	};
 };
 
-/*&vp2 {
-	vp2_out_hdmi0: endpoint@ROCKCHIP_VOP2_EP_HDMI0 {
-		reg = <ROCKCHIP_VOP2_EP_HDMI0>;
-		remote-endpoint = <&hdmi0_in_vp2>;
+&vp1 {
+	vp1_out_edp0: endpoint@ROCKCHIP_VOP2_EP_EDP0 {
+		reg = <ROCKCHIP_VOP2_EP_EDP0>;
+		remote-endpoint = <&edp0_in_vp1>;
 	};
-};*/
+};
 
 &dsi1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
 	status = "okay";
 	rockchip,lane-rate = <972000>;
 
-	panel {
+	panel@0 {
 		compatible = "jdi,lt070me05000";
 		reg = <0>;
 
-		// reset is driven by rp2040
+		// reset is driven by SC (rp2040)
+		// reset-gpios = <&mnt_sc 0 GPIO_ACTIVE_LOW>;
 		// dcdc en is also driven by rp2040
 		// actually backlight enable
 		enable-gpios = <&gpio2 RK_PB5 GPIO_ACTIVE_HIGH>;

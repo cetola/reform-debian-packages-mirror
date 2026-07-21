@@ -1,0 +1,33 @@
+commit e8e1dff14a9a496536f229d0c1bb3ccd74bd64e3
+Author: Lucie L. Hartmann <lukas@mntre.com>
+Date:   Thu Jun 18 21:19:14 2026 +0200
+
+    rk3588/analogix_dp: add DTS options for eDP: rockchip,lane-count and rockchip,link-rate
+
+diff --git a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
+index efe5349..8cbd961 100644
+--- a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
++++ b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
+@@ -559,6 +559,10 @@ static int analogix_dp_full_link_train(struct analogix_dp_device *dp,
+ 	/* Initialize by reading RX's DPCD */
+ 	analogix_dp_get_max_rx_bandwidth(dp, &dp->link_train.link_rate);
+ 	analogix_dp_get_max_rx_lane_count(dp, &dp->link_train.lane_count);
++	dev_info(dp->dev, "link_rate: 0x%x\n", dp->link_train.link_rate);
++	dev_info(dp->dev, "lane_count: 0x%x\n", dp->link_train.lane_count);
++	dev_info(dp->dev, "max_rate: 0x%x\n", max_rate);
++	dev_info(dp->dev, "max_lanes: 0x%x\n", max_lanes);
+ 
+ 	if ((dp->link_train.link_rate != DP_LINK_BW_1_62) &&
+ 	    (dp->link_train.link_rate != DP_LINK_BW_2_7) &&
+@@ -1403,6 +1407,11 @@ static int analogix_dp_dt_parse_pdata(struct analogix_dp_device *dp)
+ 	case RK3588_EDP:
+ 		video_info->max_link_rate = 0x14;
+ 		video_info->max_lane_count = 0x04;
++		/* Optional overrides, for DP alt mode support */
++		of_property_read_u32(dp_node, "rockchip,link-rate",
++				     &video_info->max_link_rate);
++		of_property_read_u32(dp_node, "rockchip,lane-count",
++				     &video_info->max_lane_count);
+ 		break;
+ 	case EXYNOS_DP:
+ 		/*
