@@ -689,7 +689,7 @@ fi
 
 # add config *after* adding patches or otherwise kconfigeditor2 will throw
 # (nonfatal) warnings about config options that don't exist (yet)
-cat config >>linux/debian/config/arm64/config
+sed 's/#.*//' config >>linux/debian/config/arm64/config
 # we don't care that ":" runs even when control-real succeeds
 # shellcheck disable=SC2015
 if dpkg --compare-versions "$KVER" ge "6.17"; then
