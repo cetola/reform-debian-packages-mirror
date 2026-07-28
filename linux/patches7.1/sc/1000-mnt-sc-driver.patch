@@ -1,6 +1,6 @@
-commit 60fa97f03a79229590c18f9fd339bc2bc38713ac
+commit 42e8e85595b733f46802aaecf0fc4b3509a3aaae
 Author: Lucie L. Hartmann <lucie@mntre.com>
-Date:   Fri Jul 17 21:20:33 2026 +0200
+Date:   Tue Jul 28 16:15:11 2026 +0200
 
     drivers/firmware/mnt-sc: add to kernel tree
 
@@ -36,7 +36,7 @@ index 4ddec28..71d9ee6 100644
  obj-y				+= arm_scmi/
 diff --git a/drivers/firmware/mnt-sc.c b/drivers/firmware/mnt-sc.c
 new file mode 100644
-index 0000000..70d181b
+index 0000000..4bc76df
 --- /dev/null
 +++ b/drivers/firmware/mnt-sc.c
 @@ -0,0 +1,720 @@
@@ -190,10 +190,9 @@ index 0000000..70d181b
 +{
 +	int ret;
 +	struct mntsc_driver_data *mntsc =
-+		(struct mntsc_driver_data *)dev_get_drvdata(gc->parent);
++		(struct mntsc_driver_data *)gpiochip_get_data(gc);
 +
-+	dev_info(gc->parent, "%s: %s <- %d\n", __func__, gc->names[offset],
-+		 value);
++	dev_info(&mntsc->spi->dev, "[mntsc_gpio_set] %d <- %d\n", (int)offset, value);
 +	char cmd[32];
 +	snprintf(cmd, 32, "(set-gpio %d %d)", offset, value);
 +	ret = sc_cmd(mntsc, cmd);
@@ -347,6 +346,7 @@ index 0000000..70d181b
 +	data->gc.can_sleep = true;
 +	data->gc.names =
 +		(const char *const[]){ "disp_reset", "hub_pwr_en", "pcie_pwr_en", "3v3_en", "uswitch_off", "disp_bl_pwr_en" };
++	devm_gpiochip_add_data(&spi->dev, &data->gc, data);
 +
 +	spi_controller_get(spi->controller);
 +
