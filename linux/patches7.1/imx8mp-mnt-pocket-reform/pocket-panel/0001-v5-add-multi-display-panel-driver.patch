@@ -43,7 +43,7 @@ new file mode 100644
 index 0000000..2773605
 --- /dev/null
 +++ b/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c
-@@ -0,0 +1,842 @@
+@@ -0,0 +1,841 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
 + * Copyright (C) 2016 InforceComputing
@@ -62,7 +62,6 @@ index 0000000..2773605
 +#include <linux/module.h>
 +#include <linux/of.h>
 +#include <linux/regulator/consumer.h>
-+#include <linux/panel-mnt-pocket-reform.h>
 +
 +#include <video/mipi_display.h>
 +
