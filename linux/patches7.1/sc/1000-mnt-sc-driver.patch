@@ -343,7 +343,7 @@ index 0000000..4bc76df
 +	data->gc.label = dev_name(&spi->dev);
 +	data->gc.parent = &spi->dev;
 +	data->gc.owner = THIS_MODULE;
-+	data->gc.can_sleep = false;
++	data->gc.can_sleep = true;
 +	data->gc.names =
 +		(const char *const[]){ "disp_reset", "hub_pwr_en", "pcie_pwr_en", "3v3_en", "uswitch_off", "disp_bl_pwr_en" };
 +	devm_gpiochip_add_data(&spi->dev, &data->gc, data);
