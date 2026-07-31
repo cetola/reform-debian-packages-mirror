@@ -686,6 +686,10 @@
 
 		gpio-controller;
 		#gpio-cells = <2>;
+
+		backlight {
+			// optional backlight populated by SC
+		};
 	};
 };
 

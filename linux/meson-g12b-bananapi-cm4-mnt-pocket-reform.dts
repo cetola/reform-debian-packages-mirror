@@ -199,10 +199,16 @@
 		cs-gpios = <&gpio GPIOA_10 0>; // GPIOA_10 / GPIO4
 		num-chipselects = <1>;
 
-		spidev@0 {
-			compatible = "mntre,lpc11u24";
+		mnt_sc: spidev@0 {
+			compatible = "mntre,system-controller";
 			spi-max-frequency = <1000000>;
 			reg = <0>;
+			gpio-controller;
+			#gpio-cells = <2>;
+
+			backlight {
+				// optional backlight populated by SC
+			};
 		};
 	};
 };
@@ -238,7 +244,8 @@
 		compatible = "jdi,lt070me05000";
 		reg = <0>;
 
-		// reset is driven by rp2040
+		// reset is driven by SC (rp2040)
+		reset-gpios = <&mnt_sc 0 GPIO_ACTIVE_LOW>;
 		// dcdc en is also driven by rp2040
 		enable-gpios = <&gpio 58 GPIO_ACTIVE_HIGH>;
 
