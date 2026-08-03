@@ -242,6 +242,7 @@ Depends:
  netbase,
  netcat-openbsd,
  network-manager,
+ network-manager (<< 1.56.0-4) | network-manager-tui,
  nfacct,
  ntpsec,
  ntpsec-ntpdate,
