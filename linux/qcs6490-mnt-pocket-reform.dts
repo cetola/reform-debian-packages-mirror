@@ -94,11 +94,10 @@ No SS phy
 
 		/* Reset and dcdc_en are wired to syscon */
 		reset-gpios = <&mnt_sc MNTSC_GPIO_DISP_RESET GPIO_ACTIVE_LOW>;
+		/* display v2 backlight pwm unlock virtual gpio */
+		dispv2-gpios = <&mnt_sc 8 GPIO_ACTIVE_HIGH>;
 		/* Actually backlight enable */
 		enable-gpios = <&tlmm 94 GPIO_ACTIVE_HIGH>;
-		/* Stub supplies so driver will load */
-		vddp-supply = <&main_3v3>;
-		iovcc-supply = <&main_3v3>;
 
 		pinctrl-0 = <&mdp_vsync>;
 		pinctrl-names = "default";

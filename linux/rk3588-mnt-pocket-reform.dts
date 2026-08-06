@@ -1105,7 +1105,8 @@
 
 		// reset is driven by SC (rp2040)
 		reset-gpios = <&mnt_sc 0 GPIO_ACTIVE_LOW>;
-		// dcdc en is also driven by rp2040
+		// display v2 backlight pwm unlock virtual gpio
+		dispv2-gpios = <&mnt_sc 8 GPIO_ACTIVE_HIGH>;
 		// actually backlight enable
 		enable-gpios = <&gpio2 RK_PB5 GPIO_ACTIVE_HIGH>;
 		no-eot-hfp-hbp-hsa;

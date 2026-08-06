@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 
 /*
- * Copyright 2019-2022 MNT Research GmbH
+ * Copyright 2019-2026 MNT Research GmbH
  * Copyright 2021 Lucas Stach <dev@lynxeye.de>
  * Copyright 2020 Boundary Devices
 */
-
-// https://github.com/boundarydevices/linux/blob/boundary-imx_5.15.y/arch/arm64/boot/dts/freescale/imx8mp-nitrogen8mp.dts
 
 /dts-v1/;
 
@@ -822,7 +820,8 @@
 
 		// reset is driven by SC (rp2040)
 		reset-gpios = <&mnt_sc 0 GPIO_ACTIVE_LOW>;
-		// dcdc en is also driven by rp2040
+		// display v2 backlight pwm unlock virtual gpio
+		dispv2-gpios = <&mnt_sc 8 GPIO_ACTIVE_HIGH>;
 		// actually backlight enable
 		enable-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
 		burst-mode;
