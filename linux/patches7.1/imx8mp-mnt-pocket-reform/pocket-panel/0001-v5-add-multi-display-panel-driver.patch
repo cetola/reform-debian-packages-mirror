@@ -40,10 +40,10 @@ index 5581387..9058011 100644
  obj-$(CONFIG_DRM_PANEL_NEWVISION_NV3051D) += panel-newvision-nv3051d.o
 diff --git a/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c b/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c
 new file mode 100644
-index 0000000..5c4b919
+index 0000000..1e8b893
 --- /dev/null
 +++ b/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c
-@@ -0,0 +1,920 @@
+@@ -0,0 +1,917 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
 + * Copyright (C) 2016 InforceComputing
@@ -205,7 +205,6 @@ index 0000000..5c4b919
 +		}
 +	}
 +
-+	if (!IS_ERR(jdi->dispv2_gpio)) gpiod_set_value_cansleep(jdi->dispv2_gpio, 1);
 +	if (!IS_ERR(jdi->enable_gpio)) gpiod_set_value_cansleep(jdi->enable_gpio, 1);
 +
 +	msleep(100);
@@ -235,8 +234,6 @@ index 0000000..5c4b919
 +			msleep(100);
 +		}
 +	}
-+
-+	if (!IS_ERR(jdi->dispv2_gpio)) gpiod_set_value_cansleep(jdi->dispv2_gpio, 0);
 +}
 +
 +static int mnt_panel_detect_version(struct jdi_panel *jdi)
