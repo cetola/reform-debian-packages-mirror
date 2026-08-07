@@ -40,10 +40,10 @@ index 5581387..9058011 100644
  obj-$(CONFIG_DRM_PANEL_NEWVISION_NV3051D) += panel-newvision-nv3051d.o
 diff --git a/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c b/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c
 new file mode 100644
-index 0000000..b397b01
+index 0000000..1d0f132
 --- /dev/null
 +++ b/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c
-@@ -0,0 +1,919 @@
+@@ -0,0 +1,927 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
 + * Copyright (C) 2016 InforceComputing
@@ -197,22 +197,27 @@ index 0000000..b397b01
 +{
 +	int ret;
 +
-+	if (!IS_ERR(jdi->reset_gpio)) {
-+		for (int i=0; i<10; i++) {
-+			ret = gpiod_set_value_cansleep(jdi->reset_gpio, 1);
-+			if (!ret) break;
-+			msleep(100);
++	if (jdi->panel_version == 2) {
++		// TODO: panel v1 doesn't like the HW reset?
++		if (!IS_ERR(jdi->reset_gpio)) {
++			for (int i=0; i<10; i++) {
++				ret = gpiod_set_value_cansleep(jdi->reset_gpio, 1);
++				if (!ret) break;
++				msleep(100);
++			}
 +		}
 +	}
 +
 +	if (!IS_ERR(jdi->enable_gpio)) gpiod_set_value_cansleep(jdi->enable_gpio, 1);
-+
 +	msleep(100);
-+	if (!IS_ERR(jdi->reset_gpio)) {
-+		for (int i=0; i<10; i++) {
-+			ret = gpiod_set_value_cansleep(jdi->reset_gpio, 0);
-+			if (!ret) break;
-+			msleep(100);
++
++	if (jdi->panel_version == 2) {
++		if (!IS_ERR(jdi->reset_gpio)) {
++			for (int i=0; i<10; i++) {
++				ret = gpiod_set_value_cansleep(jdi->reset_gpio, 0);
++				if (!ret) break;
++				msleep(100);
++			}
 +		}
 +	}
 +
@@ -227,11 +232,13 @@ index 0000000..b397b01
 +
 +	if (!IS_ERR(jdi->enable_gpio)) gpiod_set_value_cansleep(jdi->enable_gpio, 0);
 +
-+	if (!IS_ERR(jdi->reset_gpio)) {
-+		for (int i=0; i<10; i++) {
-+			ret = gpiod_set_value_cansleep(jdi->reset_gpio, 1);
-+			if (!ret) break;
-+			msleep(100);
++	if (jdi->panel_version == 2) {
++		if (!IS_ERR(jdi->reset_gpio)) {
++			for (int i=0; i<10; i++) {
++				ret = gpiod_set_value_cansleep(jdi->reset_gpio, 1);
++				if (!ret) break;
++				msleep(100);
++			}
 +		}
 +	}
 +}
@@ -242,6 +249,7 @@ index 0000000..b397b01
 +	struct device *dev = &jdi->dsi->dev;
 +	u8 readval = 0;
 +
++	//mdelay(20);
 +	if (jdi->panel_version) {
 +		return 0;
 +	}
@@ -826,7 +834,7 @@ index 0000000..b397b01
 +			       "cannot get (optional) enable-gpio %d\n", ret);
 +
 +	for (int i = 0; i < 10; i++) {
-+		jdi->reset_gpio = devm_gpiod_get(dev, "reset", GPIOD_OUT_HIGH);
++		jdi->reset_gpio = devm_gpiod_get(dev, "reset", GPIOD_OUT_LOW);
 +		if (!IS_ERR(jdi->reset_gpio)) break;
 +		msleep(100);
 +	}
