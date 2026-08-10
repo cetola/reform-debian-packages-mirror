@@ -40,10 +40,10 @@ index 5581387..9058011 100644
  obj-$(CONFIG_DRM_PANEL_NEWVISION_NV3051D) += panel-newvision-nv3051d.o
 diff --git a/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c b/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c
 new file mode 100644
-index 0000000..b7f1715
+index 0000000..51e0328
 --- /dev/null
 +++ b/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c
-@@ -0,0 +1,943 @@
+@@ -0,0 +1,955 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
 + * Copyright (C) 2016 InforceComputing
@@ -244,8 +244,20 @@ index 0000000..b7f1715
 +			}
 +		}
 +	}
-+	msleep(100);
++	msleep(50);
 +	if (!IS_ERR(jdi->enable_gpio)) gpiod_set_value_cansleep(jdi->enable_gpio, 0);
++	msleep(50);
++	// finally, we deassert the reset in case barebox/another OS doesn't
++	// know how to do that after a warm reboot.
++	if (jdi->panel_version == 2) {
++		if (!IS_ERR(jdi->reset_gpio)) {
++			for (int i=0; i<10; i++) {
++				int ret = gpiod_set_value_cansleep(jdi->reset_gpio, 0);
++				if (!ret) break;
++				msleep(100);
++			}
++		}
++	}
 +}
 +
 +static int mnt_panel_detect_version(struct jdi_panel *jdi)
