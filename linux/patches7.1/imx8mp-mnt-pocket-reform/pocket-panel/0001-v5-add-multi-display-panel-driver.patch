@@ -40,10 +40,10 @@ index 5581387..9058011 100644
  obj-$(CONFIG_DRM_PANEL_NEWVISION_NV3051D) += panel-newvision-nv3051d.o
 diff --git a/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c b/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c
 new file mode 100644
-index 0000000..a3747b7
+index 0000000..b7f1715
 --- /dev/null
 +++ b/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c
-@@ -0,0 +1,932 @@
+@@ -0,0 +1,943 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
 + * Copyright (C) 2016 InforceComputing
@@ -195,13 +195,16 @@ index 0000000..a3747b7
 +
 +static int mnt_panel_power_on(struct jdi_panel *jdi)
 +{
-+	int ret;
++	struct device *dev = &jdi->dsi->dev;
++	dev_info(dev, "[mnt_panel_power_on] panel version: %d\n", jdi->panel_version);
++
++	if (!IS_ERR(jdi->enable_gpio)) gpiod_set_value_cansleep(jdi->enable_gpio, 0);
 +
 +	if (jdi->panel_version == 2) {
 +		// TODO: panel v1 doesn't like the HW reset?
 +		if (!IS_ERR(jdi->reset_gpio)) {
 +			for (int i=0; i<10; i++) {
-+				ret = gpiod_set_value_cansleep(jdi->reset_gpio, 1);
++				int ret = gpiod_set_value_cansleep(jdi->reset_gpio, 1);
 +				if (!ret) break;
 +				msleep(100);
 +			}
@@ -214,7 +217,7 @@ index 0000000..a3747b7
 +	if (jdi->panel_version == 2) {
 +		if (!IS_ERR(jdi->reset_gpio)) {
 +			for (int i=0; i<10; i++) {
-+				ret = gpiod_set_value_cansleep(jdi->reset_gpio, 0);
++				int ret = gpiod_set_value_cansleep(jdi->reset_gpio, 0);
 +				if (!ret) break;
 +				msleep(100);
 +			}
@@ -226,7 +229,8 @@ index 0000000..a3747b7
 +
 +static void mnt_panel_power_off(struct jdi_panel *jdi)
 +{
-+	int ret;
++	struct device *dev = &jdi->dsi->dev;
++	dev_info(dev, "[mnt_panel_power_off] panel version: %d\n", jdi->panel_version);
 +
 +	// the key to preventing the "half screen" problem with display v2
 +	// is turning the panel off in the right way: the reset has to
@@ -234,7 +238,7 @@ index 0000000..a3747b7
 +	if (jdi->panel_version == 2) {
 +		if (!IS_ERR(jdi->reset_gpio)) {
 +			for (int i=0; i<10; i++) {
-+				ret = gpiod_set_value_cansleep(jdi->reset_gpio, 1);
++				int ret = gpiod_set_value_cansleep(jdi->reset_gpio, 1);
 +				if (!ret) break;
 +				msleep(100);
 +			}
@@ -268,7 +272,14 @@ index 0000000..a3747b7
 +	} else {
 +		jdi->panel_version = 2;
 +	}
-+	dev_info(dev, "[mnt_panel_detect_version] detected panel_version: %d\n", jdi->panel_version);
++	dev_info(dev, "[mnt_panel_detect_version] detected panel_version: %d\n",
++		 jdi->panel_version);
++	if (jdi->panel_version == 2) {
++		// if we freshly detect display panel v2, we need to repeat it's power
++		// on sequence, as we couldn't do the proper sequence
++		// without knowing the correct panel version.
++		mnt_panel_power_on(jdi);
++	}
 +	return 0;
 +}
 +
