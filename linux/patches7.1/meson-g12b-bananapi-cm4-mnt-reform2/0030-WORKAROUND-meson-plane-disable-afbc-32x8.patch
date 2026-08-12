@@ -10,14 +10,19 @@ Date:   Sat Mar 22 14:48:13 2025 +0100
     Debian bug: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1099032
     Mesa bug: https://gitlab.freedesktop.org/mesa/mesa/-/issues/12718
 
-diff --git a/drivers/gpu/drm/meson/meson_plane.c b/drivers/gpu/drm/meson/meson_plane.c
-index b43ac61..ba6331f 100644
 --- a/drivers/gpu/drm/meson/meson_plane.c
 +++ b/drivers/gpu/drm/meson/meson_plane.c
-@@ -508,18 +508,6 @@ static const uint64_t format_modifiers_afbc_g12a[] = {
- 				AFBC_FORMAT_MOD_YTR |
- 				AFBC_FORMAT_MOD_SPARSE |
- 				AFBC_FORMAT_MOD_SPLIT),
+@@ -502,25 +502,6 @@ static const uint64_t format_modifiers_a
+ 	 * - 32x8 block size + SPLIT is mandatory with 4K frame size
+ 	 *   for performances reasons
+ 	 */
+-	DRM_FORMAT_MOD_ARM_AFBC(AFBC_FORMAT_MOD_BLOCK_SIZE_16x16 |
+-				AFBC_FORMAT_MOD_SPARSE |
+-				AFBC_FORMAT_MOD_SPLIT),
+-	DRM_FORMAT_MOD_ARM_AFBC(AFBC_FORMAT_MOD_BLOCK_SIZE_16x16 |
+-				AFBC_FORMAT_MOD_YTR |
+-				AFBC_FORMAT_MOD_SPARSE |
+-				AFBC_FORMAT_MOD_SPLIT),
 -	DRM_FORMAT_MOD_ARM_AFBC(AFBC_FORMAT_MOD_BLOCK_SIZE_32x8 |
 -				AFBC_FORMAT_MOD_SPARSE),
 -	DRM_FORMAT_MOD_ARM_AFBC(AFBC_FORMAT_MOD_BLOCK_SIZE_32x8 |
