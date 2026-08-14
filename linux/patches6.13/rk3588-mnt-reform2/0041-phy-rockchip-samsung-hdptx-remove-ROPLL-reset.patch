@@ -1,5 +1,5 @@
 From c6e9548faa0e2ccafdff1c90a8c3b39e33c44c55 Mon Sep 17 00:00:00 2001
-From: "Lukas F. Hartmann" <lukas@mntre.com>
+From: "Lucie L. Hartmann" <lucie@mntre.com>
 Date: Fri, 18 Apr 2025 22:15:15 +0200
 Subject: [PATCH 41/41] phy-rockchip-samsung-hdptx: remove ROPLL reset
 

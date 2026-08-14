@@ -1,3 +1,13 @@
+From 1a2746a4cf41744b5d643bdd5fad744db9a3171a Mon Sep 17 00:00:00 2001
+From: "Lucie L. Hartmann" <lucie@mntre.com>
+Date: Fri, 14 Aug 2026 07:01:55 +0200
+Subject: [PATCH 2/2] 3003-casey-lpass-sc7280-audio-hacks.patch
+
+---
+ sound/soc/qcom/lpass-sc7280.c | 20 ++++++++++----------
+ sound/soc/qcom/sc7280.c       | 34 +++++++++++++++++++++-------------
+ 2 files changed, 31 insertions(+), 23 deletions(-)
+
 diff --git a/sound/soc/qcom/lpass-sc7280.c b/sound/soc/qcom/lpass-sc7280.c
 index 817c824f9179..7fcd8cd945f3 100644
 --- a/sound/soc/qcom/lpass-sc7280.c
@@ -77,16 +87,15 @@ index abdd58c1d0a4..459ae9789347 100644
 -		dev_err(rtd->dev, "can't set codec pll: %d\n", ret);
 -		return ret;
 -	}
--
--	ret = snd_soc_dai_set_sysclk(codec_dai, RT5682S_SCLK_S_PLL2,
--					RT5682_PLL_FREQ,
 +	// ret = snd_soc_dai_set_pll(codec_dai, RT5682S_PLL2, RT5682S_PLL_S_MCLK,
 +	// 				DEFAULT_MCLK_RATE, RT5682_PLL_FREQ);
 +	// if (ret) {
 +	// 	dev_err(rtd->dev, "can't set codec pll: %d\n", ret);
 +	// 	return ret;
 +	// }
-+
+ 
+-	ret = snd_soc_dai_set_sysclk(codec_dai, RT5682S_SCLK_S_PLL2,
+-					RT5682_PLL_FREQ,
 +	/* FIXME! ??? */
 +	if (device_is_compatible(codec_dai->dev, "wlf,wm8960"))
 +		clk_id = WM8960_SYSCLK_MCLK;
@@ -116,3 +125,6 @@ index abdd58c1d0a4..459ae9789347 100644
  	default:
  		break;
  	}
+-- 
+2.47.3
+

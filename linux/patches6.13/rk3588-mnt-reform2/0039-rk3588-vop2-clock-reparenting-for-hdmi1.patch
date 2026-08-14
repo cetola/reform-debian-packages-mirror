@@ -1,5 +1,5 @@
 From fc4ebe83ef2502aa782e8e40cc31f22bfdf8efe6 Mon Sep 17 00:00:00 2001
-From: "Lukas F. Hartmann" <lukas@mntre.com>
+From: "Lucie L. Hartmann" <lucie@mntre.com>
 Date: Fri, 18 Apr 2025 21:55:07 +0200
 Subject: [PATCH 39/41] rk3588: vop2: clock reparenting for hdmi1
 

@@ -1,5 +1,5 @@
 commit c2bddc2b1dd777b9056ed8bdc5547d82fc68655e
-Author: Lucie L. Hartmann <lukas@mntre.com>
+Author: Lucie L. Hartmann <lucie@mntre.com>
 Date:   Wed Jun 10 21:29:21 2026 +0200
 
     sound/soc/qcom/sc8280xp: rebase neil's MI2S mclk fix

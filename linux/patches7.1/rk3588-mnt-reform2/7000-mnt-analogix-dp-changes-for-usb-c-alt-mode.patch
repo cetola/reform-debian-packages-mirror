@@ -1,8 +1,14 @@
-commit e205ccd9857a7c68682c1ec6363303314bf76d6c
-Author: Lucie L. Hartmann <lucie@mntre.com>
-Date:   Fri Jul 17 03:24:32 2026 +0200
+From 4bbbebf91eeac33cdd68b2ab530d701d1fb74b4a Mon Sep 17 00:00:00 2001
+From: "Lucie L. Hartmann" <lucie@mntre.com>
+Date: Fri, 14 Aug 2026 07:45:33 +0200
+Subject: [PATCH 2/2] analogix_dp/rk3588/edp: rewrite parts of driver to work
+ with usb-c DP alt-mode
 
-    analogix_dp/rk3588/edp: rewrite parts of driver to work with usb-c DP alt-mode
+---
+ .../drm/bridge/analogix/analogix_dp_core.c    | 335 ++++++++++++------
+ .../drm/bridge/analogix/analogix_dp_core.h    |  11 +-
+ .../gpu/drm/bridge/analogix/analogix_dp_reg.c |  45 ++-
+ 3 files changed, 265 insertions(+), 126 deletions(-)
 
 diff --git a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 index 8dee5f2..d6bfafd 100644
@@ -796,3 +802,6 @@ index 38fd8d5..6eb9be4 100644
 +	// TODO confirm if necessary
 +	return -EAGAIN;
  }
+-- 
+2.47.3
+

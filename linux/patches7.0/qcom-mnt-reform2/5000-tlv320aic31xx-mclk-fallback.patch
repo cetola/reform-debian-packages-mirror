@@ -1,5 +1,5 @@
 commit 37d0e49512c92ceed514a869737f518a551cfb3c
-Author: Lucie L. Hartmann <lukas@mntre.com>
+Author: Lucie L. Hartmann <lucie@mntre.com>
 Date:   Tue Jun 9 02:54:25 2026 +0200
 
     tlv320aic31xx: default to 12.288MHz sysclk if not set

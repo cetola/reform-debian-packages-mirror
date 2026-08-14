@@ -1,5 +1,5 @@
 From d7bb9377aceda34c5677e7f1f1c6c72afa883937 Mon Sep 17 00:00:00 2001
-From: "Lucie L. Hartmann" <lukas@mntre.com>
+From: "Lucie L. Hartmann" <lucie@mntre.com>
 Date: Thu, 23 Oct 2025 19:12:16 +0200
 Subject: [PATCH] (rebased) [PATCH 058/111] dt-bindings: display: vop2: Add VP
  clock resets

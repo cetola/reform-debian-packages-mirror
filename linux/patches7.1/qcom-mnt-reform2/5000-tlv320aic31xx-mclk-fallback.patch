@@ -1,11 +1,14 @@
-commit 37d0e49512c92ceed514a869737f518a551cfb3c
-Author: Lucie L. Hartmann <lukas@mntre.com>
-Date:   Tue Jun 9 02:54:25 2026 +0200
+From 43570c4eec547c8725e77ee29612e0ceaa09cdce Mon Sep 17 00:00:00 2001
+From: "Lucie L. Hartmann" <lucie@mntre.com>
+Date: Fri, 14 Aug 2026 07:27:08 +0200
+Subject: [PATCH] tlv320aic31xx: default to 12.288MHz sysclk if not set
 
-    tlv320aic31xx: default to 12.288MHz sysclk if not set
+---
+ sound/soc/codecs/tlv320aic31xx.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/sound/soc/codecs/tlv320aic31xx.c b/sound/soc/codecs/tlv320aic31xx.c
-index cf5e991..c119446 100644
+index cf5e99153298..c1194462d5fd 100644
 --- a/sound/soc/codecs/tlv320aic31xx.c
 +++ b/sound/soc/codecs/tlv320aic31xx.c
 @@ -887,8 +887,12 @@ static int aic31xx_setup_pll(struct snd_soc_component *component,
@@ -23,3 +26,6 @@ index cf5e991..c119446 100644
  	}
  	mclk_p = aic31xx->sysclk / aic31xx->p_div;
  
+-- 
+2.47.3
+

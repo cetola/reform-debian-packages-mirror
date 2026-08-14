@@ -1,5 +1,5 @@
 From 573d769372d0dd1b6e7199048764cd851a511750 Mon Sep 17 00:00:00 2001
-From: "Lukas F. Hartmann" <lukas@mntre.com>
+From: "Lucie L. Hartmann" <lucie@mntre.com>
 Date: Sun, 9 Jul 2023 23:02:47 +0200
 Subject: [PATCH 11/21] dw-mipi-dsi-phy-stop-wait-time
 

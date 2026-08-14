@@ -818,7 +818,7 @@ Content-Transfer-Encoding: 7bit
 This adds a basic devicetree for the MNT Reform2 DIY laptop when using a
 CM4 adapter and a BPI-CM4 module.
 
-Co-developed-by: Lukas F. Hartmann <lukas@mntre.com>
+Co-developed-by: Lucie L. Hartmann <lucie@mntre.com>
 Signed-off-by: Neil Armstrong <neil.armstrong@linaro.org>
 ---
  arch/arm64/boot/dts/amlogic/Makefile               |   1 +

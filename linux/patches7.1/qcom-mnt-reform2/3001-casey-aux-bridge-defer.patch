@@ -1,5 +1,14 @@
+From 08d0bad1f3ec3137cab66d5b9b349bed612bac3e Mon Sep 17 00:00:00 2001
+From: "Lucie L. Hartmann" <lucie@mntre.com>
+Date: Fri, 14 Aug 2026 07:01:25 +0200
+Subject: [PATCH 1/2] 3001-casey-aux-bridge-defer.patch
+
+---
+ drivers/gpu/drm/bridge/aux-bridge.c | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+
 diff --git a/drivers/gpu/drm/bridge/aux-bridge.c b/drivers/gpu/drm/bridge/aux-bridge.c
-index b3e4cdff61d6..412b24fc42d1 100644
+index 1ed21a8713bf..08f027716376 100644
 --- a/drivers/gpu/drm/bridge/aux-bridge.c
 +++ b/drivers/gpu/drm/bridge/aux-bridge.c
 @@ -72,6 +72,8 @@ int drm_aux_bridge_register(struct device *parent)
@@ -35,3 +44,6 @@ index b3e4cdff61d6..412b24fc42d1 100644
  	data->bridge.of_node = data->dev->of_node;
  
  	/* passthrough data, allow everything */
+-- 
+2.47.3
+

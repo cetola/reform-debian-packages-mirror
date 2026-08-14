@@ -1,5 +1,5 @@
 commit 66785361dae56157c22510dd390432453bf39201
-Author: Lukas F. Hartmann <lukas@mntre.com>
+Author: Lucie L. Hartmann <lucie@mntre.com>
 Date:   Thu Aug 8 20:02:59 2024 +0200
 
     rk3588: add rockchip dsi2 WIP driver
