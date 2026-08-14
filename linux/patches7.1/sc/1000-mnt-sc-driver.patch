@@ -1,11 +1,17 @@
-commit 42e8e85595b733f46802aaecf0fc4b3509a3aaae
-Author: Lucie L. Hartmann <lucie@mntre.com>
-Date:   Tue Jul 28 16:15:11 2026 +0200
+From 025ce961a578ba2f4bd89271e525eab6ed8f4b0c Mon Sep 17 00:00:00 2001
+From: "Lucie L. Hartmann" <lucie@mntre.com>
+Date: Fri, 14 Aug 2026 07:54:39 +0200
+Subject: [PATCH] drivers/firmware/mnt-sc: add to kernel tree
 
-    drivers/firmware/mnt-sc: add to kernel tree
+---
+ drivers/firmware/Kconfig  |   7 +
+ drivers/firmware/Makefile |   1 +
+ drivers/firmware/mnt-sc.c | 749 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 757 insertions(+)
+ create mode 100644 drivers/firmware/mnt-sc.c
 
 diff --git a/drivers/firmware/Kconfig b/drivers/firmware/Kconfig
-index bbd2155..d1be4fa 100644
+index bbd2155d8483..d1be4fa0766f 100644
 --- a/drivers/firmware/Kconfig
 +++ b/drivers/firmware/Kconfig
 @@ -284,6 +284,13 @@ config TURRIS_MOX_RWTM_KEYCTL
@@ -23,7 +29,7 @@ index bbd2155..d1be4fa 100644
  source "drivers/firmware/broadcom/Kconfig"
  source "drivers/firmware/cirrus/Kconfig"
 diff --git a/drivers/firmware/Makefile b/drivers/firmware/Makefile
-index 4ddec28..71d9ee6 100644
+index 4ddec2820c96..71d9ee642d2d 100644
 --- a/drivers/firmware/Makefile
 +++ b/drivers/firmware/Makefile
 @@ -22,6 +22,7 @@ obj-$(CONFIG_TH1520_AON_PROTOCOL) += thead,th1520-aon.o
@@ -36,7 +42,7 @@ index 4ddec28..71d9ee6 100644
  obj-y				+= arm_scmi/
 diff --git a/drivers/firmware/mnt-sc.c b/drivers/firmware/mnt-sc.c
 new file mode 100644
-index 0000000..8bcda21
+index 000000000000..8bcda2173b3b
 --- /dev/null
 +++ b/drivers/firmware/mnt-sc.c
 @@ -0,0 +1,749 @@
@@ -789,3 +795,6 @@ index 0000000..8bcda21
 +
 +MODULE_DESCRIPTION("MNT System Controller Driver");
 +MODULE_LICENSE("GPL");
+-- 
+2.47.3
+
