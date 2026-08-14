@@ -11,7 +11,7 @@ To: Boris Brezillon <boris.brezillon@collabora.com>,
  Steven Price <steven.price@arm.com>, Liviu Dudau <liviu.dudau@arm.com>,
  =?UTF-8?q?Adri=C3=A1n=20Larumbe?= <adrian.larumbe@collabora.com>
 Cc: dri-devel@lists.freedesktop.org, kernel@collabora.com,
- "Lukas F . Hartmann" <lukas@mntmn.com>
+ "Lukas F . Hartmann" <lucie@mntre.com>
 Date: Mon, 25 Mar 2024 11:41:10 +0100
 
 When mapping an IO region, the pseudo-file offset is dependent on the
@@ -33,7 +33,7 @@ GPU is suspended after that.
 
 Fixes: 5fe909cae118 ("drm/panthor: Add the device logical block")
 Reported-by: Adrián Larumbe <adrian.larumbe@collabora.com>
-Reported-by: Lukas F. Hartmann <lukas@mntmn.com>
+Reported-by: Lucie L. Hartmann <lucie@mntre.com>
 Closes: https://gitlab.freedesktop.org/mesa/mesa/-/issues/10835
 Signed-off-by: Boris Brezillon <boris.brezillon@collabora.com>
 Reviewed-by: Steven Price <steven.price@arm.com>

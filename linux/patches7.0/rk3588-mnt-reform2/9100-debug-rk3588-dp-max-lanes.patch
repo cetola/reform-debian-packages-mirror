@@ -1,5 +1,5 @@
 commit e8e1dff14a9a496536f229d0c1bb3ccd74bd64e3
-Author: Lucie L. Hartmann <lukas@mntre.com>
+Author: Lucie L. Hartmann <lucie@mntre.com>
 Date:   Thu Jun 18 21:19:14 2026 +0200
 
     rk3588/analogix_dp: add DTS options for eDP: rockchip,lane-count and rockchip,link-rate

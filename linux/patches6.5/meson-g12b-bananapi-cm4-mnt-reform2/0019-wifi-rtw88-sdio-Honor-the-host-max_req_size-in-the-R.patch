@@ -40,7 +40,7 @@ need to drain the remaining data from the card's buffer, otherwise the
 card will return corrupt data for the next rtw_sdio_read_port() call.
 
 Fixes: 65371a3f14e7 ("wifi: rtw88: sdio: Add HCI implementation for SDIO based chipsets")
-Reported-by: Lukas F. Hartmann <lukas@mntre.com>
+Reported-by: Lucie L. Hartmann <lucie@mntre.com>
 Closes: https://lore.kernel.org/linux-wireless/CAFBinCBaXtebixKbjkWKW_WXc5k=NdGNaGUjVE8NCPNxOhsb2g@mail.gmail.com/
 Suggested-by: Ping-Ke Shih <pkshih@realtek.com>
 Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>

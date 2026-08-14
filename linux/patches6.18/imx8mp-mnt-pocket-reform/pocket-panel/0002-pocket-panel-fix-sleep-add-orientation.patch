@@ -1,5 +1,5 @@
 From 7db1d1e320e1e0a96bef4d427c72177e0ea28073 today
-From: Lukas F. Hartmann <lukas@mntre.com>
+From: Lucie L. Hartmann <lucie@mntre.com>
 Date:   Thu May 22 17:18:42 2025 +0200
 Subject:  pocket/panel: sleep fix v3
 
@@ -13,7 +13,7 @@ index 7335bd6..7f6a19b 100644
   *
 - * Copyright (C) 2024 MNT Research GmbH
 + * Copyright (C) 2025 MNT Research GmbH
-  * Author: Lukas Hartmann <lukas@mntre.com>
+  * Author: Lucie L. Hartmann <lucie@mntre.com>
   */
  
 @@ -24,6 +24,7 @@

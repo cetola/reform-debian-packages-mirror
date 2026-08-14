@@ -1,5 +1,5 @@
 commit 8bafc8d4b33565dd9499001543d0225941bb248c
-Author: Lukas F. Hartmann <lukas@mntre.com>
+Author: Lucie L. Hartmann <lucie@mntre.com>
 Date:   Mon Dec 9 19:28:36 2024 +0100
 
     V4: Add multi display panel driver for MNT Pocket Reform based on old JDI driver
@@ -53,7 +53,7 @@ index 0000000..f14ce91
 + * Author: Sumit Semwal <sumit.semwal@linaro.org>
 + *
 + * Copyright (C) 2024 MNT Research GmbH
-+ * Author: Lukas Hartmann <lukas@mntre.com>
++ * Author: Lucie L. Hartmann <lucie@mntre.com>
 + */
 +
 +#include <linux/backlight.h>
@@ -859,6 +859,6 @@ index 0000000..f14ce91
 +
 +MODULE_AUTHOR("Sumit Semwal <sumit.semwal@linaro.org>");
 +MODULE_AUTHOR("Vinay Simha BN <simhavcs@gmail.com>");
-+MODULE_AUTHOR("Lukas Hartmann <lukas@mntre.com>");
++MODULE_AUTHOR("Lucie L. Hartmann <lucie@mntre.com>");
 +MODULE_DESCRIPTION("MNT Pocket Reform Display WUXGA");
 +MODULE_LICENSE("GPL v2");

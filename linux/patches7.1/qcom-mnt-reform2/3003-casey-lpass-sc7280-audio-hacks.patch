@@ -77,16 +77,15 @@ index abdd58c1d0a4..459ae9789347 100644
 -		dev_err(rtd->dev, "can't set codec pll: %d\n", ret);
 -		return ret;
 -	}
--
--	ret = snd_soc_dai_set_sysclk(codec_dai, RT5682S_SCLK_S_PLL2,
--					RT5682_PLL_FREQ,
 +	// ret = snd_soc_dai_set_pll(codec_dai, RT5682S_PLL2, RT5682S_PLL_S_MCLK,
 +	// 				DEFAULT_MCLK_RATE, RT5682_PLL_FREQ);
 +	// if (ret) {
 +	// 	dev_err(rtd->dev, "can't set codec pll: %d\n", ret);
 +	// 	return ret;
 +	// }
-+
+ 
+-	ret = snd_soc_dai_set_sysclk(codec_dai, RT5682S_SCLK_S_PLL2,
+-					RT5682_PLL_FREQ,
 +	/* FIXME! ??? */
 +	if (device_is_compatible(codec_dai->dev, "wlf,wm8960"))
 +		clk_id = WM8960_SYSCLK_MCLK;

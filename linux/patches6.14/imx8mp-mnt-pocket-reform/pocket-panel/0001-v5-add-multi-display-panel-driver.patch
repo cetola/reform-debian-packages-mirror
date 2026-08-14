@@ -1,5 +1,5 @@
 From fc0096f4790838f878af23fcd837fee1ece6abe5
-From: Lukas F. Hartmann <lukas@mntre.com>
+From: Lucie L. Hartmann <lucie@mntre.com>
 Subject: add-multi-display-panel-driver
 Date:   Tue Dec 17 13:20:47 2024 +0100
 
@@ -54,7 +54,7 @@ index 000000000000..3e945397bac5
 + * Author: Sumit Semwal <sumit.semwal@linaro.org>
 + *
 + * Copyright (C) 2024 MNT Research GmbH
-+ * Author: Lukas Hartmann <lukas@mntre.com>
++ * Author: Lucie L. Hartmann <lucie@mntre.com>
 + */
 +
 +#include <linux/backlight.h>
@@ -884,7 +884,7 @@ index 000000000000..3e945397bac5
 +
 +MODULE_AUTHOR("Sumit Semwal <sumit.semwal@linaro.org>");
 +MODULE_AUTHOR("Vinay Simha BN <simhavcs@gmail.com>");
-+MODULE_AUTHOR("Lukas Hartmann <lukas@mntre.com>");
++MODULE_AUTHOR("Lucie L. Hartmann <lucie@mntre.com>");
 +MODULE_DESCRIPTION("MNT Pocket Reform Display WUXGA");
 +MODULE_LICENSE("GPL v2");
 diff --git a/include/linux/panel-mnt-pocket-reform.h b/include/linux/panel-mnt-pocket-reform.h

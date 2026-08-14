@@ -1,5 +1,5 @@
 commit f66f4665058873c180e6f58e8884c151ba38fa51
-Author: Lukas F. Hartmann <lukas@mntre.com>
+Author: Lucie L. Hartmann <lucie@mntre.com>
 Date:   Wed Apr 30 22:13:34 2025 +0200
 
     pci/imx6: add support for internal refclk on imx8mq
