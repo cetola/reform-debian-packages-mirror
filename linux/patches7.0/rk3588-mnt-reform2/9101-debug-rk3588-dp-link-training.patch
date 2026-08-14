@@ -1,11 +1,15 @@
-commit 97c9f21377cdc8f440828dd79290cec14cfac504
-Author: Lucie L. Hartmann <lucie@mntre.com>
-Date:   Tue Jun 30 01:26:14 2026 +0200
+From e9997558758ad112076f4746fa514f346f2015ca Mon Sep 17 00:00:00 2001
+From: "Lucie L. Hartmann" <lucie@mntre.com>
+Date: Fri, 14 Aug 2026 18:24:58 +0200
+Subject: [PATCH 2/2] rk3588/analogix_dp: force link_rate/lane_count to max if
+ they can't be read
 
-    rk3588/analogix_dp: force link_rate/lane_count to max if they can't be read
+---
+ drivers/gpu/drm/bridge/analogix/analogix_dp_core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
-index 8cbd961..0ba9222 100644
+index 8cbd9617453e..0ba9222b6842 100644
 --- a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 +++ b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 @@ -569,13 +569,13 @@ static int analogix_dp_full_link_train(struct analogix_dp_device *dp,
@@ -24,3 +28,6 @@ index 8cbd961..0ba9222 100644
  	}
  
  	/* Setup TX lane count & rate */
+-- 
+2.47.3
+

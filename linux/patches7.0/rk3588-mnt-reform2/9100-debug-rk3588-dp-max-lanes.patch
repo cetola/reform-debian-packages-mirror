@@ -1,11 +1,15 @@
-commit e8e1dff14a9a496536f229d0c1bb3ccd74bd64e3
-Author: Lucie L. Hartmann <lucie@mntre.com>
-Date:   Thu Jun 18 21:19:14 2026 +0200
+From 21350603b5adb32fe3b6967cdf58646d7a74d3c5 Mon Sep 17 00:00:00 2001
+From: "Lucie L. Hartmann" <lucie@mntre.com>
+Date: Fri, 14 Aug 2026 18:24:32 +0200
+Subject: [PATCH 1/2] rk3588/analogix_dp: add DTS options for eDP:
+ rockchip,lane-count and rockchip, link-rate
 
-    rk3588/analogix_dp: add DTS options for eDP: rockchip,lane-count and rockchip,link-rate
+---
+ drivers/gpu/drm/bridge/analogix/analogix_dp_core.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
 diff --git a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
-index efe5349..8cbd961 100644
+index efe534977d12..8cbd9617453e 100644
 --- a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 +++ b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 @@ -559,6 +559,10 @@ static int analogix_dp_full_link_train(struct analogix_dp_device *dp,
@@ -31,3 +35,6 @@ index efe5349..8cbd961 100644
  		break;
  	case EXYNOS_DP:
  		/*
+-- 
+2.47.3
+
