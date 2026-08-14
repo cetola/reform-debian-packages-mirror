@@ -1,11 +1,14 @@
-commit c2bddc2b1dd777b9056ed8bdc5547d82fc68655e
-Author: Lucie L. Hartmann <lucie@mntre.com>
-Date:   Wed Jun 10 21:29:21 2026 +0200
+From b5b08f8981236542f2dd516c8884a70964a89b76 Mon Sep 17 00:00:00 2001
+From: "Lucie L. Hartmann" <lucie@mntre.com>
+Date: Fri, 14 Aug 2026 07:35:26 +0200
+Subject: [PATCH] sound/soc/qcom/sc8280xp: rebase neil's MI2S mclk fix
 
-    sound/soc/qcom/sc8280xp: rebase neil's MI2S mclk fix
+---
+ sound/soc/qcom/sc8280xp.c | 144 +++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 141 insertions(+), 3 deletions(-)
 
 diff --git a/sound/soc/qcom/sc8280xp.c b/sound/soc/qcom/sc8280xp.c
-index 7925aa3..dcc2ca0 100644
+index 7925aa3f63ba..dcc2ca09e7dc 100644
 --- a/sound/soc/qcom/sc8280xp.c
 +++ b/sound/soc/qcom/sc8280xp.c
 @@ -4,6 +4,8 @@
@@ -220,3 +223,6 @@ index 7925aa3..dcc2ca0 100644
  	card->driver_name = of_device_get_match_data(dev);
  	sc8280xp_add_be_ops(card);
  	return devm_snd_soc_register_card(dev, card);
+-- 
+2.47.3
+
