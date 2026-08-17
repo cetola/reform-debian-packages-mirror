@@ -31,7 +31,6 @@ Depends:
  console-setup,
  debconf,
  debianutils (>= 5.21),
- fonts-reform-iosevka-term (= 2.3.0-1) | fonts-iosevka-term,
  gpiod,
  jq,
  keyboard-configuration,
