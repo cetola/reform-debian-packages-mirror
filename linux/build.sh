@@ -62,10 +62,70 @@ DEB_VERSION="$(dpkg-parsechangelog --show-field Version --file linux/debian/chan
 DEB_VERSION_UPSTREAM="$(echo "$DEB_VERSION" | sed -e 's/-[^-]*$//')"
 KVER=$(echo "$DEB_VERSION" | sed 's/\([0-9]\+\.[0-9]\+\).*/\1/')
 
-# The working directory of this script must be the linux subdirectory of the
-# reform-debian-packages repository.
-if [ ! -e "patches${KVER}" ]; then
-	echo "no patches for linux $KVER prepared yet" >&2
+# source.mnt.re is frequently DDoSed by crawlers, so we maintain a backup of
+# the same repository at salsa.debian.org and use it for Debian stable
+case $BASESUITE in
+trixie | trixie-backports)
+	LINUX_STABLE_GIT="https://salsa.debian.org/reform-team/linux.git"
+	;;
+*)
+	LINUX_STABLE_GIT="https://source.mnt.re/josch/linux.git"
+	;;
+esac
+# Query source.mnt.re/josch/linux for available patches
+# We pipe the found branch names together with the version we are interested
+# in to grep and let it output one line before the match.
+#
+# If we get two lines: the two lines are the $DEB_VERSION_UPSTREAM inserted by
+# us and the branch with the version that sorts before that.
+#
+# If we get three lines: lines two and three will be equal to
+# $DEB_VERSION_UPSTREAM. One of them will be the $DEB_VERSION_UPSTREAM we
+# inserted the other will be an existing branch. The first line will be the
+# version that sorts before ours.
+#
+# In the first case, no branch with the exact version exists, so we just grab
+# the version before that (in line 1).
+#
+# In the second case, the branch with the exact version exists and in that case
+# we grab line 2.
+#
+# In both cases we grab the second-to-last line which is what
+# "tail -2 | head -1" is doing.
+#
+PVER=$({
+	git ls-remote --branches "$LINUX_STABLE_GIT" | sed -ne 's/[0-9a-f]\+\trefs\/heads\/mnt-v//p'
+	echo "$DEB_VERSION_UPSTREAM"
+} | sort --version-sort | grep --before-context=1 --fixed-strings "$DEB_VERSION_UPSTREAM" | tail -2 | head -1)
+# The major and the minor version of DEB_VERSION_UPSTREAM and PVER have to
+# match
+# Here we strip off the minor version and then compare
+if [ "$KVER" != "${PVER%.*}" ]; then
+	echo "No patches for linux $KVER prepared yet. Latest version is $PVER" >&2
+	exit 1
+fi
+
+# Remove the old git repo in two stages to avoid having to add -f where it's
+# not needed and for a bit of extra safety to not remove something that is not
+# a git repository.
+if [ -d ./linux-stable.git ]; then
+	rm -rf ./linux-stable.git/.git
+	rm -r ./linux-stable.git
+fi
+# We clone the desired branch of the linux-stable repository and assume that
+# we are not going to have more than 110 patches. If ever do, this *really*
+# should be a sign that things need to be upstreamed ASAP....
+# Why start with 111? Because we have 110 patches for v6.12.63
+if [ -z "${LINUX_BRANCH:-}" ]; then
+	LINUX_BRANCH="mnt-v$PVER"
+fi
+git clone --branch "$LINUX_BRANCH" --single-branch --depth 110 "$LINUX_STABLE_GIT" ./linux-stable.git
+
+# Make sure that the current branch of the linux-stable git repository (might
+# be a custom branch specified by $LINUX_BRANCH) contains the desired version
+# as one of its ancestors.
+if ! git -C ./linux-stable.git merge-base --is-ancestor "v${PVER}" HEAD; then
+	echo "E: tag v${PVER} is not an ancestor of HEAD" >&2
 	exit 1
 fi
 
@@ -75,6 +135,10 @@ if git -C . rev-parse 2>/dev/null; then
 	SOURCE_DATE_EPOCH=$(git log -1 --format=%ct ".")
 fi
 datesuffix="$(date --utc ${SOURCE_DATE_EPOCH:+--date=@$SOURCE_DATE_EPOCH} +%Y%m%dT%H%M%SZ)"
+
+# Since the patch stack now comes from outside, store the git hash of the top
+# commit in the kernel version string
+datesuffix="$datesuffix+g$(git -C ./linux-stable.git rev-parse --short HEAD)"
 
 if dpkg --compare-versions "$KVER" ge "6.8"; then
 	# Starting with kernel 6.8 we use the flavour name instead of the
@@ -345,7 +409,7 @@ if dpkg --compare-versions "$KVER" ge "6.16"; then
 
  [[debianrelease]]
 +name_regex = '(reform|trixie|trixie-backports)'
-+revision_regex = '\d+(~exp\d+|~bpo13\+\d)?\+reform[0-9]+T[0-9]+Z'
++revision_regex = '\d+(~exp\d+|~bpo13\+\d)?\+reform[0-9]+T[0-9]+Z\+g[0-9a-f]+'
 +
 +[[debianrelease]]
  name_regex = 'trixie-backports'
@@ -365,7 +429,7 @@ elif dpkg --compare-versions "$KVER" ge "6.12"; then
 
 +[[debianrelease]]
 +name_regex = '(reform|trixie)'
-+revision_regex = '\d+(~exp\d+)?\+reform[0-9]+T[0-9]+Z'
++revision_regex = '\d+(~exp\d+)?\+reform[0-9]+T[0-9]+Z\+g[0-9a-f]+'
 +
  [[debianrelease]]
  name_regex = 'trixie(-security)?'
@@ -588,90 +652,17 @@ if dpkg --compare-versions "$KVER" lt "6.8"; then
 	rm -r ./linux/debian/lib/python/debian_linux/__pycache__
 fi
 
-mkdir linux/debian/patches/reform
-cp -a "patches${KVER}"/* linux/debian/patches/reform
-
-find "patches${KVER}/" -type f -name "*.patch" | env LC_ALL=C sort | sed 's/^patches'"$KVER"'\//reform\//' >>linux/debian/patches/series
+mkdir ./linux/debian/patches/reform
+# Our patch stack are all commits between the tip of the branch and the last
+# tagged commit. The tag should have the same version we used in the branch
+# name.
+git -C ./linux-stable.git \
+	format-patch --output-directory reform \
+	"v${PVER}..HEAD" \
+	>>linux/debian/patches/series
+mv ./linux-stable.git/reform ./linux/debian/patches
 
 env --chdir=linux QUILT_PATCHES=debian/patches quilt push -a --fuzz=0
-
-# The next few dozen lines create a new quilt patch containing all the device
-# tree files that we copy into the kernel tree
-env --chdir=linux QUILT_PATCHES=debian/patches quilt new reform/dts.patch
-env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/freescale/fsl-ls1028a-mnt-reform2.dts
-cp fsl-ls1028a-mnt-reform2.dts linux/arch/arm64/boot/dts/freescale/fsl-ls1028a-mnt-reform2.dts
-env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/freescale/imx8mq-mnt-reform2-hdmi.dts
-cp imx8mq-mnt-reform2-hdmi.dts linux/arch/arm64/boot/dts/freescale/imx8mq-mnt-reform2-hdmi.dts
-env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/freescale/Makefile
-sed -i '/fsl-ls1028a-rdb.dtb/a dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-ls1028a-mnt-reform2.dtb' linux/arch/arm64/boot/dts/freescale/Makefile
-sed -i '/imx8mq-mnt-reform2.dtb/a dtb-$(CONFIG_ARCH_MXC) += imx8mq-mnt-reform2-hdmi.dtb' linux/arch/arm64/boot/dts/freescale/Makefile
-# pocket reform and a311d only work with 6.5 or later
-if dpkg --compare-versions "$KVER" ge "6.5"; then
-	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/freescale/imx8mp-mnt-pocket-reform.dts
-	cp imx8mp-mnt-pocket-reform.dts linux/arch/arm64/boot/dts/freescale/imx8mp-mnt-pocket-reform.dts
-	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/freescale/imx8mp-mnt-reform2.dts
-	cp imx8mp-mnt-reform2.dts linux/arch/arm64/boot/dts/freescale/imx8mp-mnt-reform2.dts
-	sed -i '/imx8mq-mnt-reform2.dtb/a dtb-$(CONFIG_ARCH_MXC) += imx8mp-mnt-pocket-reform.dtb' linux/arch/arm64/boot/dts/freescale/Makefile
-	sed -i '/imx8mq-mnt-reform2.dtb/a dtb-$(CONFIG_ARCH_MXC) += imx8mp-mnt-reform2.dtb' linux/arch/arm64/boot/dts/freescale/Makefile
-	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/amlogic/meson-g12b-bananapi-cm4-mnt-pocket-reform.dts
-	cp meson-g12b-bananapi-cm4-mnt-pocket-reform.dts linux/arch/arm64/boot/dts/amlogic/meson-g12b-bananapi-cm4-mnt-pocket-reform.dts
-	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/amlogic/Makefile
-	sed -i '/meson-g12b-bananapi-cm4-mnt-reform2.dtb/a dtb-$(CONFIG_ARCH_MESON) += meson-g12b-bananapi-cm4-mnt-pocket-reform.dtb' linux/arch/arm64/boot/dts/amlogic/Makefile
-fi
-# rk3588 needs 6.8 or later
-if dpkg --compare-versions "$KVER" ge "6.8"; then
-	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/rockchip/rk3588-mnt-reform2.dts
-	cp rk3588-mnt-reform2.dts linux/arch/arm64/boot/dts/rockchip/rk3588-mnt-reform2.dts
-	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/rockchip/rk3588-mnt-reform2-dsi.dts
-	cp rk3588-mnt-reform2-dsi.dts linux/arch/arm64/boot/dts/rockchip/rk3588-mnt-reform2-dsi.dts
-	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/rockchip/rk3588-mnt-pocket-reform.dts
-	cp rk3588-mnt-pocket-reform.dts linux/arch/arm64/boot/dts/rockchip/rk3588-mnt-pocket-reform.dts
-	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/rockchip/rk3588-mnt-station.dts
-	cp rk3588-mnt-station.dts linux/arch/arm64/boot/dts/rockchip/rk3588-mnt-station.dts
-	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/rockchip/Makefile
-	if ! grep --silent --fixed-strings --line-regexp 'dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform2.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile; then
-		# rk3588-mnt-reform2.dtb is included since 6.15
-		sed -i '/^dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-rock-5b.dtb$/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform2.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
-	fi
-	sed -i '/rk3588-mnt-reform2.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform2-dsi.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
-	sed -i '/rk3588-mnt-reform2-dsi.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-pocket-reform.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
-	sed -i '/rk3588-mnt-pocket-reform.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-station.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
-fi
-
-# reform next needs 6.16 or later
-if dpkg --compare-versions "$KVER" ge "6.16"; then
-	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/rockchip/rk3588-mnt-reform-next.dts
-	cp rk3588-mnt-reform-next.dts linux/arch/arm64/boot/dts/rockchip/rk3588-mnt-reform-next.dts
-	sed -i '/rk3588-mnt-pocket-reform.dtb/a dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-mnt-reform-next.dtb' linux/arch/arm64/boot/dts/rockchip/Makefile
-fi
-
-# quasar needs 7.0 or later
-if dpkg --compare-versions "$KVER" ge "7.0"; then
-	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/qcom/qcs6490-mnt-quasar.dtsi
-	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/qcom/qcs6490-mnt-reform2.dts
-	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/qcom/qcs6490-mnt-pocket-reform.dts
-	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/qcom/qcs6490-mnt-reform-next.dts
-	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/qcom/qcs8550-mnt-reform2.dts
-	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/qcom/qcs8550-mnt-pocket-reform.dts
-	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/qcom/qcs8550-mnt-reform-next.dts
-	cp qcs6490-mnt-quasar.dtsi linux/arch/arm64/boot/dts/qcom/qcs6490-mnt-quasar.dtsi
-	cp qcs6490-mnt-reform2.dts linux/arch/arm64/boot/dts/qcom/qcs6490-mnt-reform2.dts
-	cp qcs6490-mnt-pocket-reform.dts linux/arch/arm64/boot/dts/qcom/qcs6490-mnt-pocket-reform.dts
-	cp qcs6490-mnt-reform-next.dts linux/arch/arm64/boot/dts/qcom/qcs6490-mnt-reform-next.dts
-	cp qcs8550-mnt-reform2.dts linux/arch/arm64/boot/dts/qcom/qcs8550-mnt-reform2.dts
-	cp qcs8550-mnt-pocket-reform.dts linux/arch/arm64/boot/dts/qcom/qcs8550-mnt-pocket-reform.dts
-	cp qcs8550-mnt-reform-next.dts linux/arch/arm64/boot/dts/qcom/qcs8550-mnt-reform-next.dts
-	env --chdir=linux QUILT_PATCHES=debian/patches quilt add arch/arm64/boot/dts/qcom/Makefile
-	sed -i '/qcs6490-rb3gen2-vision-mezzanine.dtb/a dtb-$(CONFIG_ARCH_QCOM) += qcs6490-mnt-reform2.dtb' linux/arch/arm64/boot/dts/qcom/Makefile
-	sed -i '/qcs6490-rb3gen2-vision-mezzanine.dtb/a dtb-$(CONFIG_ARCH_QCOM) += qcs6490-mnt-pocket-reform.dtb' linux/arch/arm64/boot/dts/qcom/Makefile
-	sed -i '/qcs6490-rb3gen2-vision-mezzanine.dtb/a dtb-$(CONFIG_ARCH_QCOM) += qcs6490-mnt-reform-next.dtb' linux/arch/arm64/boot/dts/qcom/Makefile
-	sed -i '/qcs8550-aim300-aiot.dtb/a dtb-$(CONFIG_ARCH_QCOM) += qcs8550-mnt-reform2.dtb' linux/arch/arm64/boot/dts/qcom/Makefile
-	sed -i '/qcs8550-aim300-aiot.dtb/a dtb-$(CONFIG_ARCH_QCOM) += qcs8550-mnt-pocket-reform.dtb' linux/arch/arm64/boot/dts/qcom/Makefile
-	sed -i '/qcs8550-aim300-aiot.dtb/a dtb-$(CONFIG_ARCH_QCOM) += qcs8550-mnt-reform-next.dtb' linux/arch/arm64/boot/dts/qcom/Makefile
-fi
-
-# finalize dts.patch
-env --chdir=linux QUILT_PATCHES=debian/patches quilt refresh
 
 KERNEL_TEAM_SHA1="46aafc2cd99579c98536e03f12a6077b73c340a2"
 if [ -d "kernel-team" ]; then
