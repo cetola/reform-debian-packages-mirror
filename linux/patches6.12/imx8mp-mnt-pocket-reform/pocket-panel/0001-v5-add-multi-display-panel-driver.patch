@@ -1,15 +1,22 @@
-From fc0096f4790838f878af23fcd837fee1ece6abe5
-From: Lucie L. Hartmann <lucie@mntre.com>
-Subject: add-multi-display-panel-driver
-Date:   Tue Dec 17 13:20:47 2024 +0100
+From 21a5bc77e016a6d8780cb5069ee63c182623ed61 Mon Sep 17 00:00:00 2001
+From: "Lucie L. Hartmann" <lucie@mntre.com>
+Date: Tue, 18 Aug 2026 08:16:03 +0200
+Subject: [PATCH] pocket: add v5 of auto-detecting multi display driver
 
-    pocket: add v5 of auto-detecting multi display driver
+---
+ drivers/gpu/drm/panel/Kconfig                 |  11 +
+ drivers/gpu/drm/panel/Makefile                |   1 +
+ .../gpu/drm/panel/panel-mnt-pocket-reform.c   | 841 ++++++++++++++++++
+ include/linux/panel-mnt-pocket-reform.h       |   6 +
+ 4 files changed, 859 insertions(+)
+ create mode 100644 drivers/gpu/drm/panel/panel-mnt-pocket-reform.c
+ create mode 100644 include/linux/panel-mnt-pocket-reform.h
 
 diff --git a/drivers/gpu/drm/panel/Kconfig b/drivers/gpu/drm/panel/Kconfig
-index 9f49b01..6a80933 100644
+index d3a9a9fafe4e..df1a039bbcd9 100644
 --- a/drivers/gpu/drm/panel/Kconfig
 +++ b/drivers/gpu/drm/panel/Kconfig
-@@ -399,6 +399,17 @@ config DRM_PANEL_MANTIX_MLAF057WE51
+@@ -408,6 +408,17 @@ config DRM_PANEL_MANTIX_MLAF057WE51
  	  has a resolution of 720x1440 pixels, a built in backlight and touch
  	  controller.
  
@@ -28,10 +35,10 @@ index 9f49b01..6a80933 100644
  	tristate "NEC NL8048HL11 RGB panel"
  	depends on GPIOLIB && OF && SPI
 diff --git a/drivers/gpu/drm/panel/Makefile b/drivers/gpu/drm/panel/Makefile
-index 5581387..9058011 100644
+index 987a08702410..7bc30ff4e11e 100644
 --- a/drivers/gpu/drm/panel/Makefile
 +++ b/drivers/gpu/drm/panel/Makefile
-@@ -39,6 +39,7 @@ obj-$(CONFIG_DRM_PANEL_LG_LB035Q02) += panel-lg-lb035q02.o
+@@ -40,6 +40,7 @@ obj-$(CONFIG_DRM_PANEL_LG_LB035Q02) += panel-lg-lb035q02.o
  obj-$(CONFIG_DRM_PANEL_LG_LG4573) += panel-lg-lg4573.o
  obj-$(CONFIG_DRM_PANEL_LG_SW43408) += panel-lg-sw43408.o
  obj-$(CONFIG_DRM_PANEL_MAGNACHIP_D53E6EA8966) += panel-magnachip-d53e6ea8966.o
@@ -41,7 +48,7 @@ index 5581387..9058011 100644
  obj-$(CONFIG_DRM_PANEL_NEWVISION_NV3052C) += panel-newvision-nv3052c.o
 diff --git a/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c b/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c
 new file mode 100644
-index 000000000000..3e945397bac5
+index 000000000000..2cfdac1a30b7
 --- /dev/null
 +++ b/drivers/gpu/drm/panel/panel-mnt-pocket-reform.c
 @@ -0,0 +1,841 @@
@@ -888,7 +895,7 @@ index 000000000000..3e945397bac5
 +MODULE_LICENSE("GPL v2");
 diff --git a/include/linux/panel-mnt-pocket-reform.h b/include/linux/panel-mnt-pocket-reform.h
 new file mode 100644
-index 000000000000..1a4d487d9d6c
+index 000000000000..af7bf9b8762e
 --- /dev/null
 +++ b/include/linux/panel-mnt-pocket-reform.h
 @@ -0,0 +1,6 @@
@@ -898,3 +905,6 @@ index 000000000000..1a4d487d9d6c
 +int mnt_pocket_reform_get_panel_version(void);
 +
 +#endif
+-- 
+2.47.3
+
