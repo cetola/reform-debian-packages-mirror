@@ -1,10 +1,8 @@
-commit b547ff41ed7d6c3d527276ac45dab579c73bcaa4
-Author: "Lucie L. Hartmann" <lucie@mntre.com>
+From: "Lucie L. Hartmann" <lucie@mntre.com>
 Date:   Wed Apr 30 21:51:53 2025 +0200
+Subject: [v3] PCI: dw-rockchip: Add system PM support
 
-    [v3] PCI: dw-rockchip: Add system PM support
-    
-    Rebased on 6.14 from https://patchwork.kernel.org/project/linux-pci/patch/1744940759-23823-1-git-send-email-shawn.lin@rock-chips.com/
+Rebased on 6.14 from https://patchwork.kernel.org/project/linux-pci/patch/1744940759-23823-1-git-send-email-shawn.lin@rock-chips.com/
 
 --- a/drivers/pci/controller/dwc/pcie-dw-rockchip.c
 +++ b/drivers/pci/controller/dwc/pcie-dw-rockchip.c
