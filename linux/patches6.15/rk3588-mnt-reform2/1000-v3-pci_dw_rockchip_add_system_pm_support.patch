@@ -1,5 +1,5 @@
 commit b547ff41ed7d6c3d527276ac45dab579c73bcaa4
-Author: Lucie L. Hartmann <lucie@mntre.com>
+Author: "Lucie L. Hartmann" <lucie@mntre.com>
 Date:   Wed Apr 30 21:51:53 2025 +0200
 
     [v3] PCI: dw-rockchip: Add system PM support

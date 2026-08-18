@@ -1,5 +1,5 @@
 commit 776721d5e1a6996054829c2b5f903a34b19a044c
-Author: Lucie L. Hartmann <lucie@mntre.com>
+Author: "Lucie L. Hartmann" <lucie@mntre.com>
 Date:   Thu May 30 14:50:52 2024 +0200
 
     lcdif: don't exceed desired pixel clock

@@ -41,7 +41,7 @@ EOF
 
 echo rk3588.patch >>debian/patches/series
 cat <<'EOF' >debian/patches/rk3588.patch
-From: Lucie L. Hartmann <lucie@mntre.com>
+From: "Lucie L. Hartmann" <lucie@mntre.com>
 Subject: blender 5.0 patch for panvk on rk3588
 
 --- a/release/datafiles/userdef/userdef_default.c

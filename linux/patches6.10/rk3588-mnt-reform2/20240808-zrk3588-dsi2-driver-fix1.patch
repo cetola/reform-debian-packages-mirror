@@ -1,5 +1,5 @@
 commit 60ac0396b40b19c8d4c8015a25226fe414ab576b
-Author: Lucie L. Hartmann <lucie@mntre.com>
+Author: "Lucie L. Hartmann" <lucie@mntre.com>
 Date:   Thu Aug 8 20:51:57 2024 +0200
 
     rk3588: dsi2: fix dw_mipi_dsi2_remove signature

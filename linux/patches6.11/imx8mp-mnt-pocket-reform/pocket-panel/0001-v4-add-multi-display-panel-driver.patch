@@ -1,5 +1,5 @@
 commit 8bafc8d4b33565dd9499001543d0225941bb248c
-Author: Lucie L. Hartmann <lucie@mntre.com>
+Author: "Lucie L. Hartmann" <lucie@mntre.com>
 Date:   Mon Dec 9 19:28:36 2024 +0100
 
     V4: Add multi display panel driver for MNT Pocket Reform based on old JDI driver

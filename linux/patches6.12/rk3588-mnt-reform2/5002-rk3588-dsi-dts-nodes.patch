@@ -1,5 +1,5 @@
 From 1eaa2d3617ff73b514383f9c197fa5557b04a923 Thu Aug 8 18:47:15 2024 +0200
-From: Lucie L. Hartmann <lucie@mntre.com>
+From: "Lucie L. Hartmann" <lucie@mntre.com>
 Date:   Thu Aug 8 18:47:15 2024 +0200
 
     rk3588: dtsi: add dsi0/1 and mipidcphy0/1 nodes

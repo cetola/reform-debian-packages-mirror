@@ -1,5 +1,5 @@
 commit bf83720d678eae161b36d01cbec481f648e809cf
-Author: Lucie L. Hartmann <lucie@mntre.com>
+Author: "Lucie L. Hartmann" <lucie@mntre.com>
 Date:   Tue Apr 16 16:39:58 2024 +0200
 
     panel-jdi-lt070me05000: simplify and combine fixes for imx8mp and a311d for pocket reform; fix glitches by turning off properly.
