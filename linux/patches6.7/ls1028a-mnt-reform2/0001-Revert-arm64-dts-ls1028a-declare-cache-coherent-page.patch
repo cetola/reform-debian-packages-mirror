@@ -1,0 +1,59 @@
+From 30c759b7027f8e12dc72c562201e247088b09f3a Mon Sep 17 00:00:00 2001
+From: Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
+Date: Tue, 9 Apr 2024 16:54:43 +0200
+Subject: [PATCH] Revert "arm64: dts: ls1028a: declare cache-coherent page
+ table walk feature for IOMMU"
+
+This reverts commit 8720913f8402e55a0b4da4bfc528c320925760d7 and others
+as suggested by hramrach.
+---
+ arch/arm64/boot/dts/freescale/fsl-ls1028a.dtsi | 5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/freescale/fsl-ls1028a.dtsi b/arch/arm64/boot/dts/freescale/fsl-ls1028a.dtsi
+index ae534c23b970..13ee3e729bf1 100644
+--- a/arch/arm64/boot/dts/freescale/fsl-ls1028a.dtsi
++++ b/arch/arm64/boot/dts/freescale/fsl-ls1028a.dtsi
+@@ -657,7 +657,6 @@ pcie1: pcie@3400000 {
+ 			#address-cells = <3>;
+ 			#size-cells = <2>;
+ 			device_type = "pci";
+-			dma-coherent;
+ 			num-viewport = <8>;
+ 			bus-range = <0x0 0xff>;
+ 			ranges = <0x81000000 0x0 0x00000000 0x80 0x00010000 0x0 0x00010000   /* downstream I/O */
+@@ -696,7 +695,6 @@ pcie2: pcie@3500000 {
+ 			#address-cells = <3>;
+ 			#size-cells = <2>;
+ 			device_type = "pci";
+-			dma-coherent;
+ 			num-viewport = <8>;
+ 			bus-range = <0x0 0xff>;
+ 			ranges = <0x81000000 0x0 0x00000000 0x88 0x00010000 0x0 0x00010000   /* downstream I/O */
+@@ -729,7 +727,6 @@ smmu: iommu@5000000 {
+ 			reg = <0 0x5000000 0 0x800000>;
+ 			#global-interrupts = <8>;
+ 			#iommu-cells = <1>;
+-			dma-coherent;
+ 			stream-match-mask = <0x7c00>;
+ 			/* global secure fault */
+ 			interrupts = <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>,
+@@ -785,7 +782,6 @@ crypto: crypto@8000000 {
+ 			ranges = <0x0 0x00 0x8000000 0x100000>;
+ 			reg = <0x00 0x8000000 0x0 0x100000>;
+ 			interrupts = <GIC_SPI 139 IRQ_TYPE_LEVEL_HIGH>;
+-			dma-coherent;
+ 
+ 			sec_jr0: jr@10000 {
+ 				compatible = "fsl,sec-v5.0-job-ring",
+@@ -1082,7 +1078,6 @@ pcie@1f0000000 { /* Integrated Endpoint Root Complex */
+ 			msi-parent = <&its>;
+ 			device_type = "pci";
+ 			bus-range = <0x0 0x0>;
+-			dma-coherent;
+ 			msi-map = <0 &its 0x17 0xe>;
+ 			iommu-map = <0 &smmu 0x17 0xe>;
+ 				  /* PF0-6 BAR0 - non-prefetchable memory */
+-- 
+2.39.2
+
