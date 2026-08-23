@@ -3,6 +3,25 @@ From: "Lucie L. Hartmann" <lucie@mntre.com>
 Date: Fri, 14 Aug 2026 07:54:39 +0200
 Subject: [PATCH] drivers/firmware/mnt-sc: add to kernel tree
 
+Four fixes confirmed on RK3588S (Radxa CM5 on the RCM4) hardware:
+
+- mntsc_spi_dev_id[] used the full "mntre,system-controller" compatible
+  string as its id name. The SPI core strips the vendor prefix before
+  matching a DT-instantiated device's compatible string against a
+  driver's id_table.
+
+- sc_cmdresp_retry()'s response parser branched on
+  "strncmp(rxbuf, "err ", 4)" without negating it. strncmp() returns 0
+  on a match, so as written the condition was true when the response
+  did NOT start with "err ".
+
+- store_uart()'s snprintf bound was `count` instead of `sizeof(cmd)`
+  when count > 64, a stack buffer overflow.
+
+- show_firmware() wrote every SC reply into str1; str2 and str3 were
+  never written, then printed anyway.
+
+Signed-off-by: Stephano Cetola <stephano@cetola.net>
 ---
  drivers/firmware/Kconfig  |   7 +
  drivers/firmware/Makefile |   1 +
@@ -461,7 +480,7 @@ index 000000000000..8bcda2173b3b
 +							ret = -EAGAIN;
 +							break;
 +						}
-+					} else if (vcount >= 4 && strncmp(rxbuf, "err ", 4)) {
++					} else if (vcount >= 4 && !strncmp(rxbuf, "err ", 4)) {
 +						dev_err(&mntsc->spi->dev, "mntsc: error response: %s\n", rxbuf);
 +						ret = -EAGAIN;
 +						break;
@@ -535,7 +554,7 @@ index 000000000000..8bcda2173b3b
 +	struct mntsc_driver_data *mntsc =
 +		(struct mntsc_driver_data *)dev_get_drvdata(dev);
 +	char cmd[64];
-+	snprintf(cmd, (count > 64 ? count : 64), "%s", buf);
++	snprintf(cmd, sizeof(cmd), "%s", buf);
 +	cmd[63] = 0;
 +	sc_cmdresp_retry(mntsc, cmd, uart_resp);
 +	return count;
@@ -611,10 +630,10 @@ index 000000000000..8bcda2173b3b
 +	ret = sc_cmdresp_retry(mntsc, "(0f)", str1);
 +	if (ret)
 +		return 0;
-+	ret = sc_cmdresp_retry(mntsc, "(1f)", str1);
++	ret = sc_cmdresp_retry(mntsc, "(1f)", str2);
 +	if (ret)
 +		return 0;
-+	ret = sc_cmdresp_retry(mntsc, "(2f)", str1);
++	ret = sc_cmdresp_retry(mntsc, "(2f)", str3);
 +	if (ret)
 +		return 0;
 +
@@ -776,7 +795,7 @@ index 000000000000..8bcda2173b3b
 +MODULE_DEVICE_TABLE(of, of_mntre_sc_match);
 +
 +static struct spi_device_id mntsc_spi_dev_id[] = {
-+	{ "mntre,system-controller", 0 },
++	{ "system-controller", 0 },
 +	{},
 +};
 +MODULE_DEVICE_TABLE(spi, mntsc_spi_dev_id);
