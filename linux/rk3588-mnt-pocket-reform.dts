@@ -215,10 +215,10 @@
 	mem-supply = <&vdd_cpu_lit_mem_s0>;
 };
 
-&display_subsystem {
+/*&display_subsystem {
 	clocks = <&hdptxphy0>, <&hdptxphy1>;
 	clock-names = "pll_hdmiphy0", "pll_hdmiphy1";
-};
+};*/
 
 &gmac0 {
 	clock_in_out = "output";
@@ -273,8 +273,8 @@
 };
 
 &edp0_in {
-	edp0_in_vp1: endpoint {
-		remote-endpoint = <&vp1_out_edp0>;
+	edp0_in_vp0: endpoint {
+		remote-endpoint = <&vp0_out_edp0>;
 	};
 };
 
@@ -284,10 +284,10 @@
 	};
 };
 
-&vp1 {
-	vp1_out_edp0: endpoint@ROCKCHIP_VOP2_EP_EDP0 {
+&vp0 {
+	vp0_out_edp0: endpoint@ROCKCHIP_VOP2_EP_EDP0 {
 		reg = <ROCKCHIP_VOP2_EP_EDP0>;
-		remote-endpoint = <&edp0_in_vp1>;
+		remote-endpoint = <&edp0_in_vp0>;
 	};
 };
 
@@ -316,8 +316,8 @@
 };
 
 &hdmi1_in {
-	hdmi1_in_vp0: endpoint {
-		remote-endpoint = <&vp0_out_hdmi1>;
+	hdmi1_in_vp1: endpoint {
+		remote-endpoint = <&vp1_out_hdmi1>;
 	};
 };
 
@@ -1082,13 +1082,15 @@
 };
 
 &vop {
+	assigned-clocks = <&cru DCLK_VOP2_SRC>;
+	assigned-clock-parents = <&cru PLL_V0PLL>;
 	status = "okay";
 };
 
-&vp0 {
-	vp0_out_hdmi1: endpoint@ROCKCHIP_VOP2_EP_HDMI1 {
+&vp1 {
+	vp1_out_hdmi1: endpoint@ROCKCHIP_VOP2_EP_HDMI1 {
 		reg = <ROCKCHIP_VOP2_EP_HDMI1>;
-		remote-endpoint = <&hdmi1_in_vp0>;
+		remote-endpoint = <&hdmi1_in_vp1>;
 	};
 };
 
@@ -1119,8 +1121,8 @@
 };
 
 &dsi1_in {
-	dsi1_in_vp2: endpoint {
-		remote-endpoint = <&vp2_out_dsi1>;
+	dsi1_in_vp3: endpoint {
+		remote-endpoint = <&vp3_out_dsi1>;
 	};
 };
 
@@ -1130,13 +1132,10 @@
 	};
 };
 
-&vp2 {
-	assigned-clocks = <&cru DCLK_VOP2_SRC>;
-	assigned-clock-parents = <&cru PLL_V0PLL>;
-
-	vp2_out_dsi1: endpoint@ROCKCHIP_VOP2_EP_MIPI1 {
+&vp3 {
+	vp3_out_dsi1: endpoint@ROCKCHIP_VOP2_EP_MIPI1 {
 		reg = <ROCKCHIP_VOP2_EP_MIPI1>;
-		remote-endpoint = <&dsi1_in_vp2>;
+		remote-endpoint = <&dsi1_in_vp3>;
 	};
 };
 
