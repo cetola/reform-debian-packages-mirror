@@ -47,6 +47,20 @@
 		dais = <&i2s0_8ch_p0>;
 	};
 
+	dp-con {
+		compatible = "dp-connector";
+		label = "DP OUT";
+		type = "mini";
+		pinctrl-names = "default";
+		pinctrl-0 = <&edpauxen>;
+
+		port {
+			con_in_edp: endpoint {
+				remote-endpoint = <&edp_out_con>;
+			};
+		};
+	};
+
 	gpio-keys {
 		compatible = "gpio-keys";
 		pinctrl-0 = <&lpc_wakeup>;
@@ -201,10 +215,10 @@
 	mem-supply = <&vdd_cpu_lit_mem_s0>;
 };
 
-&display_subsystem {
+/*&display_subsystem {
 	clocks = <&hdptxphy0>, <&hdptxphy1>;
 	clock-names = "pll_hdmiphy0", "pll_hdmiphy1";
-};
+};*/
 
 &gmac0 {
 	clock_in_out = "output";
@@ -244,7 +258,7 @@
    on MNT Pocket Reform Mainboard 2.0.
    disabled for now until detection/hotplug is more reliable.
 */
-/*&edp0 {
+&edp0 {
 	// TODO enable-gpios not actually working! HDMI0_TX_ON (pulldowns)
 	// but it works because of the edphdmimode's pulldown
 	enable-gpios = <&gpio4 RK_PA0 GPIO_ACTIVE_LOW>;
@@ -255,42 +269,27 @@
 	status = "okay";
 
 	aux-bus {
-		panel {
-			// TODO analogix_dp driver doesn't seem to support connectors?
-			compatible = "edp-panel";
-			//compatible = "dp-connector";
-			power-supply = <&vcc3v3_pcie30>;
-			enable-gpios = <&gpio3 RK_PB3 GPIO_ACTIVE_HIGH>;
-			pinctrl-names = "default";
-			pinctrl-0 = <&edpauxen>;
-
-			port {
-				panel_in_edp: endpoint {
-					remote-endpoint = <&edp_out_panel>;
-				};
-			};
-		};
 	};
 };
 
 &edp0_in {
-	edp0_in_vp1: endpoint {
-		remote-endpoint = <&vp1_out_edp0>;
+	edp0_in_vp0: endpoint {
+		remote-endpoint = <&vp0_out_edp0>;
 	};
 };
 
 &edp0_out {
-	edp_out_panel: endpoint {
-		remote-endpoint = <&panel_in_edp>;
+	edp_out_con: endpoint {
+		remote-endpoint = <&con_in_edp>;
 	};
 };
 
-&vp1 {
-	vp1_out_edp0: endpoint@ROCKCHIP_VOP2_EP_EDP0 {
+&vp0 {
+	vp0_out_edp0: endpoint@ROCKCHIP_VOP2_EP_EDP0 {
 		reg = <ROCKCHIP_VOP2_EP_EDP0>;
-		remote-endpoint = <&edp0_in_vp1>;
+		remote-endpoint = <&edp0_in_vp0>;
 	};
-};*/
+};
 
 &hdptxphy0 {
 	status = "okay";
@@ -317,8 +316,8 @@
 };
 
 &hdmi1_in {
-	hdmi1_in_vp0: endpoint {
-		remote-endpoint = <&vp0_out_hdmi1>;
+	hdmi1_in_vp1: endpoint {
+		remote-endpoint = <&vp1_out_hdmi1>;
 	};
 };
 
@@ -1083,13 +1082,15 @@
 };
 
 &vop {
+	assigned-clocks = <&cru DCLK_VOP2_SRC>;
+	assigned-clock-parents = <&cru PLL_V0PLL>;
 	status = "okay";
 };
 
-&vp0 {
-	vp0_out_hdmi1: endpoint@ROCKCHIP_VOP2_EP_HDMI1 {
+&vp1 {
+	vp1_out_hdmi1: endpoint@ROCKCHIP_VOP2_EP_HDMI1 {
 		reg = <ROCKCHIP_VOP2_EP_HDMI1>;
-		remote-endpoint = <&hdmi1_in_vp0>;
+		remote-endpoint = <&hdmi1_in_vp1>;
 	};
 };
 
@@ -1120,8 +1121,8 @@
 };
 
 &dsi1_in {
-	dsi1_in_vp2: endpoint {
-		remote-endpoint = <&vp2_out_dsi1>;
+	dsi1_in_vp3: endpoint {
+		remote-endpoint = <&vp3_out_dsi1>;
 	};
 };
 
@@ -1131,13 +1132,10 @@
 	};
 };
 
-&vp2 {
-	assigned-clocks = <&cru DCLK_VOP2_SRC>;
-	assigned-clock-parents = <&cru PLL_V0PLL>;
-
-	vp2_out_dsi1: endpoint@ROCKCHIP_VOP2_EP_MIPI1 {
+&vp3 {
+	vp3_out_dsi1: endpoint@ROCKCHIP_VOP2_EP_MIPI1 {
 		reg = <ROCKCHIP_VOP2_EP_MIPI1>;
-		remote-endpoint = <&dsi1_in_vp2>;
+		remote-endpoint = <&dsi1_in_vp3>;
 	};
 };
 
