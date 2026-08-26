@@ -942,8 +942,7 @@
 
 	edp {
 		edphpd: edp-hpd {
-			// TODO RK_FUNC_GPIO?
-			rockchip,pins = <1 RK_PA5 5 &pcfg_pull_down>;
+			rockchip,pins = <1 RK_PA5 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 
 		edpauxen: edp-aux-en {
