@@ -1,12 +1,16 @@
-commit a921cb9427024442a495d55a72871f99b0f06d3f
-Author: Lucie L. Hartmann <lucie@mntre.com>
-Date:   Mon Aug 24 19:58:22 2026 +0200
+From d43f668b07949b9562229a1092940fe732ea0f08 Mon Sep 17 00:00:00 2001
+From: "Lucie L. Hartmann" <lucie@mntre.com>
+Date: Fri, 28 Aug 2026 10:14:09 +0200
+Subject: [PATCH] rk3588: analogix edp: ignore panel/bridge lookup error to
+ allow using dp-connector
 
-    rk3588: analogix edp: ignore panel/bridge lookup error to allow using dp-connector
+---
+ drivers/gpu/drm/rockchip/analogix_dp-rockchip.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/tmp/analogix_dp-rockchip.c b/drivers/gpu/drm/rockchip/analogix_dp-rockchip.c
-index 387fb62..a657c07 100644
---- a/tmp/analogix_dp-rockchip.c
+diff --git a/drivers/gpu/drm/rockchip/analogix_dp-rockchip.c b/drivers/gpu/drm/rockchip/analogix_dp-rockchip.c
+index 387fb6259edd..a657c076088d 100644
+--- a/drivers/gpu/drm/rockchip/analogix_dp-rockchip.c
 +++ b/drivers/gpu/drm/rockchip/analogix_dp-rockchip.c
 @@ -429,16 +429,14 @@ static int rockchip_dp_link_panel(struct drm_dp_aux *aux)
  {
@@ -27,3 +31,6 @@ index 387fb62..a657c07 100644
  
  	return component_add(dp->dev, &rockchip_dp_component_ops);
  }
+-- 
+2.47.3
+
