@@ -11,7 +11,7 @@ Subject: [PATCH 2/2] analogix_dp/rk3588/edp: rewrite parts of driver to work
  3 files changed, 265 insertions(+), 126 deletions(-)
 
 diff --git a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
-index 00fe1f7..f5d14af 100644
+index 00fe1f7..04f9b03 100644
 --- a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 +++ b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 @@ -18,6 +18,8 @@
@@ -390,7 +390,7 @@ index 00fe1f7..f5d14af 100644
 +static void analogix_dp_hpd_timer_cb(struct timer_list *hpd_timer)
 +{
 +	struct analogix_dp_device *dp = to_dp(hpd_timer);
-+	bool new_hpd_state = force_hpd || !analogix_dp_get_plug_in_status(dp);
++	bool new_hpd_state = dp->force_hpd || !analogix_dp_get_plug_in_status(dp);
 +
 +	/* when the eDP cable is disconnected in Pocket Reform, HPD
 +	 * is stuck at "high". so we wait for the first low -> high edge.
