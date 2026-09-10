@@ -45,7 +45,7 @@ new file mode 100644
 index 000000000000..8bcda2173b3b
 --- /dev/null
 +++ b/drivers/firmware/mnt-sc.c
-@@ -0,0 +1,749 @@
+@@ -0,0 +1,755 @@
 +/*
 + * SPDX-License-Identifier: GPL-2.0
 + * Copyright 2022 nanocodebug <nanocodebug@gmail.com>
@@ -299,6 +299,39 @@ index 000000000000..8bcda2173b3b
 +	mutex_init(&data->lock);
 +	spi_set_drvdata(spi, data);
 +
++	data->gc.request = gpiochip_generic_request;
++	data->gc.free = gpiochip_generic_free;
++	data->gc.base = -1;
++	data->gc.set = mntsc_gpio_set;
++	data->gc.get_direction = mntsc_gpio_get_direction;
++	data->gc.ngpio = 10;
++	data->gc.label = dev_name(&spi->dev);
++	data->gc.parent = &spi->dev;
++	data->gc.owner = THIS_MODULE;
++	data->gc.can_sleep = true;
++	data->gc.names = (const char *const[])
++	{
++		"disp_reset",
++		"hub_pwr_en",
++		"pcie_pwr_en",
++		"3v3_en",
++		"uswitch_off",
++		"disp_bl_pwr_en",
++		"reserved_1",
++		"reserved_2",
++		"disp_v2_bl_unlock",
++		"reserved_3",
++	};
++	devm_gpiochip_add_data(&spi->dev, &data->gc, data);
++
++	spi_controller_get(spi->controller);
++
++	uint8_t buffer[MNTSC_RES_SZ];
++	if (sc_cmdresp_retry(data, "(0q)", buffer)) {
++		dev_err(&spi->dev, "sc_cmdresp_retry(0q) failed.\n");
++		return 0;
++	}
++
 +	ret = device_create_file(&spi->dev, &dev_attr_status);
 +	if (ret) {
 +		dev_err(&spi->dev,
@@ -354,33 +387,6 @@ index 000000000000..8bcda2173b3b
 +		dev_err(&spi->dev, "devm_register_sys_off_handler failed.\n");
 +		return ret;
 +	}
-+
-+	data->gc.request = gpiochip_generic_request;
-+	data->gc.free = gpiochip_generic_free;
-+	data->gc.base = -1;
-+	data->gc.set = mntsc_gpio_set;
-+	data->gc.get_direction = mntsc_gpio_get_direction;
-+	data->gc.ngpio = 10;
-+	data->gc.label = dev_name(&spi->dev);
-+	data->gc.parent = &spi->dev;
-+	data->gc.owner = THIS_MODULE;
-+	data->gc.can_sleep = true;
-+	data->gc.names = (const char *const[])
-+	{
-+		"disp_reset",
-+		"hub_pwr_en",
-+		"pcie_pwr_en",
-+		"3v3_en",
-+		"uswitch_off",
-+		"disp_bl_pwr_en",
-+		"reserved_1",
-+		"reserved_2",
-+		"disp_v2_bl_unlock",
-+		"reserved_3",
-+	};
-+	devm_gpiochip_add_data(&spi->dev, &data->gc, data);
-+
-+	spi_controller_get(spi->controller);
 +
 +	return ret;
 +}
