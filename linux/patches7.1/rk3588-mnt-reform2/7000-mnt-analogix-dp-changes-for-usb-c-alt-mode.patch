@@ -11,7 +11,7 @@ Subject: [PATCH 2/2] analogix_dp/rk3588/edp: rewrite parts of driver to work
  3 files changed, 265 insertions(+), 126 deletions(-)
 
 diff --git a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
-index 00fe1f7..77ab756 100644
+index 00fe1f7..f5d14af 100644
 --- a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 +++ b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 @@ -18,6 +18,8 @@
@@ -335,7 +335,7 @@ index 00fe1f7..77ab756 100644
 +	struct analogix_dp_device *dp = to_dp(connector);
 +	enum drm_connector_status status = connector_status_disconnected;
 +
-+	if (dp->hpd_state && dp->hpd_low_state_seen)
++	if (dp->force_hpd || (dp->hpd_state && dp->hpd_low_state_seen))
 +		status = connector_status_connected;
 +
 +	dev_info(dp->dev, "[analogix_dp_detect_ctx] %d\n", status);
@@ -390,7 +390,7 @@ index 00fe1f7..77ab756 100644
 +static void analogix_dp_hpd_timer_cb(struct timer_list *hpd_timer)
 +{
 +	struct analogix_dp_device *dp = to_dp(hpd_timer);
-+	bool new_hpd_state = !analogix_dp_get_plug_in_status(dp);
++	bool new_hpd_state = force_hpd || !analogix_dp_get_plug_in_status(dp);
 +
 +	/* when the eDP cable is disconnected in Pocket Reform, HPD
 +	 * is stuck at "high". so we wait for the first low -> high edge.
@@ -398,7 +398,7 @@ index 00fe1f7..77ab756 100644
 +	if (!new_hpd_state) {
 +		dp->hpd_low_state_seen = true;
 +	}
-+	if (dp->hpd_low_state_seen) {
++	if (dp->force_hpd || dp->hpd_low_state_seen) {
 +		if (dp->hpd_state != new_hpd_state) {
 +			dp->hpd_state = new_hpd_state;
 +			schedule_work(&dp->hpd_work);
@@ -613,7 +613,7 @@ index 00fe1f7..77ab756 100644
  }
  
  struct analogix_dp_device *
-@@ -1441,25 +1565,19 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
+@@ -1441,25 +1565,24 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
  		dp->hpd_gpiod = devm_gpiod_get_optional(dev, "samsung,hpd",
  							GPIOD_IN);
  	if (IS_ERR(dp->hpd_gpiod)) {
@@ -623,7 +623,6 @@ index 00fe1f7..77ab756 100644
  		return ERR_CAST(dp->hpd_gpiod);
  	}
  
-+	dp->hpd_low_state_seen = false;
  	if (dp->hpd_gpiod) {
 -		/*
 -		 * Set up the hotplug GPIO from the device tree as an interrupt.
@@ -634,11 +633,16 @@ index 00fe1f7..77ab756 100644
 -		 */
 -		dp->irq = gpiod_to_irq(dp->hpd_gpiod);
 -		irq_flags = IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING | IRQF_NO_AUTOEN;
--	} else {
++		dev_info(dev, "HPD GPIO got. initial state: %d\n", gpiod_get_value(dp->hpd_gpiod));
++	}
++	if (dp->force_hpd) {
++		dp->hpd_state = false;
++		dp->hpd_low_state_seen = true;
+ 	} else {
 -		dp->irq = platform_get_irq(pdev, 0);
 -		irq_flags = IRQF_NO_AUTOEN;
 +		dp->hpd_state = gpiod_get_value(dp->hpd_gpiod);
-+		dev_info(dev, "HPD GPIO got. initial state: %d\n", dp->hpd_state);
++		dp->hpd_low_state_seen = false;
  	}
 +	// TODO: test if this IRQ is unnecessary now with GPIO HPD
 +	dp->irq = platform_get_irq(pdev, 0);
@@ -646,7 +650,7 @@ index 00fe1f7..77ab756 100644
  
  	if (dp->irq == -ENXIO) {
  		dev_err(&pdev->dev, "failed to get irq\n");
-@@ -1481,8 +1599,9 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
+@@ -1481,8 +1604,9 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
  	dp->aux.dev = dp->dev;
  	drm_dp_aux_init(&dp->aux);
  
@@ -658,7 +662,7 @@ index 00fe1f7..77ab756 100644
  	ret = devm_pm_runtime_enable(dp->dev);
  	if (ret)
  		return ERR_PTR(ret);
-@@ -1493,6 +1612,11 @@ EXPORT_SYMBOL_GPL(analogix_dp_probe);
+@@ -1493,6 +1617,11 @@ EXPORT_SYMBOL_GPL(analogix_dp_probe);
  
  int analogix_dp_suspend(struct analogix_dp_device *dp)
  {
@@ -670,7 +674,7 @@ index 00fe1f7..77ab756 100644
  	phy_power_off(dp->phy);
  
  	if (dp->plat_data->power_off)
-@@ -1506,6 +1630,7 @@ EXPORT_SYMBOL_GPL(analogix_dp_suspend);
+@@ -1506,6 +1635,7 @@ EXPORT_SYMBOL_GPL(analogix_dp_suspend);
  
  int analogix_dp_resume(struct analogix_dp_device *dp)
  {
@@ -678,7 +682,7 @@ index 00fe1f7..77ab756 100644
  	int ret;
  
  	ret = clk_prepare_enable(dp->clock);
-@@ -1599,6 +1724,7 @@ EXPORT_SYMBOL_GPL(analogix_dp_aux_to_plat_data);
+@@ -1599,6 +1729,7 @@ EXPORT_SYMBOL_GPL(analogix_dp_aux_to_plat_data);
  
  struct drm_dp_aux *analogix_dp_get_aux(struct analogix_dp_device *dp)
  {
