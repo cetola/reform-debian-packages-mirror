@@ -257,11 +257,12 @@
 	force-hpd;
 	pinctrl-names = "default";
 	pinctrl-0 = <&edphpd>, <&edphdmimode>;
+	rockchip,lane-count = <2>;
 	status = "okay";
 
 	aux-bus {
 		panel {
-			compatible = "panel-edp";
+			compatible = "edp-panel";
 			backlight = <&backlight>;
 			power-supply = <&vcc3v3_pcie30>;
 			no-hpd;
