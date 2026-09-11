@@ -11,7 +11,7 @@ Subject: [PATCH 2/2] analogix_dp/rk3588/edp: rewrite parts of driver to work
  3 files changed, 265 insertions(+), 126 deletions(-)
 
 diff --git a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
-index 00fe1f7..77ab756 100644
+index 00fe1f7..9ebde9d 100644
 --- a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 +++ b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 @@ -18,6 +18,8 @@
@@ -241,7 +241,7 @@ index 00fe1f7..77ab756 100644
  
 -	/* Keep the panel disabled while we configure video */
 -	drm_panel_disable(dp->plat_data->panel);
-+	if (!dp->hpd_state || !dp->hpd_low_state_seen) {
++	if (!dp->force_hpd && (!dp->hpd_state || !dp->hpd_low_state_seen)) {
 +		dev_info(dp->dev, "[analogix_dp_commit] display not connected, skipping.\n");
 +		return -ENODEV;
 +	}
@@ -276,7 +276,7 @@ index 00fe1f7..77ab756 100644
 -	} else {
 -		drm_edid = drm_edid_read_ddc(connector, &dp->aux.ddc);
 +	dev_info(dp->dev, "[analogix_dp_get_modes]\n");
-+	if (!dp->hpd_state || !dp->hpd_low_state_seen) {
++	if (!dp->force_hpd && (!dp->hpd_state || !dp->hpd_low_state_seen)) {
 +		dev_info(dp->dev, "[analogix_dp_get_modes] -> disconnected, skip\n");
 +		return 0;
 +	}
@@ -335,7 +335,7 @@ index 00fe1f7..77ab756 100644
 +	struct analogix_dp_device *dp = to_dp(connector);
 +	enum drm_connector_status status = connector_status_disconnected;
 +
-+	if (dp->hpd_state && dp->hpd_low_state_seen)
++	if (dp->force_hpd || (dp->hpd_state && dp->hpd_low_state_seen))
 +		status = connector_status_connected;
 +
 +	dev_info(dp->dev, "[analogix_dp_detect_ctx] %d\n", status);
@@ -390,7 +390,7 @@ index 00fe1f7..77ab756 100644
 +static void analogix_dp_hpd_timer_cb(struct timer_list *hpd_timer)
 +{
 +	struct analogix_dp_device *dp = to_dp(hpd_timer);
-+	bool new_hpd_state = !analogix_dp_get_plug_in_status(dp);
++	bool new_hpd_state = dp->force_hpd || !analogix_dp_get_plug_in_status(dp);
 +
 +	/* when the eDP cable is disconnected in Pocket Reform, HPD
 +	 * is stuck at "high". so we wait for the first low -> high edge.
@@ -398,7 +398,7 @@ index 00fe1f7..77ab756 100644
 +	if (!new_hpd_state) {
 +		dp->hpd_low_state_seen = true;
 +	}
-+	if (dp->hpd_low_state_seen) {
++	if (dp->force_hpd || dp->hpd_low_state_seen) {
 +		if (dp->hpd_state != new_hpd_state) {
 +			dp->hpd_state = new_hpd_state;
 +			schedule_work(&dp->hpd_work);
@@ -433,16 +433,22 @@ index 00fe1f7..77ab756 100644
  static int analogix_dp_bridge_attach(struct drm_bridge *bridge,
  				     struct drm_encoder *encoder,
  				     enum drm_bridge_attach_flags flags)
-@@ -969,7 +1077,7 @@ static int analogix_dp_bridge_attach(struct drm_bridge *bridge,
+@@ -967,9 +1075,13 @@ static int analogix_dp_bridge_attach(struct drm_bridge *bridge,
+ 		connector = &dp->connector;
+ 		connector->polled = DRM_CONNECTOR_POLL_HPD;
  
++		int connector_type = DRM_MODE_CONNECTOR_DisplayPort;
++		if (dp->force_hpd) {
++			connector_type = DRM_MODE_CONNECTOR_eDP;
++		}
  		ret = drm_connector_init(dp->drm_dev, connector,
  					 &analogix_dp_connector_funcs,
 -					 DRM_MODE_CONNECTOR_eDP);
-+					 DRM_MODE_CONNECTOR_DisplayPort);
++					 connector_type);
  		if (ret) {
  			DRM_ERROR("Failed to initialize connector with drm\n");
  			return ret;
-@@ -978,6 +1086,13 @@ static int analogix_dp_bridge_attach(struct drm_bridge *bridge,
+@@ -978,6 +1090,13 @@ static int analogix_dp_bridge_attach(struct drm_bridge *bridge,
  		drm_connector_helper_add(connector,
  					 &analogix_dp_connector_helper_funcs);
  		drm_connector_attach_encoder(connector, encoder);
@@ -456,7 +462,7 @@ index 00fe1f7..77ab756 100644
  	}
  
  	/*
-@@ -1051,6 +1166,7 @@ static void analogix_dp_bridge_atomic_pre_enable(struct drm_bridge *bridge,
+@@ -1051,6 +1170,7 @@ static void analogix_dp_bridge_atomic_pre_enable(struct drm_bridge *bridge,
  	if (old_crtc_state && old_crtc_state->self_refresh_active)
  		return;
  
@@ -464,7 +470,7 @@ index 00fe1f7..77ab756 100644
  	drm_panel_prepare(dp->plat_data->panel);
  }
  
-@@ -1069,11 +1185,11 @@ static int analogix_dp_set_bridge(struct analogix_dp_device *dp)
+@@ -1069,11 +1189,11 @@ static int analogix_dp_set_bridge(struct analogix_dp_device *dp)
  	 * We should first make sure the HPD signal is asserted high by device
  	 * when we want to establish a link with it.
  	 */
@@ -478,7 +484,7 @@ index 00fe1f7..77ab756 100644
  
  	ret = analogix_dp_commit(dp);
  	if (ret) {
-@@ -1098,6 +1214,7 @@ static void analogix_dp_bridge_mode_set(struct drm_bridge *bridge,
+@@ -1098,6 +1218,7 @@ static void analogix_dp_bridge_mode_set(struct drm_bridge *bridge,
  	struct video_info *video = &dp->video_info;
  	struct device_node *dp_node = dp->dev->of_node;
  	int vic;
@@ -486,7 +492,7 @@ index 00fe1f7..77ab756 100644
  
  	/* Input video interlaces & hsync pol & vsync pol */
  	video->interlaced = !!(mode->flags & DRM_MODE_FLAG_INTERLACE);
-@@ -1118,7 +1235,7 @@ static void analogix_dp_bridge_mode_set(struct drm_bridge *bridge,
+@@ -1118,7 +1239,7 @@ static void analogix_dp_bridge_mode_set(struct drm_bridge *bridge,
  		video->ycbcr_coeff = COLOR_YCBCR709;
  	}
  
@@ -495,20 +501,20 @@ index 00fe1f7..77ab756 100644
  	switch (display_info->bpc) {
  	case 12:
  		video->color_depth = COLOR_12;
-@@ -1174,6 +1291,12 @@ static void analogix_dp_bridge_atomic_enable(struct drm_bridge *bridge,
+@@ -1174,6 +1295,12 @@ static void analogix_dp_bridge_atomic_enable(struct drm_bridge *bridge,
  	struct drm_crtc_state *old_crtc_state, *new_crtc_state;
  	int timeout_loop = 0;
  	int ret;
 +	dev_info(dp->dev, "[analogix_dp_bridge_atomic_enable]\n");
 +
-+	if (!dp->hpd_state || !dp->hpd_low_state_seen) {
++	if (!dp->force_hpd && (!dp->hpd_state || !dp->hpd_low_state_seen)) {
 +		dev_info(dp->dev, "[analogix_dp_bridge_atomic_enable] display not connected, skipping.\n");
 +		return;
 +	}
  
  	crtc = analogix_dp_get_new_crtc(dp, old_state);
  	if (!crtc)
-@@ -1206,12 +1329,13 @@ static void analogix_dp_bridge_atomic_enable(struct drm_bridge *bridge,
+@@ -1206,12 +1333,13 @@ static void analogix_dp_bridge_atomic_enable(struct drm_bridge *bridge,
  		timeout_loop++;
  		usleep_range(10, 11);
  	}
@@ -523,7 +529,7 @@ index 00fe1f7..77ab756 100644
  
  	if (dp->dpms_mode != DRM_MODE_DPMS_ON)
  		return;
-@@ -1239,6 +1363,7 @@ static void analogix_dp_bridge_atomic_disable(struct drm_bridge *bridge,
+@@ -1239,6 +1367,7 @@ static void analogix_dp_bridge_atomic_disable(struct drm_bridge *bridge,
  	struct drm_crtc_state *old_crtc_state = NULL;
  	struct drm_crtc_state *new_crtc_state = NULL;
  	int ret;
@@ -531,7 +537,7 @@ index 00fe1f7..77ab756 100644
  
  	new_crtc = analogix_dp_get_new_crtc(dp, old_state);
  	if (!new_crtc)
-@@ -1290,6 +1415,13 @@ static void analogix_dp_bridge_atomic_post_disable(struct drm_bridge *bridge,
+@@ -1290,6 +1419,13 @@ static void analogix_dp_bridge_atomic_post_disable(struct drm_bridge *bridge,
  		DRM_ERROR("Failed to enable psr (%d)\n", ret);
  }
  
@@ -545,7 +551,7 @@ index 00fe1f7..77ab756 100644
  static const struct drm_bridge_funcs analogix_dp_bridge_funcs = {
  	.atomic_duplicate_state = drm_atomic_helper_bridge_duplicate_state,
  	.atomic_destroy_state = drm_atomic_helper_bridge_destroy_state,
-@@ -1299,6 +1431,7 @@ static const struct drm_bridge_funcs analogix_dp_bridge_funcs = {
+@@ -1299,6 +1435,7 @@ static const struct drm_bridge_funcs analogix_dp_bridge_funcs = {
  	.atomic_disable = analogix_dp_bridge_atomic_disable,
  	.atomic_post_disable = analogix_dp_bridge_atomic_post_disable,
  	.attach = analogix_dp_bridge_attach,
@@ -553,7 +559,7 @@ index 00fe1f7..77ab756 100644
  };
  
  static int analogix_dp_dt_parse_pdata(struct analogix_dp_device *dp)
-@@ -1319,6 +1452,11 @@ static int analogix_dp_dt_parse_pdata(struct analogix_dp_device *dp)
+@@ -1319,6 +1456,11 @@ static int analogix_dp_dt_parse_pdata(struct analogix_dp_device *dp)
  	case RK3588_EDP:
  		video_info->max_link_rate = 0x14;
  		video_info->max_lane_count = 0x04;
@@ -565,7 +571,7 @@ index 00fe1f7..77ab756 100644
  		break;
  	case EXYNOS_DP:
  		/*
-@@ -1341,16 +1479,7 @@ static ssize_t analogix_dpaux_transfer(struct drm_dp_aux *aux,
+@@ -1341,16 +1483,7 @@ static ssize_t analogix_dpaux_transfer(struct drm_dp_aux *aux,
  	struct analogix_dp_device *dp = to_dp(aux);
  	int ret;
  
@@ -582,7 +588,7 @@ index 00fe1f7..77ab756 100644
  
  	return ret;
  }
-@@ -1358,21 +1487,16 @@ static ssize_t analogix_dpaux_transfer(struct drm_dp_aux *aux,
+@@ -1358,21 +1491,16 @@ static ssize_t analogix_dpaux_transfer(struct drm_dp_aux *aux,
  static int analogix_dpaux_wait_hpd_asserted(struct drm_dp_aux *aux, unsigned long wait_us)
  {
  	struct analogix_dp_device *dp = to_dp(aux);
@@ -613,7 +619,15 @@ index 00fe1f7..77ab756 100644
  }
  
  struct analogix_dp_device *
-@@ -1441,25 +1565,19 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
+@@ -1434,6 +1562,7 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
+ 		return ERR_CAST(dp->reg_base);
+ 
+ 	dp->force_hpd = of_property_read_bool(dev->of_node, "force-hpd");
++	dev_info(dev, "force-hpd: %d\n", dp->force_hpd);
+ 
+ 	/* Try two different names */
+ 	dp->hpd_gpiod = devm_gpiod_get_optional(dev, "hpd", GPIOD_IN);
+@@ -1441,25 +1570,24 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
  		dp->hpd_gpiod = devm_gpiod_get_optional(dev, "samsung,hpd",
  							GPIOD_IN);
  	if (IS_ERR(dp->hpd_gpiod)) {
@@ -623,7 +637,6 @@ index 00fe1f7..77ab756 100644
  		return ERR_CAST(dp->hpd_gpiod);
  	}
  
-+	dp->hpd_low_state_seen = false;
  	if (dp->hpd_gpiod) {
 -		/*
 -		 * Set up the hotplug GPIO from the device tree as an interrupt.
@@ -634,11 +647,16 @@ index 00fe1f7..77ab756 100644
 -		 */
 -		dp->irq = gpiod_to_irq(dp->hpd_gpiod);
 -		irq_flags = IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING | IRQF_NO_AUTOEN;
--	} else {
++		dev_info(dev, "HPD GPIO got. initial state: %d\n", gpiod_get_value(dp->hpd_gpiod));
++	}
++	if (dp->force_hpd) {
++		dp->hpd_state = false;
++		dp->hpd_low_state_seen = true;
+ 	} else {
 -		dp->irq = platform_get_irq(pdev, 0);
 -		irq_flags = IRQF_NO_AUTOEN;
 +		dp->hpd_state = gpiod_get_value(dp->hpd_gpiod);
-+		dev_info(dev, "HPD GPIO got. initial state: %d\n", dp->hpd_state);
++		dp->hpd_low_state_seen = false;
  	}
 +	// TODO: test if this IRQ is unnecessary now with GPIO HPD
 +	dp->irq = platform_get_irq(pdev, 0);
@@ -646,7 +664,7 @@ index 00fe1f7..77ab756 100644
  
  	if (dp->irq == -ENXIO) {
  		dev_err(&pdev->dev, "failed to get irq\n");
-@@ -1481,8 +1599,9 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
+@@ -1481,8 +1609,9 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
  	dp->aux.dev = dp->dev;
  	drm_dp_aux_init(&dp->aux);
  
@@ -658,7 +676,7 @@ index 00fe1f7..77ab756 100644
  	ret = devm_pm_runtime_enable(dp->dev);
  	if (ret)
  		return ERR_PTR(ret);
-@@ -1493,6 +1612,11 @@ EXPORT_SYMBOL_GPL(analogix_dp_probe);
+@@ -1493,6 +1622,11 @@ EXPORT_SYMBOL_GPL(analogix_dp_probe);
  
  int analogix_dp_suspend(struct analogix_dp_device *dp)
  {
@@ -670,7 +688,7 @@ index 00fe1f7..77ab756 100644
  	phy_power_off(dp->phy);
  
  	if (dp->plat_data->power_off)
-@@ -1506,6 +1630,7 @@ EXPORT_SYMBOL_GPL(analogix_dp_suspend);
+@@ -1506,6 +1640,7 @@ EXPORT_SYMBOL_GPL(analogix_dp_suspend);
  
  int analogix_dp_resume(struct analogix_dp_device *dp)
  {
@@ -678,7 +696,7 @@ index 00fe1f7..77ab756 100644
  	int ret;
  
  	ret = clk_prepare_enable(dp->clock);
-@@ -1599,6 +1724,7 @@ EXPORT_SYMBOL_GPL(analogix_dp_aux_to_plat_data);
+@@ -1599,6 +1734,7 @@ EXPORT_SYMBOL_GPL(analogix_dp_aux_to_plat_data);
  
  struct drm_dp_aux *analogix_dp_get_aux(struct analogix_dp_device *dp)
  {

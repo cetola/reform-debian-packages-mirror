@@ -50,7 +50,6 @@
 	backlight: backlight {
 		compatible = "pwm-backlight";
 		pwms = <&pwm8 0 10000 0>;
-		enable-gpios = <&gpio2 RK_PB5 GPIO_ACTIVE_HIGH>;
 		brightness-levels = <0 1000>;
 		default-brightness-level = <50>;
 		num-interpolated-steps = <100>;
@@ -252,14 +251,17 @@
 };
 
 &edp0 {
-	enable-gpios = <&gpio4 RK_PA0 GPIO_ACTIVE_LOW>;
+	hpd-gpios = <&gpio1 RK_PA5 GPIO_ACTIVE_HIGH>;
 	force-hpd;
+	pinctrl-names = "default";
+	pinctrl-0 = <&edphpd>, <&edphdmimode>;
+	rockchip,lane-count = <2>;
 	status = "okay";
 
 	aux-bus {
 		panel {
-			compatible = "edp-panel";
-			backlight = <&backlight>;
+			compatible = "innolux,n125hce-gn1";
+			enable-gpios = <&gpio2 RK_PB5 GPIO_ACTIVE_HIGH>;
 			power-supply = <&vcc3v3_pcie30>;
 			no-hpd;
 
@@ -502,7 +504,7 @@
 &sdmmc {
 	bus-width = <4>;
 	//max-frequency = <48000000>;
-	max-frequency = <40000000>;
+	max-frequency = <20000000>;
 	no-sdio;
 	no-mmc;
 	no-1-8-v;
@@ -523,7 +525,7 @@
 	num-cs = <1>;
 
 	spidev@0 {
-		compatible = "mntre,lpc11u24";
+		compatible = "mntre,system-controller";
 		spi-max-frequency = <1000000>;
 		reg = <0>;
 	};
@@ -923,7 +925,17 @@
 &pinctrl {
 	backlight {
 		backlight_enable: backlight-enable {
-			rockchip,pins = <2 RK_PB5 RK_FUNC_GPIO &pcfg_pull_none>;
+			rockchip,pins = <2 RK_PB5 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+	};
+
+	edp {
+		edphpd: edp-hpd {
+			rockchip,pins = <1 RK_PA5 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+
+		edphdmimode: edp-hdmi-mode {
+			rockchip,pins = <4 RK_PA0 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 	};
 
@@ -959,7 +971,7 @@
 };
 
 &gpio3 {
-	internal-hdmi-hog {
+	internal-edp-hog1 {
 		gpios = <RK_PB3 GPIO_ACTIVE_HIGH>;
 		output-high; /* select eDP AUX */
 		line-name = "Internal HDMI DDC/eDP AUX select";
@@ -984,6 +996,14 @@
 		line-name = "ETH PHY LED Mode Strap";
 		gpio-hog;
 	};
+
+	internal-edp-hog2 {
+		gpios = <RK_PA0 GPIO_ACTIVE_HIGH>;
+		output-low; /* select eDP AUX */
+		line-name = "Internal HDMI FRL pulldowns";
+		gpio-hog;
+	};
+
 };
 
 &u2phy0 {
