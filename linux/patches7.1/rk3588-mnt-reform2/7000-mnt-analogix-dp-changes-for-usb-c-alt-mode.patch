@@ -11,7 +11,7 @@ Subject: [PATCH 2/2] analogix_dp/rk3588/edp: rewrite parts of driver to work
  3 files changed, 265 insertions(+), 126 deletions(-)
 
 diff --git a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
-index 00fe1f7..04f9b03 100644
+index 00fe1f7..be12ffa 100644
 --- a/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 +++ b/drivers/gpu/drm/bridge/analogix/analogix_dp_core.c
 @@ -18,6 +18,8 @@
@@ -241,7 +241,7 @@ index 00fe1f7..04f9b03 100644
  
 -	/* Keep the panel disabled while we configure video */
 -	drm_panel_disable(dp->plat_data->panel);
-+	if (!dp->hpd_state || !dp->hpd_low_state_seen) {
++	if (!dp->force_hpd && (!dp->hpd_state || !dp->hpd_low_state_seen)) {
 +		dev_info(dp->dev, "[analogix_dp_commit] display not connected, skipping.\n");
 +		return -ENODEV;
 +	}
@@ -276,7 +276,7 @@ index 00fe1f7..04f9b03 100644
 -	} else {
 -		drm_edid = drm_edid_read_ddc(connector, &dp->aux.ddc);
 +	dev_info(dp->dev, "[analogix_dp_get_modes]\n");
-+	if (!dp->hpd_state || !dp->hpd_low_state_seen) {
++	if (!dp->force_hpd && (!dp->hpd_state || !dp->hpd_low_state_seen)) {
 +		dev_info(dp->dev, "[analogix_dp_get_modes] -> disconnected, skip\n");
 +		return 0;
 +	}
@@ -501,7 +501,7 @@ index 00fe1f7..04f9b03 100644
  	int ret;
 +	dev_info(dp->dev, "[analogix_dp_bridge_atomic_enable]\n");
 +
-+	if (!dp->hpd_state || !dp->hpd_low_state_seen) {
++	if (!dp->force_hpd && (!dp->hpd_state || !dp->hpd_low_state_seen)) {
 +		dev_info(dp->dev, "[analogix_dp_bridge_atomic_enable] display not connected, skipping.\n");
 +		return;
 +	}
@@ -613,7 +613,15 @@ index 00fe1f7..04f9b03 100644
  }
  
  struct analogix_dp_device *
-@@ -1441,25 +1565,24 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
+@@ -1434,6 +1558,7 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
+ 		return ERR_CAST(dp->reg_base);
+ 
+ 	dp->force_hpd = of_property_read_bool(dev->of_node, "force-hpd");
++	dev_info(dev, "force-hpd: %d\n", dp->force_hpd);
+ 
+ 	/* Try two different names */
+ 	dp->hpd_gpiod = devm_gpiod_get_optional(dev, "hpd", GPIOD_IN);
+@@ -1441,25 +1566,24 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
  		dp->hpd_gpiod = devm_gpiod_get_optional(dev, "samsung,hpd",
  							GPIOD_IN);
  	if (IS_ERR(dp->hpd_gpiod)) {
@@ -650,7 +658,7 @@ index 00fe1f7..04f9b03 100644
  
  	if (dp->irq == -ENXIO) {
  		dev_err(&pdev->dev, "failed to get irq\n");
-@@ -1481,8 +1604,9 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
+@@ -1481,8 +1605,9 @@ analogix_dp_probe(struct device *dev, struct analogix_dp_plat_data *plat_data)
  	dp->aux.dev = dp->dev;
  	drm_dp_aux_init(&dp->aux);
  
@@ -662,7 +670,7 @@ index 00fe1f7..04f9b03 100644
  	ret = devm_pm_runtime_enable(dp->dev);
  	if (ret)
  		return ERR_PTR(ret);
-@@ -1493,6 +1617,11 @@ EXPORT_SYMBOL_GPL(analogix_dp_probe);
+@@ -1493,6 +1618,11 @@ EXPORT_SYMBOL_GPL(analogix_dp_probe);
  
  int analogix_dp_suspend(struct analogix_dp_device *dp)
  {
@@ -674,7 +682,7 @@ index 00fe1f7..04f9b03 100644
  	phy_power_off(dp->phy);
  
  	if (dp->plat_data->power_off)
-@@ -1506,6 +1635,7 @@ EXPORT_SYMBOL_GPL(analogix_dp_suspend);
+@@ -1506,6 +1636,7 @@ EXPORT_SYMBOL_GPL(analogix_dp_suspend);
  
  int analogix_dp_resume(struct analogix_dp_device *dp)
  {
@@ -682,7 +690,7 @@ index 00fe1f7..04f9b03 100644
  	int ret;
  
  	ret = clk_prepare_enable(dp->clock);
-@@ -1599,6 +1729,7 @@ EXPORT_SYMBOL_GPL(analogix_dp_aux_to_plat_data);
+@@ -1599,6 +1730,7 @@ EXPORT_SYMBOL_GPL(analogix_dp_aux_to_plat_data);
  
  struct drm_dp_aux *analogix_dp_get_aux(struct analogix_dp_device *dp)
  {
