@@ -316,7 +316,8 @@ dtbs_check:
   script: |
     set -exuo pipefail
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
-    apt-get --yes install --no-install-recommends gcc-aarch64-linux-gnu build-essential bison flex device-tree-compiler git ca-certificates xz-utils libssl-dev bc dt-schema
+    apt-get --yes install --no-install-recommends gcc-aarch64-linux-gnu build-essential bison flex device-tree-compiler git ca-certificates xz-utils libssl-dev bc python3-pip python3-dev swig
+    pip3 install --break-system-packages 'dtschema>=2026.6'
     dpkg -x ./changes-arm64/linux-source-*.deb ./
     dpkg -x ./changes-arm64/linux-config-*.deb ./
     tar xfJ usr/src/linux-source-*.tar.xz
