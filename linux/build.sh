@@ -10,6 +10,7 @@
 #  - allows features like supermin+guestfs or anbox
 #  - support for all hardware that Debian supports via modules
 #  - minimize the diff so that reform support can be added to the official packaging
+#  - builds linux-libc-dev which is needed by libc6-dev
 #
 # shellcheck disable=SC2016
 
