@@ -125,3 +125,74 @@ index 1bacc51..765fe45 100644
  Kernel-Flavors: armmp armmp-lpae
  Boot-Script-Path: /boot/boot.scr
 EOF
+
+patch -p1 << 'EOF'
+From f16ea8a3b49c0e0f1e2177892baa7c65bdc6216f Mon Sep 17 00:00:00 2001
+From: Johannes Schauer Marin Rodrigues <josch@debian.org>
+Date: Sat, 12 Sep 2026 15:32:59 +0200
+Subject: [PATCH] Debian Linux 7.2 and later ships vmlinuz in
+ /usr/lib/modules/$ver/vmlinuz
+
+"linux-version list" lists the kernels matching the glob
+"/boot/vmlinu[xz]-*" but since Debian Linux 7.2, the location of vmlinuz
+was moved from /boot into /usr/lib/modules/$ver. The binary package also
+changed from linux-image-$ver to linux-binary-$ver in 6.19.
+
+As a result, the function get_kernel_status would error out with kernel
+7.2 because there is no longer any package shipping
+"/boot/vmlinu[xz]-*". This commit works around this problem but there
+are open questions:
+
+ 1. why does this function not just set pkg=linux-image-$ver or
+    pkg=linux-binary-$ver
+ 2. is this function expected to return linux-image-$ver or, for kernels
+    6.19 and later, linux-binary-$ver (this is the new behaviour now)
+ 3. is it sufficient to wait for the state being "installed" for
+    linux-binary-$ver or should linux-image-$ver be "installed"?
+ 4. is it okay that the new version of this function disconnects the
+    path to vmlinuz from the output of "linux-version list"? The path in
+    /boot will not be populated at unpack time.
+ 5. is the use of "linux-version list" not wrong starting with kernel
+    7.2 because linux-binary-$ver does no longer unpack the kernel to
+    /boot?
+
+Without this commit one gets the following error when running
+flash-kernel:
+
+dpkg-query: no packages found matching
+run-parts: /etc/initramfs/post-update.d//flash-kernel exited with return code 1
+
+Closes: #1148115
+---
+ functions | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/functions b/functions
+index 7bb654b..fcc8469 100644
+--- a/functions
++++ b/functions
+@@ -601,8 +601,21 @@ get_kernel_status() {
+ 	# return the dpkg package status of kernel version $query_ver
+ 	local query_ver="$1"
+ 	local ver path pkg
++	#  version          | package with vmlinuz | location of vmlinuz
++	# ------------------+----------------------+----------------------------------
++	#  < 6.19           | linux-image-${ver}   | /boot/vmlinuz-${ver}
++	#  >= 6.19 && < 7.2 | linux-binary-${ver}  | /boot/vmlinuz-${ver}
++	#  >= 7.2           | linux-binary-${ver}  | /usr/lib/modules/${ver}/vmlinuz
+ 	linux-version list --paths | while read -r ver path; do
+ 		if linux-version compare "$ver" eq "$query_ver"; then
++			# since kernel 7.2, the image is shipped in
++			# /usr/lib/modules/$ver/vmlinuz
++			# the linux-version tool uses a glob on /boot/vmlinuz-*
++			if linux-version compare "$ver" ge "7.2"; then
++				path="/usr/lib/modules/$ver/vmlinuz"
++			fi
++			# FIXME: document why this function does not just set
++			# pkg=linux-image-$ver or pkg=linux-binary-$ver
+ 			pkg=$(
+ 				LANG=C.UTF-8 dpkg-query --search "$path" 2>/dev/null |
+ 				awk -F ": " -v path="$path" '$2==path { print $1; }'
+-- 
+2.55.0
+EOF

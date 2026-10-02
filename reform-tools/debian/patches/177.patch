@@ -1,0 +1,218 @@
+From 3036308a0a36f52ee9e9dac171bd76efee03356e Mon Sep 17 00:00:00 2001
+From: "Lucie L. Hartmann" <lucie@mntre.com>
+Date: Wed, 16 Sep 2026 22:59:03 +0200
+Subject: [PATCH] remove reform-handbook and pocket-reform-handbook
+
+---
+ Makefile                   |  2 --
+ bin/pocket-reform-handbook | 38 --------------------------
+ bin/reform-handbook        | 38 --------------------------
+ bin/reform-help            | 55 +++++---------------------------------
+ 4 files changed, 6 insertions(+), 127 deletions(-)
+ delete mode 100755 bin/pocket-reform-handbook
+ delete mode 100755 bin/reform-handbook
+
+diff --git a/Makefile b/Makefile
+index f7fbd47..9dabf65 100644
+--- a/Makefile
++++ b/Makefile
+@@ -48,8 +48,6 @@ man/%.1: bin/%
+ 		flash-rescue)   echo "flash rescue image to eMMC" ;;          \
+ 		flash-uboot)    echo "use reform-flash-bootloader" ;;         \
+ 		gnome-config)   echo "apply default config to GNOME" ;;       \
+-		handbook)       echo "show Reform Handbook" ;;                \
+-		pocket-reform-handbook) echo "show Pocket Reform Handbook" ;; \
+ 		help)           echo "help with MNT Reform" ;;                \
+ 		hw-setup)       echo "perform hardware tweaks" ;;             \
+ 		migrate)        echo "copy rootfs to device" ;;               \
+diff --git a/bin/pocket-reform-handbook b/bin/pocket-reform-handbook
+deleted file mode 100755
+index 5dab2ee..0000000
+--- a/bin/pocket-reform-handbook
++++ /dev/null
+@@ -1,38 +0,0 @@
+-#!/bin/sh
+-# SPDX-License-Identifier: GPL-3.0+
+-# Copyright 2023 Lukas F. Hartmann <lukas@mntre.com>
+-# Copyright 2024 Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
+-set -eu
+-
+-usage() {
+-  echo "Open the MNT Pocket Reform handbook in a browser" >&2
+-  echo >&2
+-  echo "Usage: $0 [--help]" >&2
+-  echo >&2
+-  echo "Options:" >&2
+-  echo "  --help           Display this help and exit." >&2
+-}
+-
+-if [ $# -gt 0 ]; then
+-  if [ "$1" != "--help" ]; then
+-    echo "E: too many arguments" >&2
+-    usage
+-    exit 1
+-  fi
+-  usage
+-  exit 0
+-fi
+-
+-if [ ! -e /usr/share/doc/pocket-reform-handbook/html/index.html ]; then
+-  echo "E: install pocket-reform-handbook" >&2
+-  exit 1
+-fi
+-
+-if [ -z ${DISPLAY+x} ]; then
+-  # not running under X/wayland
+-  set -- elinks
+-else
+-  set -- xdg-open
+-fi
+-set -- "$@" /usr/share/doc/pocket-reform-handbook/html/index.html
+-exec "$@"
+diff --git a/bin/reform-handbook b/bin/reform-handbook
+deleted file mode 100755
+index aca5f32..0000000
+--- a/bin/reform-handbook
++++ /dev/null
+@@ -1,38 +0,0 @@
+-#!/bin/sh
+-# SPDX-License-Identifier: GPL-3.0+
+-# Copyright 2023 Lukas F. Hartmann <lukas@mntre.com>
+-# Copyright 2024 Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
+-set -eu
+-
+-usage() {
+-  echo "Open the MNT Reform handbook in a browser" >&2
+-  echo >&2
+-  echo "Usage: $0 [--help]" >&2
+-  echo >&2
+-  echo "Options:" >&2
+-  echo "  --help           Display this help and exit." >&2
+-}
+-
+-if [ $# -gt 0 ]; then
+-  if [ "$1" != "--help" ]; then
+-    echo "E: too many arguments" >&2
+-    usage
+-    exit 1
+-  fi
+-  usage
+-  exit 0
+-fi
+-
+-if [ ! -e /usr/share/doc/reform-handbook/html/index.html ]; then
+-  echo "E: install reform-handbook" >&2
+-  exit 1
+-fi
+-
+-if [ -z ${DISPLAY+x} ]; then
+-  # not running under X/wayland
+-  set -- elinks
+-else
+-  set -- xdg-open
+-fi
+-set -- "$@" /usr/share/doc/reform-handbook/html/index.html
+-exec "$@"
+diff --git a/bin/reform-help b/bin/reform-help
+index 303f2cd..71619d3 100755
+--- a/bin/reform-help
++++ b/bin/reform-help
+@@ -1,18 +1,18 @@
+ #!/bin/sh
+ # SPDX-License-Identifier: GPL-3.0+
+-# Copyright 2020-2022 Lukas F. Hartmann <lukas@mntre.com>
+-# Copyright 2022-2025 Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
++# Copyright 2020-2026 Lucie Hartmann <lucie@mntre.com>
++# Copyright 2022-2026 Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
+ 
+ set -eu
+ 
+ usage() {
+-  echo "Prints help text for how to use the MNT Reform." >&2
++  echo "Prints help text for how to use your MNT system." >&2
+   echo >&2
+   echo "Usage: $0 [--desktop,--root]" >&2
+   echo >&2
+   echo "Options:" >&2
+-  echo "  --desktop Print the MNT Reform desktop help text." >&2
+-  echo "  --root    Print the MNT Reform root shell help text." >&2
++  echo "  --desktop Print the MNT system's desktop help text." >&2
++  echo "  --root    Print the MNT system's root shell help text." >&2
+ }
+ 
+ reform_help() {
+@@ -30,20 +30,6 @@ List hardware/peripherals:         [1mlsblk[0m
+                                    [1mlspci[0m
+                                    [1mip a[0m
+ View this message again:           [1mreform-help[0m
+-END
+-  case "$(cat /proc/device-tree/model)" in
+-    "MNT Pocket Reform with "*)
+-      cat <<'END'
+-Read the Operator Handbook:        [1mpocket-reform-handbook[0m (press % to fix contrast, Q to quit)
+-END
+-      ;;
+-    *)
+-      cat <<'END'
+-Read the Operator Handbook:        [1mreform-handbook[0m (press % to fix contrast, Q to quit)
+-END
+-      ;;
+-  esac
+-  cat <<'END'
+ Set keyboard layout and timezone:  [1msudo reform-config[0m
+ Chat in Reform community:          [1mreform-chat[0m
+ Select boot device:                [1msudo reform-boot-config[0m
+@@ -86,30 +72,13 @@ Afterwards, to be able to become root by using sudo, enter:
+   [1madduser [1;4myour-name[0m [1msudo[0m
+ 
+ Then, log out using [1mexit[0m and log in as [1;4myour-name[0m.
+-
+-To read the MNT Reform Operator Handbook, enter:
+-
+ END
+-  case "$(cat /proc/device-tree/model)" in
+-    "MNT Pocket Reform with "*)
+-      cat <<'END'
+-  [1mpocket-reform-handbook[0m   # (in the browser, press %
+-                           # to fix contrast, Q to quit)
+-END
+-      ;;
+-    *)
+-      cat <<'END'
+-  [1mreform-handbook[0m   # (in the browser, press %
+-                    # to fix contrast, Q to quit)
+-END
+-      ;;
+-  esac
+ }
+ 
+ reform_desktop_help() {
+   cat /etc/motd
+   cat <<'END'
+-Welcome to the MNT Reform desktop.
++Welcome to your MNT system's desktop.
+ 
+ Useful keyboard shortcuts ([1mSUPER[0m is the MNT logo key):
+ 
+@@ -140,18 +109,6 @@ Customize the sway configuration:
+ 
+ To learn more about the command line, enter: [1mreform-help[0m
+ END
+-  case "$(cat /proc/device-tree/model)" in
+-    "MNT Pocket Reform with "*)
+-      cat <<'END'
+-Read the MNT Pocket Reform handbook in a browser: [1mpocket-reform-handbook[0m
+-END
+-      ;;
+-    *)
+-      cat <<'END'
+-Read the MNT Reform handbook in a browser: [1mreform-handbook[0m
+-END
+-      ;;
+-  esac
+   echo
+   reform_help
+ }
+-- 
+GitLab
+
