@@ -12,6 +12,9 @@ spec:
     mirror:
       description: "Debian mirror to pull packages from"
       default: "http://deb.debian.org/debian"
+    linux_branch:
+      description: "Branch of linux stable git repository. Auto-picked if empty."
+      default: ""
 ---
 
 image: debian:unstable-slim
@@ -175,6 +178,11 @@ build_patched_amd64:
     MIRROR='$[[ inputs.mirror ]]'
     export MIRROR
     echo "MIRROR: $[[ inputs.mirror ]]" >&2
+    LINUX_BRANCH='$[[ inputs.linux_branch ]]'
+    if [ -n '$LINUX_BRANCH' ]; then
+      export LINUX_BRANCH
+      echo 'LINUX_BRANCH: $LINUX_BRANCH' >&2
+    fi
     # gitlab has pipefail turned on by default, so the below will fail if
     # build.sh fails despite the command being piped to filter-output.
     runuser -u build -- sh -xc '. ./common.sh; cd linux; . ./build.sh' 2>&1 | ./filter-output
@@ -237,6 +245,9 @@ build_patched_amd64:
       # display the result here.
       grep -B1 -A3 --color -P '([^"]error:|Error|[^_W]ERROR|Waiting for unfinished jobs)' linux/linux_*_"${HOST_ARCH}"-*.build
       exit 1
+    fi
+    if [ -n '$[[ inputs.linux_branch ]]' ]; then
+      echo 'LINUX_BRANCH: $[[ inputs.linux_branch ]]'
     fi
     echo "BASESUITE: $[[ inputs.basesuite ]]"
     echo "OURSUITE: $[[ inputs.oursuite ]]"
