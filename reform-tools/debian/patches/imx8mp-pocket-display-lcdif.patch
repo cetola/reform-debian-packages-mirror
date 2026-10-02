@@ -1,0 +1,18 @@
+commit 8a2eb3d5383bb39e4cf3adde72e3d5f509ad8294
+Author: Lucie L. Hartmann <lucie@mntre.com>
+Date:   Fri Oct 2 18:05:18 2026 +0200
+
+    initramfs was missing imx_lcdif, leading to no LUKS display on imx8mp pocket reform
+
+diff --git a/initramfs-tools/reform.conf b/initramfs-tools/reform.conf
+index 2890a80..87a425a 100644
+--- a/initramfs-tools/reform.conf
++++ b/initramfs-tools/reform.conf
+@@ -39,6 +39,7 @@ cpufreq_dt
+ imx_bus
+ mnt_sc
+ panel-mnt-pocket-reform
++imx_lcdif
+ # quasar
+ spi_geni_qcom
+ i2c_qcom_geni
