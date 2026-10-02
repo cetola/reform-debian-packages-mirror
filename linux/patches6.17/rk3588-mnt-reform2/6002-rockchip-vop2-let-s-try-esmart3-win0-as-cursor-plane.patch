@@ -1,0 +1,25 @@
+From 96b7fc6fed630ee9389b494cdb2d2561eec96409 Mon Sep 17 00:00:00 2001
+From: "Lucie L. Hartmann" <lukas@mntre.com>
+Date: Sat, 22 Nov 2025 21:35:54 +0100
+Subject: [PATCH 2/2] rockchip-vop2: let's try esmart3-win0 as cursor plane
+
+---
+ drivers/gpu/drm/rockchip/rockchip_vop2_reg.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/rockchip/rockchip_vop2_reg.c b/drivers/gpu/drm/rockchip/rockchip_vop2_reg.c
+index 273a36d..8dc1806 100644
+--- a/drivers/gpu/drm/rockchip/rockchip_vop2_reg.c
++++ b/drivers/gpu/drm/rockchip/rockchip_vop2_reg.c
+@@ -1255,7 +1255,7 @@ static const struct vop2_win_data rk3588_vop_win_data[] = {
+ 		.base = 0x1e00,
+ 		.layer_sel_id =  { 7, 7, 7, 7 },
+ 		.supported_rotations = DRM_MODE_REFLECT_Y,
+-		.type = DRM_PLANE_TYPE_OVERLAY,
++		.type = DRM_PLANE_TYPE_CURSOR,
+ 		.axi_bus_id = 1,
+ 		.axi_yrgb_r_id = 0x0c,
+ 		.axi_uv_r_id = 0x0d,
+-- 
+2.51.0
+
