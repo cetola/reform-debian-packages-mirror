@@ -424,6 +424,7 @@ reprepro:
     - build_linux_amd64
     - build_linux_i386
     - build_qcacld
+    - build_custom
   artifacts:
     when: always
     paths:
