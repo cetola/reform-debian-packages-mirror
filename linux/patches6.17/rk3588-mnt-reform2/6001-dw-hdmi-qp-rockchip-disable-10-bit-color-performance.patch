@@ -1,0 +1,26 @@
+From af4986709fc06fba7a89463e9973af0ba5ad99f5 Mon Sep 17 00:00:00 2001
+From: "Lucie L. Hartmann" <lukas@mntre.com>
+Date: Sat, 22 Nov 2025 21:31:50 +0100
+Subject: [PATCH 1/2] dw-hdmi-qp-rockchip: disable 10-bit color (performance
+ testing)
+
+---
+ drivers/gpu/drm/rockchip/dw_hdmi_qp-rockchip.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/rockchip/dw_hdmi_qp-rockchip.c b/drivers/gpu/drm/rockchip/dw_hdmi_qp-rockchip.c
+index 421a364..bee784b 100644
+--- a/drivers/gpu/drm/rockchip/dw_hdmi_qp-rockchip.c
++++ b/drivers/gpu/drm/rockchip/dw_hdmi_qp-rockchip.c
+@@ -744,7 +744,7 @@ static int dw_hdmi_qp_rockchip_bind(struct device *dev, struct device *master,
+ 	plat_data.phy_data = hdmi;
+ 	plat_data.supported_formats = BIT(HDMI_COLORSPACE_RGB) |
+ 				      BIT(HDMI_COLORSPACE_YUV420);
+-	plat_data.max_bpc = 10;
++	plat_data.max_bpc = 8;
+ 
+ 	encoder = &hdmi->encoder.encoder;
+ 	encoder->possible_crtcs = drm_of_find_possible_crtcs(drm, dev->of_node);
+-- 
+2.51.0
+
