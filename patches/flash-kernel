@@ -126,7 +126,7 @@ index 1bacc51..765fe45 100644
  Boot-Script-Path: /boot/boot.scr
 EOF
 
-if dpkg --compare-versions "$(dpkg-parsechangelog --show-field=Version)" ge 3.110; then
+if dpkg --compare-versions "$(dpkg-parsechangelog --show-field=Version)" ge "3.110~"; then
   # the function get_kernel_status only got introduced in flash-kernel 3.110
   patch -p1 << 'EOF'
 From f16ea8a3b49c0e0f1e2177892baa7c65bdc6216f Mon Sep 17 00:00:00 2001
