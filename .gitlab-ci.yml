@@ -165,6 +165,29 @@ build_patched_amd64:
       - changes-amd64
       - buildlogs
 
+build_custom:
+  stage: build
+  variables:
+    BUILD_ARCH: arm64
+    HOST_ARCH: arm64
+  #when: manual
+  extends: .setup
+  tags:
+    - arm64
+  artifacts:
+    when: always
+    paths:
+      - output.log
+      - changes-custom
+      - buildlogs
+      - firmware*.deb
+  script: |
+    runuser -u build -- sh -x ./build_custom.sh 2>&1 | ./filter-output
+    mv changes changes-custom
+  after_script: |
+    echo "BASESUITE: $BASESUITE"
+    echo "OURSUITE: $OURSUITE"
+
 .build_linux:
   stage: build
   #when: manual
@@ -401,6 +424,7 @@ reprepro:
     - build_linux_amd64
     - build_linux_i386
     - build_qcacld
+    - build_custom
   artifacts:
     when: always
     paths:
