@@ -1,0 +1,41 @@
+From 0acdea92573496f90794c5fe6e5a694640bdc3f7 Mon Sep 17 00:00:00 2001
+From: Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
+Date: Wed, 21 Oct 2026 10:10:05 +0200
+Subject: [PATCH] schemas/20_reform.gschema.override: Remove
+ xwayland-native-scaling from experimental-features in org.gnome.mutter:GNOME
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Since version 50.0 or commit 74965cdb047df0f2159d53cb12770949924c60e9
+xwayland-native-scaling is no longer considered an experimental feature.
+
+Otherwise this fails:
+
+$ glib-compile-schemas --dry-run --strict /usr/share/glib-2.0/schemas/'
+No such key “experimental-features” in schema “org.gnome.mutter:GNOME” as specified in override file “/usr/share/glib-2.0/schemas/20_reform.gschema.override” and --strict was specified; exiting.
+
+Link: https://gitlab.gnome.org/GNOME/mutter/-/merge_requests/4877
+---
+ schemas/20_reform.gschema.override | 5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/schemas/20_reform.gschema.override b/schemas/20_reform.gschema.override
+index db7cf98..7c162d5 100644
+--- a/schemas/20_reform.gschema.override
++++ b/schemas/20_reform.gschema.override
+@@ -43,11 +43,6 @@ xkb-options = ['compose:rctrl', 'lv3:ralt_switch']
+ [org.gnome.mutter.wayland.keybindings]
+ restore-shortcuts = @as []
+ 
+-# Fractional scaling reduces the rendering performance.
+-# Remove 'scale-monitor-framebuffer' from the list.
+-[org.gnome.mutter:GNOME]
+-experimental-features=['xwayland-native-scaling']
+-
+ # Don't attach modal windows, it's annoying when some windows can't be moved individually
+ [org.gnome.mutter]
+ attach-modal-dialogs = false
+-- 
+2.55.0
+
