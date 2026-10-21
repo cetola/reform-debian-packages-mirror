@@ -1,3 +1,4 @@
 pocket-brightness.patch
 177.patch
 imx8mp-pocket-display-lcdif.patch
+0001-schemas-20_reform.gschema.override-Remove-xwayland-n.patch
