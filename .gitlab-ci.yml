@@ -15,6 +15,9 @@ spec:
     linux_branch:
       description: "Branch of linux stable git repository. Auto-picked if empty."
       default: ""
+    linux_clone_depth:
+      description: "Number of commits for shallow linux git clone"
+      default: 120
 ---
 
 image: debian:unstable-slim

@@ -118,10 +118,13 @@ fi
 # should be a sign that things need to be upstreamed ASAP....
 # Why start with 130? Because we have 110 patches for v6.12.63 and sigrid's
 # rk3588 aports has 120 patches and then some room above that for good measure.
+if [ -z "${LINUX_CLONE_DEPTH:-}" ]; then
+	LINUX_CLONE_DEPTH="120"
+fi
 if [ -z "${LINUX_BRANCH:-}" ]; then
 	LINUX_BRANCH="mnt-v$PVER"
 fi
-git clone --branch "$LINUX_BRANCH" --single-branch --depth 130 "$LINUX_STABLE_GIT" ./linux-stable.git
+git clone --branch "$LINUX_BRANCH" --single-branch --depth "$LINUX_CLONE_DEPTH" "$LINUX_STABLE_GIT" ./linux-stable.git
 
 # Make sure that the current branch of the linux-stable git repository (might
 # be a custom branch specified by $LINUX_BRANCH) contains the desired version
