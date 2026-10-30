@@ -186,6 +186,12 @@ build_patched_amd64:
       export LINUX_BRANCH
       echo 'LINUX_BRANCH: $LINUX_BRANCH' >&2
     fi
+    LINUX_CLONE_DEPTH='$[[ inputs.linux_clone_depth ]]'
+    case "$LINUX_CLONE_DEPTH" in *[!0123456789]* | 0?* | "")
+      echo "inputs.linux_clone_depth must be numeric" >&2
+      exit 1
+    esac
+    export LINUX_CLONE_DEPTH
     # gitlab has pipefail turned on by default, so the below will fail if
     # build.sh fails despite the command being piped to filter-output.
     runuser -u build -- sh -xc '. ./common.sh; cd linux; . ./build.sh' 2>&1 | ./filter-output
