@@ -277,7 +277,6 @@ Depends:
  ${misc:Depends},
 Recommends:
  flash-kernel,
- reform-qcacld2,
 Suggests:
  firmware-atheros,
  firmware-iwlwifi,
