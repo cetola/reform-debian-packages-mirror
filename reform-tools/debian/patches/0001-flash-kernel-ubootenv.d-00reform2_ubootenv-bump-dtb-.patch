@@ -1,0 +1,67 @@
+From 752ebc81e53865dc6b5f04ef8fa66957d3e0ec8e Mon Sep 17 00:00:00 2001
+From: Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
+Date: Fri, 13 Nov 2026 01:58:29 +0100
+Subject: [PATCH] flash-kernel/ubootenv.d/00reform2_ubootenv: bump dtb and
+ initrd offsets by 4 MiB
+
+Starting with kernel 7.3, the image became so large that given the
+chosen offsets of
+
+${kernel_addr_r}  = 0x40480000
+${fdt_addr_r}     = 0x43000000
+${ramdisk_addr_r} = 0x43800000
+
+and after the kernel was relocated to the next 2 MiB boundary (see
+booti_setup() in arch/arm/lib/image.c) from 0x40480000 to 0x40600000 it
+ended at 43160000 thus overwriting the dtb
+
+We bump the offsets of dtb and initrd by another 4 MiB. Medium-term this
+should be fixed with a new version of u-boot but because flashing u-boot
+on imx8mp is dangerous, probably only few will upgrade.
+
+While we are at it, we also shift the initial kernel load location to a
+2 MiB boundary to avoid the image from being moved in memory to a 2 MiB
+offset later.
+
+Link: https://community.mnt.re/t/no-boot-after-sudo-apt-update-sudo-apt-full-upgrade/4730
+https://source.mnt.re/reform/reform-imx8mp-uboot/-/merge_requests/11
+---
+ flash-kernel/ubootenv.d/00reform2_ubootenv | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+diff --git a/flash-kernel/ubootenv.d/00reform2_ubootenv b/flash-kernel/ubootenv.d/00reform2_ubootenv
+index 2f35396..f3e0990 100644
+--- a/flash-kernel/ubootenv.d/00reform2_ubootenv
++++ b/flash-kernel/ubootenv.d/00reform2_ubootenv
+@@ -25,6 +25,28 @@ elif test "${board}" = "u200"; then
+   setenv bootargs "${bootargs} console=ttyAML0,115200 pci=pcie_bus_perf libata.force=noncq nvme_core.default_ps_max_latency_us=0"
+ elif test "${board}" = "ls1028a"; then
+   setenv bootargs "${bootargs} console=ttyS0,115200 cma=512M@3G iommu.passthrough=1 arm-smmu.disable_bypass=0"
++elif test "${board}" = "nitrogen8mp"; then
++  # Fix up destination addresses for kernel, dtb and initrd on imx8m+
++  # Updating u-boot on imx8m+ is risky because recovery is complicated if
++  # something fails. Thus, many users will (for good reason) never update their
++  # original u-boot on eMMC.
++  # We perform fix-ups of the hardcoded loading addresess here. The default
++  # offsets are:
++  # ${kernel_addr_r}  = 0x40480000
++  # ${fdt_addr_r}     = 0x43000000
++  # ${ramdisk_addr_r} = 0x43800000
++
++  # Avoid moving the kernel in RAM to the next 2 MiB boundary on every boot by
++  # placing it at a 2 MiB offset from the beginning.
++  setenv kernel_addr_r "0x40600000"
++
++  # Starting with kernel 7.3, the image became so large that given the chosen
++  # default offsets are not large enough anymore after the kernel was relocated
++  # to the next 2 MiB boundary from from 0x40480000 to 0x40600000 it ended at
++  # 0x43160000 thus overwriting the dtb.
++  # We bump the offsets of dtb and initrd by another 4 MiB
++  setenv fdt_addr_r "0x43400000"
++  setenv ramdisk_addr_r "0x43c00000"
+ fi
+ 
+ # console=tty1 needs to go at the end of the kernel cmdline because the luks
+-- 
+2.55.0
+
