@@ -245,6 +245,162 @@ build_patched_amd64:
         exit 1
       fi
     done
+    # check if the produced vmlinuz, initrd and dtb are small enough to fit
+    # the u-boot memory loading address spaces for each SoM
+    #
+    # imx8mq
+    # ======
+    #
+    # ${kernel_addr_r}  = 0x40480000
+    # ${ramdisk_addr_r} = 0x44000000
+    # ${fdt_addr_r}     = 0x50000000
+    #
+    # max kernel:  62390272 b == 59.5 MiB
+    # max initrd: 201326592 b == 192.0 MiB
+    #
+    # imx8m+
+    # ======
+    #
+    # The original offsets are:
+    # ${kernel_addr_r}  = 0x40480000
+    # ${fdt_addr_r}     = 0x43000000
+    # ${ramdisk_addr_r} = 0x43800000
+    #
+    # Additionally, u-boot moves the kernel during boot:
+    # Moving Image from 0x40480000 to 0x40600000
+    #
+    # These get fixed in flash-kernel/ubootenv.d/00reform2_ubootenv to:
+    # ${kernel_addr_r}  = 0x40600000
+    # ${fdt_addr_r}     = 0x43400000
+    # ${ramdisk_addr_r} = 0x43c00000
+    #
+    # max kernel:  48234496 b == 46.0 MiB
+    # max dtb:      8388608 b == 8.0 MiB
+    #
+    # a311d
+    # =====
+    #
+    # Moves the kernel just as imx8m+ does but does so *after* loading the
+    # dtb, so the original kernel offset limits its size
+    #
+    # ${fdt_addr_r}     = 0x08008000
+    # ${kernel_addr_r}  = 0x08080000
+    # ${ramdisk_addr_r} = 0x13000000
+    # Moving Image from 0x08080000 to 0x08200000
+    #
+    # max dtb:       491520 b == 0.46875 MiB
+    # max kernel: 184025088 b == 175.5 MiB
+    #
+    # ls1028a
+    # =======
+    #
+    # ${kernel_addr_r}  = 0x81000000
+    # ${fdt_addr_r}     = 0x90000000
+    # ${ramdisk_addr_r} = 0xa0000000
+    #
+    # max kernel: 251658240 b == 240.0 MiB
+    # max dtb:    268435456 b == 256.0 MiB
+    #
+    # rk3588
+    # ======
+    #
+    # ${kernel_addr_r}  = 0x02000000
+    # ${fdt_addr_r}     = 0x12000000
+    # ${ramdisk_addr_r} = 0x12180000
+    #
+    # max kernel: 268435456 b == 256.0 MiB
+    # max dtb:      1572864 b == 1.5 MiB
+    #
+    # overall
+    # =======
+    #
+    # max kernel: 46.0 MiB (imx8m+)
+    # max initrd: 192.0 MiB (imx8mq)
+    # max dtb:    1.5 MiB (rk3588)
+    #
+    # Technically, maximum dtb size is platform dependent, but even the largest
+    # of our dtbs does not exceed 0.18 MiB and the largest of all dtbs shipped
+    # by Debian is 0.218 MiB we just make sure that *all* of them are below
+    # 1.5 MiB.
+    #
+    # We cannot check initrd size here but its current size (40 MiB) is far
+    # below the lowest maximum of 192.0 MiB.
+    #
+    # since kernel 6.19, dtbs are in the linux-base-* package
+    found=0
+    for p in "changes-$HOST_ARCH"/linux-image-*-mnt-reform-arm64_*_arm64.deb \
+      "changes-$HOST_ARCH"/linux-base-*-mnt-reform-arm64_*_arm64.deb; do
+      [ -e "$p" ] || continue
+      # try to remove prefix from either linux-image-* or linux-base-*
+      kver=${p##changes-arm64/linux-image-}
+      kver=${p##changes-arm64/linux-base-}
+      kver=${kver%%_*}
+      echo "kver: $kver" >&2
+      largestdtb=$(dpkg-deb --fsys-tarfile "$p" \
+        | tar tv \
+        | sed -ne 's#^-rw-r--r-- root/root[ ]\+\([0-9]\+\) [0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\} [0-9]\{2\}:[0-9]\{2\} ./usr/lib/modules/'"$kver"'/dtb/\([^ ]\+\.dtb\)$#\1 \2#p' \
+        | sort -n \
+        | tail -1)
+      # if package didn't contain dtbs, continue and try the other
+      if [ -z "$largestdtb" ]; then
+        echo "W: unable to find dtbs in $p" >&2
+        continue;
+      fi
+      echo "largestdtb: $largestdtb" >&2
+      size=${largestdtb%% *}
+      name=${largestdtb##* }
+      case "$size" in *[!0123456789]* | 0?* | "")
+        echo "E: invalid size: $size" >&2
+        exit 1
+        ;;
+      esac
+      # maximum dtb size is 1572864 (rk3588)
+      if [ "$size" -gt 1572864 ]; then
+        echo "E: dtb too large: $name" >&2
+        exit 1
+      fi
+      found=1
+      break
+    done
+    if [ "$found" -eq 0 ]; then
+      echo "E: failed to check for largest dtb" >&2
+      exit 1
+    else
+      echo "I: dtb sizes okay" >&2
+    fi
+    # since kernel 7.2, vmlinuz is in the linux-binary-* package
+    # linux-binary-${kver}: /usr/lib/modules/${kver}/vmlinuz
+    found=0
+    for p in "changes-$HOST_ARCH"/linux-image-*-mnt-reform-arm64_*_arm64.deb \
+      "changes-$HOST_ARCH"/linux-binary-*-mnt-reform-arm64_*_arm64.deb; do
+      [ -e "$p" ] || continue
+      # ignore the exit code of tar when it does not find vmlinuz
+      size=$(dpkg-deb --fsys-tarfile "$p" \
+        | { \
+          tar --to-stdout --extract --wildcards "*/vmlinuz" || : ; \
+      } | wc -c)
+      if [ "$size" -eq 0 ]; then
+        echo "W: vmlinuz is not in $p" >&2
+        continue
+      fi
+      if [ "$size" -lt "$((1024*1024*32))" ]; then
+        echo "E: vmlinuz is unexpectedly small: $size" >&2
+        exit 1
+      fi
+      # maximum kernel size is 48234496 (imx8m+)
+      if [ "$size" -gt 48234496 ]; then
+        echo "E: vmlinuz is too large: $size" >&2
+        exit 1
+      fi
+      found=1
+      break
+    done
+    if [ "$found" -eq 0 ]; then
+      echo "E: failed to check for size of vmlinuz" >&2
+      exit 1
+    else
+      echo "I: vmlinuz size okay" >&2
+    fi
 
   after_script: |
     if [ $CI_JOB_STATUS != 'success' ]; then
