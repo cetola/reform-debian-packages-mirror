@@ -1,17 +1,17 @@
-From 752ebc81e53865dc6b5f04ef8fa66957d3e0ec8e Mon Sep 17 00:00:00 2001
+From dfa2460cdd84a02499c45fbbe04c2ec7c9816f80 Mon Sep 17 00:00:00 2001
 From: Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
 Date: Fri, 13 Nov 2026 01:58:29 +0100
 Subject: [PATCH] flash-kernel/ubootenv.d/00reform2_ubootenv: bump dtb and
  initrd offsets by 4 MiB
 
 Starting with kernel 7.3, the image became so large that given the
-chosen offsets of
+chosen intial offsets are no longer sufficient:
 
 ${kernel_addr_r}  = 0x40480000
 ${fdt_addr_r}     = 0x43000000
 ${ramdisk_addr_r} = 0x43800000
 
-and after the kernel was relocated to the next 2 MiB boundary (see
+After the kernel was relocated to the next 2 MiB boundary (see
 booti_setup() in arch/arm/lib/image.c) from 0x40480000 to 0x40600000 it
 ended at 43160000 thus overwriting the dtb
 
@@ -23,21 +23,33 @@ While we are at it, we also shift the initial kernel load location to a
 2 MiB boundary to avoid the image from being moved in memory to a 2 MiB
 offset later.
 
+Also reset the ${bootargs} if the existing offset was the old one
+because in that case extlinux probably failed to boot the system and
+since u-boot remembers the kernel cmdline set by the last extlinux entry
+it will contain 'single'.
+
 Link: https://community.mnt.re/t/no-boot-after-sudo-apt-update-sudo-apt-full-upgrade/4730
-https://source.mnt.re/reform/reform-imx8mp-uboot/-/merge_requests/11
+Link: https://source.mnt.re/reform/reform-imx8mp-uboot/-/merge_requests/11
 ---
- flash-kernel/ubootenv.d/00reform2_ubootenv | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ flash-kernel/ubootenv.d/00reform2_ubootenv | 29 ++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
 diff --git a/flash-kernel/ubootenv.d/00reform2_ubootenv b/flash-kernel/ubootenv.d/00reform2_ubootenv
-index 2f35396..f3e0990 100644
+index 2f35396..01f7716 100644
 --- a/flash-kernel/ubootenv.d/00reform2_ubootenv
 +++ b/flash-kernel/ubootenv.d/00reform2_ubootenv
-@@ -25,6 +25,28 @@ elif test "${board}" = "u200"; then
+@@ -25,6 +25,35 @@ elif test "${board}" = "u200"; then
    setenv bootargs "${bootargs} console=ttyAML0,115200 pci=pcie_bus_perf libata.force=noncq nvme_core.default_ps_max_latency_us=0"
  elif test "${board}" = "ls1028a"; then
    setenv bootargs "${bootargs} console=ttyS0,115200 cma=512M@3G iommu.passthrough=1 arm-smmu.disable_bypass=0"
 +elif test "${board}" = "nitrogen8mp"; then
++  # If fdt_addr_r was the old offset, then extlinux probably failed to load the
++  # kernel but u-boot remembers the kernel cmdline of the last entry and that
++  # one was the rescue option which contains the term "single". Reset bootargs.
++  if test "${fdt_addr_r}" = "0x43000000"; then
++    setenv bootargs "ro no_console_suspend pci=pcie_bus_perf cryptomgr.notests plymouth.ignore-serial-consoles pcie_aspm=off fbcon=font:TER16x32 nvme_core.default_ps_max_latency_us=0 cma=256MB console=ttymxc1"
++  fi
++
 +  # Fix up destination addresses for kernel, dtb and initrd on imx8m+
 +  # Updating u-boot on imx8m+ is risky because recovery is complicated if
 +  # something fails. Thus, many users will (for good reason) never update their
