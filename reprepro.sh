@@ -21,7 +21,15 @@ for ARCH in arm64 armhf i386 amd64; do
 	done
 done
 
-# include binary out-of-tree driver modules
+cat << END > reform-qcacld2/debian/changelog
+reform-qcacld2 ($(date --utc --date="@$SOURCE_DATE_EPOCH" +"%Y%m%dT%H%M%SZ")) $OURSUITE; urgency=medium
+
+  * Initial release.
+
+ -- robot <reform@reform.repo>  $(date --utc --date="@$SOURCE_DATE_EPOCH" -R)
+END
+env --chdir=reform-qcacld2 dpkg-buildpackage -us -uc
+
 for c in reform-qcacld2_*_arm64.changes; do
 	echo "including $c..." >&2
 	reprepro include "$OURSUITE" "$c"

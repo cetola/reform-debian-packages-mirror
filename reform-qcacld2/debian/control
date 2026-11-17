@@ -1,0 +1,25 @@
+Source: reform-qcacld2
+Priority: optional
+Maintainer: robot <reform@reform.repo>
+Section: non-free/kernel
+Build-Depends: debhelper-compat (= 14), dh-sequence-single-binary
+Standards-Version: 4.7.0
+
+# this is arch:any because of #1134628
+Package: reform-qcacld2
+Architecture: any
+Description: Remaining parts of the out-of-tree driver for QCA9733 wifi
+ The QCA9733 is contained in i.MX8MP module for MNT Reform/Pocket Reform.
+ .
+ Since kernel version 7.3, ath10k_sdio works with qca9377 wifi in the Pocket
+ Reform, making the qcacld2 dkms driver obsolete.
+ .
+ This package exists to ensure that /etc/modprobe.d/reform-qcacld2.conf and
+ /etc/kernel/postinst.d/zz-reform-qcacld2 are getting removed. The former used
+ to blacklist ath10k_sdio but that is already done by
+ /usr/lib/modprobe.d/reform.conf shipped by reform-tools. The latter used force
+ an installation of the latest reform-qcacld2 package on every kernel
+ installation via a kernel postinstallation hook.
+ .
+ This package also ships the required firmware blobs to make sure that qcacld2
+ for kernel versions before 7.3 can still function correctly.

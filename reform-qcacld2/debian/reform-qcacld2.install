@@ -1,0 +1,5 @@
+bdwlan30.bin usr/lib/firmware/qcacld2
+cfg.dat      usr/lib/firmware/wlan/qcacld2
+otp30.bin    usr/lib/firmware/qcacld2
+qcom_cfg.ini usr/lib/firmware/wlan/qcacld2
+qwlan30.bin  usr/lib/firmware/qcacld2
