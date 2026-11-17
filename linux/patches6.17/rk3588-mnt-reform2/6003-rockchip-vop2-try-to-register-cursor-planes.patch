@@ -1,0 +1,26 @@
+From 1db9473bd7b88db7c06e35b4c5ef84165645b725 Mon Sep 17 00:00:00 2001
+From: "Lucie L. Hartmann" <lukas@mntre.com>
+Date: Sat, 22 Nov 2025 23:16:28 +0100
+Subject: [PATCH] rockchip-vop2: try to register cursor planes
+
+---
+ drivers/gpu/drm/rockchip/rockchip_drm_vop2.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c b/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
+index 04497f5..3c6022d 100644
+--- a/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
++++ b/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
+@@ -2508,7 +2508,8 @@ static int vop2_create_crtcs(struct vop2 *vop2)
+ 		if (vop2_is_mirror_win(win))
+ 			continue;
+ 
+-		win->type = DRM_PLANE_TYPE_OVERLAY;
++		if (win->type != DRM_PLANE_TYPE_CURSOR)
++			win->type = DRM_PLANE_TYPE_OVERLAY;
+ 
+ 		possible_crtcs = 0;
+ 		nvp = 0;
+-- 
+2.51.0
+
