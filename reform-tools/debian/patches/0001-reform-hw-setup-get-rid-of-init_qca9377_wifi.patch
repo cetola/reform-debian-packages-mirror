@@ -1,0 +1,125 @@
+From 24622fdbe965cc44c4d81f60a6b33158653c4127 Mon Sep 17 00:00:00 2001
+From: "Lucie L. Hartmann" <lucie@mntre.com>
+Date: Fri, 13 Nov 2026 14:54:25 +0100
+Subject: [PATCH] reform-hw-setup: get rid of init_qca9377_wifi
+
+modprobe.d: allow ath10k_sdio driver for imx8mp wifi
+
+Revert "modprobe.d: allow ath10k_sdio driver for imx8mp wifi"
+
+This reverts commit c765d6eb5d6796d03e3db8d5033e2407cb081c41.
+
+Not blacklisting ath10k_sdio means that everybody upgrading to this
+version of reform-tools also has to run a new-enough kernel or otherwise
+the non-working old ath10k_sdio driver will be used. We cannot enforce
+with which kernel the user is booting. Even if the latest kernel is
+installed, users can choose to boot with an old kernel or (especially on
+imx8m+) have the old kernel booting because they have multiple kernels
+listed in extlinux.conf and only the old kernel is small enough to fit
+in the limited space given by the memory loading offsets.
+
+New plan: keep ath10k_sdio blacklisted for a while longer and manually
+load ath10k_sdio in reform-hw-setup if the currently running kernel is
+new enough.
+
+Revert "reform-hw-setup: get rid of init_qca9377_wifi"
+
+This partially reverts commit f8b9300cba6e1f47e9316072a051d7256950e654.
+It keeps the change of copyright years and names of reform-hw-setup.
+
+If the kernel is new enough, attempt load ath10k_sdio for wifi.
+Otherwise, fall back to qcacld2.
+
+reform-check/distro/debian.sh: warn about the situation on imx8m+ and kernel 7.3
+---
+ bin/reform-hw-setup           | 19 +++++++++++++++++--
+ reform-check/distro/debian.sh | 30 ++++++++++++++++++++++++++++--
+ 2 files changed, 45 insertions(+), 4 deletions(-)
+
+diff --git a/bin/reform-hw-setup b/bin/reform-hw-setup
+index 40a99ce..57f3209 100755
+--- a/bin/reform-hw-setup
++++ b/bin/reform-hw-setup
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ # SPDX-License-Identifier: GPL-3.0+
+-# Copyright 2021-2024 Lukas F. Hartmann <lukas@mntre.com>
+-# Copyright 2022-2025 Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
++# Copyright 2021-2026 Lucie Hartmann <lucie@mntre.com>
++# Copyright 2022-2026 Johannes Schauer Marin Rodrigues <josch@mister-muffin.de>
+ 
+ set -eu
+ 
+@@ -92,6 +92,21 @@ init_tlv320aic3100() {
+ }
+ 
+ init_qca9377_wifi() {
++  # If the kernel is new enough, ath10k_sdio will work.
++  # To not load ath10k_sdio on older kernels, it is still blacklisted.
++  # Manually loading ath10k_sdio will ignore the blacklist.
++  if linux-version compare "$(uname -r)" ge 7.3.0; then
++    echo "I: Using ath10k_sdio for wifi" >&2
++    if test -e /proc/modules && grep --quiet '^qcacld2 ' /proc/modules; then
++      echo "I: Removing qcacld2 module" >&2
++      rmmod qcacld2
++    fi
++    modprobe ath10k_sdio
++    echo "I: successfully loaded ath10k_sdio" >&2
++    return 0
++  fi
++  echo "I: Using qcacld2 for wifi" >&2
++
+   if test -e /proc/modules && grep --quiet '^qcacld2 ' /proc/modules; then
+     echo "I: Module qcacld2 is already loaded" >&2
+     return 0
+diff --git a/reform-check/distro/debian.sh b/reform-check/distro/debian.sh
+index ef4144d..8478b50 100644
+--- a/reform-check/distro/debian.sh
++++ b/reform-check/distro/debian.sh
+@@ -190,7 +190,33 @@ backend_boot_tool_checks() {
+       printf '%s\n' bootscr
+       ;;
+     yesyes)
+-      echo "I: probably booting via /boot/extlinux/extlinux.conf (/boot/boot.scr also exists)" >&2
++      case "$MODEL" in
++        *" with i.MX8MP Module")
++          # On imx8m+ with old u-boot, the offsets are too small for Linux 7.3
++          # and later. Booting via extlinux.conf will fail and the system will
++          # fall back to using boot.scr where the offsets get fixed.
++          version=
++          if [ -e "/proc/device-tree/chosen/u-boot,version" ]; then
++            UBOOT_VERSION_RAW="$(read_nul_terminated_file /proc/device-tree/chosen/u-boot,version)"
++            version="$(parse_uboot_version "$UBOOT_VERSION_RAW" "$MODEL")"
++          fi
++          if dpkg --compare-versions "$version" le "2026-01-28"; then
++            if linux-version compare "$(uname -r)" ge 7.3; then
++              echo "W: Linux 7.3 and later cannot boot on imx8m+ with old u-boot" >&2
++              echo "W: Even though extlinux.conf exists, u-boot probably failed to boot with it and used boot.scr instead" >&2
++            elif tr ' ' '\n' </proc/cmdline | grep --quiet --fixed-strings --line-regexp single; then
++              echo "W: Linux 7.3 and later cannot boot on imx8m+ with old u-boot, so extlinux.conf probably booted an older kernel in rescue mode" >&2
++            else
++              echo "I: probably booting via /boot/extlinux/extlinux.conf (/boot/boot.scr also exists)" >&2
++            fi
++          else
++            echo "I: probably booting via /boot/extlinux/extlinux.conf (/boot/boot.scr also exists)" >&2
++          fi
++          ;;
++        *)
++          echo "I: probably booting via /boot/extlinux/extlinux.conf (/boot/boot.scr also exists)" >&2
++          ;;
++      esac
+       if [ "$HAVE_U_BOOT_MENU" = "no" ]; then
+         echo "W: /boot/extlinux/extlinux.conf is not managed by u-boot-menu (not installed)" >&2
+       fi
+@@ -358,7 +384,7 @@ backend_repo_checks() {
+           # Avoid contradictory guidance for the mutually exclusive i.MX8MP wifi packages.
+           case "$PKG" in ezurio-qcacld-2.0-dkms | reform-qcacld2)
+             case "$MODEL" in
+-              "MNT Pocket Reform with i.MX8MP Module" | "MNT Reform 2 with i.MX8MP Module")
++              *" with i.MX8MP Module")
+                 : # on imx8mp, inform about the absence of qcacld2
+                 ;;
+               *) continue ;; # elsewhere, don't inform about its absence
+-- 
+2.55.0
+
