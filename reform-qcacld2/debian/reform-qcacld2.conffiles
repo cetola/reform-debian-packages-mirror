@@ -1,0 +1,2 @@
+remove-on-upgrade /etc/modprobe.d/reform-qcacld2.conf
+remove-on-upgrade /etc/kernel/postinst.d/zz-reform-qcacld2

@@ -3,3 +3,4 @@ pocket-brightness.patch
 imx8mp-pocket-display-lcdif.patch
 0001-schemas-20_reform.gschema.override-Remove-xwayland-n.patch
 0001-flash-kernel-ubootenv.d-00reform2_ubootenv-bump-dtb-.patch
+0001-reform-hw-setup-get-rid-of-init_qca9377_wifi.patch
