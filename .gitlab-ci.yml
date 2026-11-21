@@ -515,42 +515,6 @@ dtbs_check:
       make CHECK_DTBS=y "$dtb"
     done
 
-build_qcacld:
-  stage: build
-  extends: .setup
-  tags:
-    - arm64
-  needs:
-    - job: build_linux_arm64
-      artifacts: true
-  script: |
-    set -exuo pipefail
-    apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
-    apt-get --yes install --no-install-recommends gcc-aarch64-linux-gnu build-essential bison flex device-tree-compiler git ca-certificates xz-utils libssl-dev bc sbuild
-
-    if [ -z ${SOURCE_DATE_EPOCH:+x} ] && git -C . rev-parse 2>/dev/null; then
-      SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)
-    else
-      : "${SOURCE_DATE_EPOCH:=$(date --utc +%s)}"
-    fi
-    export SOURCE_DATE_EPOCH
-
-    KERNEL_ABINAME=$(dpkg-deb --field changes-arm64/linux-image-*-mnt-reform-arm64_*_arm64.deb Package)
-    KERNEL_ABINAME=${KERNEL_ABINAME##linux-image-}
-
-    git clone --depth=1 --branch=binary-deb https://source.mnt.re/reform/qcacld2.git
-
-    env --chdir=qcacld2 ./createdeb.sh "$KERNEL_ABINAME" "$(pwd)"/changes-arm64/linux-source-*.deb
-
-    chown build -R .
-    runuser -u build -- env --chdir=qcacld2 sbuild --verbose --no-run-lintian --no-run-autopkgtest --extra-package "$(pwd)"/changes-arm64/linux-source-*.deb --extra-package "$(pwd)"/changes-arm64/linux-config-*.deb --no-clean-source
-  artifacts:
-    when: always
-    paths:
-      - "reform-qcacld2*.deb"
-      - "*.buildinfo"
-      - "*.changes"
-
 reprepro:
   stage: reprepro
   extends: .setup
@@ -565,7 +529,6 @@ reprepro:
     - build_linux_armhf
     - build_linux_amd64
     - build_linux_i386
-    - build_qcacld
   artifacts:
     when: always
     paths:

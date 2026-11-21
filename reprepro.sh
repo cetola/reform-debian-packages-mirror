@@ -21,19 +21,13 @@ for ARCH in arm64 armhf i386 amd64; do
 	done
 done
 
-# include binary out-of-tree driver modules
-for c in reform-qcacld2_*_arm64.changes; do
-	echo "including $c..." >&2
-	reprepro include "$OURSUITE" "$c"
-done
-
 reprepro includedsc "$OURSUITE" "changes-arm64/linux.dsc"
 
 for p in $(reprepro --list-format '${source}\n' -T deb list "$OURSUITE" | sed 's/^\([^ (]\+\).*/\1/' | sort -u); do
-	# source packages built by linux/build.sh or qcacld2 must not get
+	# source packages built by linux/build.sh must not get
 	# removed, even if there is no file in ./patches
 	case $p in
-		linux|reform-qcacld2) continue;;
+		linux) continue;;
 	esac
 
 	if [ ! -e "patches/$p" ]; then
