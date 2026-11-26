@@ -543,13 +543,14 @@ fi
 
 # new toml config format since 6.7
 if dpkg --compare-versions "$KVER" ge "6.7"; then
-	flavour="arm64"
-	# in 6.8 we changed the flavourname from "arm64" to "mnt-reform-arm64"
-	if dpkg --compare-versions "$KVER" ge "6.8"; then
-		flavour="mnt-reform-arm64"
-	fi
-	mkdir -p linux/debian/config.local/arm64
-	cat <<END >>linux/debian/config.local/arm64/defines.toml
+	for arch in arm64 riscv64; do
+		flavour="$arch"
+		# in 6.8 we changed the flavourname from "$arch" to "mnt-reform-$arch"
+		if dpkg --compare-versions "$KVER" ge "6.8"; then
+			flavour="mnt-reform-$arch"
+		fi
+		mkdir -p "linux/debian/config.local/$arch"
+		cat <<END >>"linux/debian/config.local/$arch/defines.toml"
 [[flavour]]
 name = '$flavour'
 [flavour.defs]
@@ -570,6 +571,7 @@ name = '$flavour'
 [build]
 enable_signed = false
 END
+	done
 else
 	mkdir -p linux/debian/config.local/arm64/none
 	cat <<END >>linux/debian/config.local/defines
@@ -685,7 +687,9 @@ fi
 
 # add config *after* adding patches or otherwise kconfigeditor2 will throw
 # (nonfatal) warnings about config options that don't exist (yet)
-sed 's/#.*//' config >>linux/debian/config/arm64/config
+for arch in arm64 riscv64; do
+sed 's/#.*//' config >>"linux/debian/config/$arch/config"
+done
 # we don't care that ":" runs even when control-real succeeds
 # shellcheck disable=SC2015
 if dpkg --compare-versions "$KVER" ge "6.17"; then
