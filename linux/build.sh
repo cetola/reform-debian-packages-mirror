@@ -701,9 +701,13 @@ if [ "$BUILD_ARCH" != "$HOST_ARCH" ]; then
 	DEB_BUILD_PROFILES="cross $DEB_BUILD_PROFILES"
 fi
 
-if [ "$HOST_ARCH" != "arm64" ]; then
-	DEB_BUILD_PROFILES="pkg.linux.nokernel pkg.linux.nometa $DEB_BUILD_PROFILES"
-fi
+# only build meta packages on arm64
+# only build kernel on arm64 and riscv64
+case "$HOST_ARCH" in
+arm64) : ;; # nothing to do
+riscv64) DEB_BUILD_PROFILES="pkg.linux.nometa $DEB_BUILD_PROFILES" ;;
+*) DEB_BUILD_PROFILES="pkg.linux.nokernel pkg.linux.nometa $DEB_BUILD_PROFILES" ;;
+esac
 
 env --chdir=linux DEB_BUILD_PROFILES="$DEB_BUILD_PROFILES" \
 	sbuild --chroot="$BASESUITE-$BUILD_ARCH" --arch-any --build="$BUILD_ARCH" --host="$HOST_ARCH" \
