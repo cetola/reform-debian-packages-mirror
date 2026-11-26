@@ -713,10 +713,17 @@ riscv64) DEB_BUILD_PROFILES="pkg.linux.nometa $DEB_BUILD_PROFILES" ;;
 *) DEB_BUILD_PROFILES="pkg.linux.nokernel pkg.linux.nometa $DEB_BUILD_PROFILES" ;;
 esac
 
-env --chdir=linux DEB_BUILD_PROFILES="$DEB_BUILD_PROFILES" \
-	sbuild --chroot="$BASESUITE-$BUILD_ARCH" --arch-any --build="$BUILD_ARCH" --host="$HOST_ARCH" \
-	"$([ "$HOST_ARCH" = "arm64" ] && echo --arch-all || echo --no-arch-all)" \
+set -- \
+	--chroot="$BASESUITE-$BUILD_ARCH" --arch-any --build="$BUILD_ARCH" --host="$HOST_ARCH" \
 	--verbose --clean-source --no-source-only-changes --no-run-lintian --no-run-autopkgtest
+
+if [ "$HOST_ARCH" = "arm64" ]; then
+	set -- "$@" --arch-all
+else
+	set -- "$@" --no-arch-all
+fi
+
+env --chdir=linux DEB_BUILD_PROFILES="$DEB_BUILD_PROFILES" sbuild "$@"
 
 mv "./linux_$(dpkg-parsechangelog --show-field Version --file linux/debian/changelog)_$HOST_ARCH.changes" "./linux.changes"
 dcmd mv "./linux.changes" "$ROOTDIR/changes"
