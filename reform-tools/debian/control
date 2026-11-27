@@ -17,8 +17,8 @@ Build-Depends:
  libudev-dev,
  libxkbcommon-dev,
  pkgconf,
- python3-psutil,
- python3-usb1,
+ python3-psutil:native,
+ python3-usb1:native,
 Vcs-Git: https://salsa.debian.org/reform-team/reform-tools.git
 Vcs-Browser: https://salsa.debian.org/reform-team/reform-tools
 Rules-Requires-Root: no

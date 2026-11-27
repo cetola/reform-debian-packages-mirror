@@ -1,0 +1,22 @@
+#!/usr/bin/make -f
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+# for debian/reform-tools.install and for dkms
+include /usr/share/dpkg/pkg-info.mk
+export DEB_VERSION_UPSTREAM
+
+# for pkgconf --exists as called by upstream's Makefile
+include /usr/share/dpkg/architecture.mk
+export PKG_CONFIG_PATH=/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig
+
+%:
+	dh $@
+
+override_dh_installsystemd:
+	dh_installsystemd --package=reform-tools --name=reform-hw-setup
+	dh_installsystemd --package=reform-tools --name=reform-power-daemon
+	dh_installsystemd --package=reform-tools --no-stop-on-upgrade --no-start --name=reform-sleep
+
+override_dh_dkms:
+	dh_dkms -V $(DEB_VERSION_UPSTREAM)
