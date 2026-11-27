@@ -57,7 +57,7 @@ stages:
     chown build -R .
     rm -rvf changes buildlogs chdist repo chroot-*.tar
     runuser -u build -- sh -x ./setup.sh
-    runuser -u build -- sed -i 's/^Architectures: .*/Architectures: source arm64 armhf i386 amd64/' ./repo/conf/distributions
+    runuser -u build -- sed -i 's/^Architectures: .*/Architectures: source arm64 armhf i386 amd64 riscv64/' ./repo/conf/distributions
     runuser -u build -- reprepro --basedir ./repo export
     apt-get update -o Acquire::AllowReleaseInfoChange=true -o quiet::ReleaseInfoChange=true
     runuser -u build -- sh -c 'mkdir -p ~/.config/sbuild'
@@ -166,6 +166,22 @@ build_patched_amd64:
     paths:
       - output.log
       - changes-amd64
+      - buildlogs
+
+build_patched_riscv64:
+#  rules:
+#    - if: $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_REF_NAME == "main"
+  variables:
+    BUILD_ARCH: arm64
+    HOST_ARCH: riscv64
+  extends: .build_patched
+  tags:
+    - arm64
+  artifacts:
+    when: always
+    paths:
+      - output.log
+      - changes-riscv64
       - buildlogs
 
 .build_linux:
@@ -482,6 +498,22 @@ build_linux_amd64:
       - changes-amd64
       - linux/linux_*_amd64-*.build
 
+build_linux_riscv64:
+#  rules:
+#    - if: $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_REF_NAME == "main"
+  variables:
+    BUILD_ARCH: arm64
+    HOST_ARCH: riscv64
+  extends: .build_linux
+  tags:
+    - arm64
+  artifacts:
+    when: always
+    paths:
+      - output.log
+      - changes-riscv64
+      - linux/linux_*_riscv64-*.build
+
 dtbs_check:
   stage: build
   tags:
@@ -561,10 +593,12 @@ reprepro:
     - build_patched_armhf
     - build_patched_amd64
     - build_patched_i386
+    - build_patched_riscv64
     - build_linux_arm64
     - build_linux_armhf
     - build_linux_amd64
     - build_linux_i386
+    - build_linux_riscv64
     - build_qcacld
   artifacts:
     when: always
